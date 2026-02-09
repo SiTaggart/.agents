@@ -1,39 +1,37 @@
-# Devbench Plugin
+# .agents
 
-AI-powered development tools that get smarter with every use. Make each unit of engineering work easier than the last.
+Shared AI agent configuration synced across projects. Contains agents, commands, skills, rules, and hooks that extend AI coding assistants.
 
 ## Components
 
-| Component   | Count |
-| ----------- | ----- |
-| Agents      | 25    |
-| Commands    | 22    |
-| Skills      | 20    |
-| MCP Servers | 1     |
+| Component  | Count |
+| ---------- | ----- |
+| Agents     | 31    |
+| Commands   | 20    |
+| Skills     | 36    |
+| Rules      | 2     |
+| Hooks      | 1     |
 
 ## Agents
 
-Agents are organized into categories for easier discovery.
-
-### Review (14)
+### Review (12)
 
 | Agent                            | Description                                                     |
 | -------------------------------- | --------------------------------------------------------------- |
-| `agent-native-reviewer`          | Verify features are agent-native (action + context parity)      |
 | `architecture-strategist`        | Analyze architectural decisions and compliance                  |
 | `code-simplicity-reviewer`       | Final pass for simplicity and minimalism                        |
 | `data-integrity-guardian`        | Database migrations and data integrity                          |
 | `data-migration-expert`          | Validate ID mappings match production, check for swapped values |
-| `deployment-verification-agent`  | Create Go/No-Go deployment checklists for risky data changes    |
+| `julik-frontend-races-reviewer`  | Review JavaScript/Stimulus code for race conditions             |
 | `kieran-rails-reviewer`          | Rails code review with strict conventions                       |
 | `kieran-python-reviewer`         | Python code review with strict conventions                      |
 | `kieran-typescript-reviewer`     | TypeScript code review with strict conventions                  |
 | `pattern-recognition-specialist` | Analyze code for patterns and anti-patterns                     |
 | `performance-oracle`             | Performance analysis and optimization                           |
 | `security-sentinel`              | Security audits and vulnerability assessments                   |
-| `julik-frontend-races-reviewer`  | Review JavaScript/Stimulus code for race conditions             |
+| `design-implementation-reviewer` | Verify UI implementations match Figma designs                   |
 
-### Research (4)
+### Research (5)
 
 | Agent                       | Description                                         |
 | --------------------------- | --------------------------------------------------- |
@@ -41,197 +39,151 @@ Agents are organized into categories for easier discovery.
 | `framework-docs-researcher` | Research framework documentation and best practices |
 | `git-history-analyzer`      | Analyze git history and code evolution              |
 | `repo-research-analyst`     | Research repository structure and conventions       |
+| `rp-explorer`               | Token-efficient codebase exploration via RepoPrompt |
 
-### Design (3)
+### Design (4)
 
 | Agent                            | Description                                                |
 | -------------------------------- | ---------------------------------------------------------- |
-| `design-implementation-reviewer` | Verify UI implementations match Figma designs              |
 | `design-iterator`                | Iteratively refine UI through systematic design iterations |
 | `figma-design-sync`              | Synchronize web implementations with Figma designs         |
+| `frontend-implementation-expert` | Implement frontend code changes in React applications      |
+| `ankane-readme-writer`           | Create READMEs following Ankane-style template             |
+
+### Development (5)
+
+| Agent                      | Description                                            |
+| -------------------------- | ------------------------------------------------------ |
+| `codebase-pattern-finder`  | Find similar implementations and patterns in codebase  |
+| `debug-specialist`         | Troubleshoot errors, test failures, unexpected behavior|
+| `documentation-specialist` | Create, update, and improve documentation              |
+| `implementation-architect` | Break down requirements into technical plans           |
+| `react-test-architect`     | Design and implement React test strategies             |
 
 ### Workflow (5)
 
-| Agent                        | Description                                               |
-| ---------------------------- | --------------------------------------------------------- |
-| `bug-reproduction-validator` | Systematically reproduce and validate bug reports         |
-| `every-style-editor`         | Edit content to conform to Every's style guide            |
-| `lint`                       | Run linting and code quality checks on Ruby and ERB files |
-| `pr-comment-resolver`        | Address PR comments and implement fixes                   |
-| `spec-flow-analyzer`         | Analyze user flows and identify gaps in specifications    |
-
-### Docs (1)
-
-| Agent                  | Description                                                  |
-| ---------------------- | ------------------------------------------------------------ |
-| `ankane-readme-writer` | Create READMEs following Ankane-style template for Ruby gems |
+| Agent                        | Description                                       |
+| ---------------------------- | ------------------------------------------------- |
+| `bug-reproduction-validator` | Reproduce and validate bug reports                |
+| `lint`                       | Run linting and code quality checks               |
+| `pr-comment-resolver`        | Address PR comments and implement fixes           |
+| `spec-flow-analyzer`         | Analyze user flows and identify gaps in specs     |
+| `task-orchestrator`          | Determine optimal delegation across sub-agents    |
 
 ## Commands
 
-### Workflow Commands
-
-Core workflow commands use `workflows:` prefix to avoid collisions with built-in commands:
+### Workflow
 
 | Command               | Description                                         |
 | --------------------- | --------------------------------------------------- |
-| `/workflows:plan`     | Create implementation plans                         |
-| `/workflows:review`   | Run comprehensive code reviews                      |
-| `/workflows:work`     | Execute work items systematically                   |
-| `/workflows:compound` | Document solved problems to compound team knowledge |
+| `/plan`               | Create implementation plans                         |
+| `/review`             | Run comprehensive multi-agent code reviews          |
+| `/work`               | Execute work items systematically                   |
+| `/compound`           | Document solved problems to compound team knowledge |
 
-### Utility Commands
+### Utilities
 
 | Command                  | Description                                                  |
 | ------------------------ | ------------------------------------------------------------ |
-| `/deepen-plan`           | Enhance plans with parallel research agents for each section |
 | `/changelog`             | Create engaging changelogs for recent merges                 |
 | `/create-agent-skill`    | Create or edit Claude Code skills                            |
+| `/deepen-plan`           | Enhance plans with parallel research agents                  |
+| `/deslop`                | Remove AI-generated code slop from current branch            |
 | `/generate_command`      | Generate new slash commands                                  |
 | `/heal-skill`            | Fix skill documentation issues                               |
 | `/plan_review`           | Multi-agent plan review in parallel                          |
-| `/report-bug`            | Report a bug in the plugin                                   |
+| `/playwright-test`       | Run browser tests on PR-affected pages                       |
+| `/report-bug`            | Report a bug                                                 |
 | `/reproduce-bug`         | Reproduce bugs using logs and console                        |
 | `/resolve_parallel`      | Resolve TODO comments in parallel                            |
 | `/resolve_pr_parallel`   | Resolve PR comments in parallel                              |
 | `/resolve_todo_parallel` | Resolve todos in parallel                                    |
+| `/set-custom-rules`      | Set custom rules for the project                             |
 | `/triage`                | Triage and prioritize issues                                 |
-| `/deslop`                | Remove AI-generated code slop from current branch            |
-| `/playwright-test`       | Run browser tests on PR-affected pages                       |
+| `/verify-custom-rules`   | Verify custom rules for the project                          |
 
 ## Skills
 
-### Architecture & Design
+### Architecture and Design
 
-| Skill                       | Description                                      |
-| --------------------------- | ------------------------------------------------ |
-| `agent-native-architecture` | Build AI agents using prompt-native architecture |
-| `frontend-design`           | Create production-grade frontend interfaces      |
+| Skill                       | Description                                                |
+| --------------------------- | ---------------------------------------------------------- |
+| `agent-native-architecture` | Build AI agents using prompt-native architecture           |
+| `frontend-design`           | Create production-grade frontend interfaces                |
+| `web-design-guidelines`     | Review UI code for Web Interface Guidelines compliance     |
+| `vercel-react-best-practices` | React and Next.js performance optimization from Vercel   |
 
 ### Development Tools
 
-| Skill                      | Description                                        |
-| -------------------------- | -------------------------------------------------- |
-| `create-agent-skills`      | Expert guidance for creating Claude Code skills    |
-| `skill-creator`            | Guide for creating effective Claude Code skills    |
-| `test-driven-development`  | Test-driven development workflows                  |
-| `typescript-advanced-types`| Master TypeScript's advanced type system           |
-| `github-search`            | Search GitHub code, repos, issues, and PRs via CLI |
-| `repo-research-analyst`    | Analyze repository structure and patterns          |
-
-### Orchestration
-
-| Skill                   | Description                                                          |
-| ----------------------- | -------------------------------------------------------------------- |
-| `orchestrating-swarms`  | Multi-agent swarm orchestration with TeammateTool and Task system    |
-
-### Workflow & Git
-
-| Skill          | Description                                         |
-| -------------- | --------------------------------------------------- |
-| `commit`       | Create git commits with user approval               |
-| `describe_pr`  | Generate comprehensive PR descriptions              |
-| `compound-docs`| Capture solved problems as categorized documentation|
-| `deslop`       | Remove AI-generated code slop from current branch   |
-| `file-todos`   | File-based todo tracking system                     |
-| `git-worktree` | Manage Git worktrees for parallel development       |
+| Skill                        | Description                                              |
+| ---------------------------- | -------------------------------------------------------- |
+| `create-agent-skills`        | Expert guidance for creating Claude Code skills          |
+| `skill-creator`              | Guide for creating effective skills                      |
+| `test-driven-development`    | Test-driven development workflows                        |
+| `typescript-advanced-types`  | Master TypeScript's advanced type system                 |
+| `github-search`              | Search GitHub code, repos, issues, and PRs via CLI       |
+| `repo-research-analyst`      | Analyze repository structure and patterns                |
+| `deslop`                     | Remove AI-generated code slop from current branch        |
 
 ### Codebase Exploration
 
-| Skill               | Description                                             |
-| ------------------- | ------------------------------------------------------- |
-| `repoprompt`        | Use RepoPrompt CLI for codebase exploration             |
-| `rp-explorer`       | Token-efficient codebase exploration using RepoPrompt   |
+| Skill           | Description                                               |
+| --------------- | --------------------------------------------------------- |
+| `repoprompt`    | Use RepoPrompt CLI for codebase exploration               |
+| `rp-explorer`   | Token-efficient codebase exploration using RepoPrompt     |
+| `rp-build-cli`  | Build with rp-cli context builder, chat, and implement    |
+| `rp-investigate-cli` | Deep codebase investigation and architecture research |
+| `rp-oracle-export-cli` | Export context for oracle consultation              |
+| `rp-refactor-cli` | Refactoring assistant using rp-cli                      |
+| `rp-reminder-cli` | Reminder to use rp-cli                                  |
+| `rp-review-cli` | Code review workflow using rp-cli                         |
 
-### Browser & Image
+### Orchestration
 
-| Skill             | Description                                        |
-| ----------------- | -------------------------------------------------- |
-| `agent-browser`   | Browser automation for web testing and interaction |
-| `gemini-imagegen` | Generate and edit images using Google's Gemini API |
+| Skill                  | Description                                                    |
+| ---------------------- | -------------------------------------------------------------- |
+| `orchestrating-swarms` | Multi-agent swarm orchestration with TeammateTool and Tasks    |
 
-### Marketplace
+### Workflow and Git
 
-| Skill                   | Description                                              |
-| ----------------------- | -------------------------------------------------------- |
-| `skills-sh-marketplace` | Search, discover, and install skills from skills.sh      |
+| Skill           | Description                                              |
+| --------------- | -------------------------------------------------------- |
+| `commit`        | Create git commits with user approval                    |
+| `describe_pr`   | Generate comprehensive PR descriptions                   |
+| `compound-docs` | Capture solved problems as categorized documentation     |
+| `file-todos`    | File-based todo tracking system                          |
+| `git-worktree`  | Manage Git worktrees for parallel development            |
+| `standup-skill` | Generate a summary of work from the previous workday     |
 
-**gemini-imagegen features:**
+### Integrations
 
-- Text-to-image generation
-- Image editing and manipulation
-- Multi-turn refinement
-- Multiple reference image composition (up to 14 images)
+| Skill                           | Description                                                    |
+| ------------------------------- | -------------------------------------------------------------- |
+| `linear`                        | Manage issues, projects, and team workflows in Linear          |
+| `notion-knowledge-capture`      | Transform conversations into structured Notion pages           |
+| `notion-meeting-intelligence`   | Prepare meeting materials by gathering context from Notion     |
+| `notion-research-documentation` | Search Notion workspace and create research documentation      |
+| `notion-spec-to-implementation` | Turn specs into concrete Notion tasks for implementation       |
+| `skills-sh-marketplace`         | Search, discover, and install skills from skills.sh            |
 
-**Requirements:**
+### Image Generation
 
-- `GEMINI_API_KEY` environment variable
-- Python packages: `google-genai`, `pillow`
+| Skill             | Description                                              |
+| ----------------- | -------------------------------------------------------- |
+| `gemini-imagegen` | Generate and edit images using Google's Gemini API       |
+| `imagegen`        | Generate or edit images via the OpenAI Image API         |
+| `agent-browser`   | Browser automation for web testing and interaction       |
 
-## MCP Servers
+## Rules
 
-| Server       | Description                                 |
-| ------------ | ------------------------------------------- |
-| `playwright` | Browser automation via `@playwright/mcp`    |
-| `context7`   | Framework documentation lookup via Context7 |
+| Rule                      | Description                       |
+| ------------------------- | --------------------------------- |
+| `agent-orchestration.md`  | Rules for multi-agent coordination|
+| `git-commits.md`          | Git commit conventions            |
 
-### Playwright
+## Key Files
 
-**Tools provided:**
-
-- `browser_navigate` - Navigate to URLs
-- `browser_take_screenshot` - Take screenshots
-- `browser_click` - Click elements
-- `browser_fill_form` - Fill form fields
-- `browser_snapshot` - Get accessibility snapshot
-- `browser_evaluate` - Execute JavaScript
-
-### Context7
-
-**Tools provided:**
-
-- `resolve-library-id` - Find library ID for a framework/package
-- `get-library-docs` - Get documentation for a specific library
-
-Supports 100+ frameworks including Rails, React, Next.js, Vue, Django, Laravel, and more.
-
-MCP servers start automatically when the plugin is enabled.
-
-## Installation
-
-```bash
-claude /plugin install compound-engineering
-```
-
-## Known Issues
-
-### MCP Servers Not Auto-Loading
-
-**Issue:** The bundled MCP servers (Playwright and Context7) may not load automatically when the plugin is installed.
-
-**Workaround:** Manually add them to your project's `.claude/settings.json`:
-
-```json
-{
-  "mcpServers": {
-    "playwright": {
-      "type": "stdio",
-      "command": "npx",
-      "args": ["-y", "@playwright/mcp@latest"],
-      "env": {}
-    },
-    "context7": {
-      "type": "http",
-      "url": "https://mcp.context7.com/mcp"
-    }
-  }
-}
-```
-
-Or add them globally in `~/.claude/settings.json` for all projects.
-
-## Version History
-
-See [CHANGELOG.md](CHANGELOG.md) for detailed version history.
+- **`AGENTS.md`** — Global agent instructions: code style, workflow orchestration, task management, and core principles
 
 ## License
 
