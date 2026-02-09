@@ -1,4 +1,5 @@
 ---
+name: describe_pr
 description: Generate comprehensive PR descriptions following repository templates
 ---
 
@@ -9,19 +10,16 @@ You are tasked with generating a comprehensive pull request description followin
 ## Steps to follow:
 
 1. **Read the PR description template:**
-
    - First, check if `.ai/thoughts/shared/pr_description.md` exists
    - If it doesn't exist, inform the user they need to create a PR description template at `.ai/thoughts/shared/pr_description.md`
    - Read the template carefully to understand all sections and requirements
 
 2. **Identify the PR to describe:**
-
    - Check if the current branch has an associated PR: `gh pr view --json url,number,title,state 2>/dev/null`
    - If no PR exists for the current branch, or if on main/master, list open PRs: `gh pr list --limit 10 --json number,title,headRefName,author`
    - Ask the user which PR they want to describe
 
 3. **Check for existing description:**
-
    - Check if `.ai/thoughts/shared/prs/{number}_description.md` already exists
    - If it exists, read it and inform the user you'll be updating it
    - Consider what has changed since the last description was written
@@ -41,7 +39,6 @@ You are tasked with generating a comprehensive pull request description followin
 - Save the output for inclusion in the PR description
 
 5. **Analyze the changes thoroughly:** (ultrathink about the code changes, their architectural implications, and potential impacts)
-
    - Read through the entire diff carefully
    - For context, read any files that are referenced but not shown in the diff
    - Understand the purpose and impact of each change
@@ -49,7 +46,6 @@ You are tasked with generating a comprehensive pull request description followin
    - Look for breaking changes or migration requirements
 
 6. **Handle verification requirements:**
-
    - Look for any checklist items in the "How to verify it" section of the template
    - For each verification step:
      - If it's a command you can run (like `make check test`, `npm test`, etc.), run it
@@ -59,7 +55,6 @@ You are tasked with generating a comprehensive pull request description followin
    - Document any verification steps you couldn't complete
 
 7. **Generate the description:**
-
    - Fill out each section from the template thoroughly:
      - Answer each question/section based on your analysis
      - Be specific about problems solved and changes made
@@ -73,7 +68,6 @@ You are tasked with generating a comprehensive pull request description followin
    - Ensure all checklist items are addressed (checked or explained)
 
 8. **Save the description:**
-
    - Write the completed description to `.ai/thoughts/shared/prs/{number}_description.md`
    - Show the user the generated description
 

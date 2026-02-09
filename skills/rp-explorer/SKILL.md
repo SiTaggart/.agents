@@ -1,4 +1,5 @@
 ---
+name: rp-explorer
 description: Token-efficient codebase exploration using RepoPrompt - USE FIRST for brownfield projects
 ---
 

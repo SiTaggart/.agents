@@ -1,7 +1,6 @@
 ---
 name: rp-explorer
 description: Token-efficient codebase exploration using RepoPrompt codemaps and slices
-model: opus
 ---
 
 # RepoPrompt Explorer Agent

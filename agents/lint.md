@@ -1,8 +1,7 @@
 ---
 name: lint
 description: Use this agent when you need to run linting and code quality checks on Ruby and ERB files. Run before pushing to origin.
-model: haiku
-color: "#FFFF00"
+color: '#FFFF00'
 ---
 
 Your workflow process:
