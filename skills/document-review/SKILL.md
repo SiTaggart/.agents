@@ -11,7 +11,7 @@ Improve brainstorm or plan documents through structured review.
 
 **If a document path is provided:** Read it, then proceed to Step 2.
 
-**If no document is specified:** Ask which document to review, or look for the most recent brainstorm/plan in `docs/brainstorms/` or `docs/plans/`.
+**If no document is specified:** Ask which document to review, or look for the most recent brainstorm/plan in `.ai/docs/brainstorms/` or `.ai/docs/plans/`.
 
 ## Step 2: Assess
 

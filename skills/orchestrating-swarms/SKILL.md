@@ -396,7 +396,7 @@ Task({
 - `best-practices-researcher` - External best practices
 - `framework-docs-researcher` - Framework documentation
 - `git-history-analyzer` - Code archaeology
-- `learnings-researcher` - Search docs/solutions/
+- `learnings-researcher` - Search .ai/docs/solutions/
 - `repo-research-analyst` - Repository patterns
 
 ### Design Agents

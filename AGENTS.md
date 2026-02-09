@@ -110,6 +110,20 @@ for (const user of users) {
 5. **Document Results:** Add review section to `.ai/tasks/todo.md`
 6. **Capture Lessons:** Update `.ai/tasks/lessons.md` after corrections
 
+## Document Paths
+
+All generated documents live under the `.ai/` directory. This keeps agent artifacts hidden in one folder per project. When upstream content (compound-engineering-plugin) uses bare `docs/` paths, always prefix them with `.ai/`.
+
+| Purpose | Path |
+|---------|------|
+| Plans | `.ai/docs/plans/` |
+| Brainstorms | `.ai/docs/brainstorms/` |
+| Solutions | `.ai/docs/solutions/` |
+| Todos | `.ai/todos/` |
+| Tasks | `.ai/tasks/` |
+| Handoffs | `.ai/handoffs/` |
+| PR descriptions | `.ai/thoughts/shared/prs/` |
+
 ## Core Principles
 
 - **Simplicity First:** Make every change as simple as possible. Impact minimal code.
