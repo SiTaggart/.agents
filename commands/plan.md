@@ -1,14 +1,15 @@
 ---
 name: workflows:plan
 description: Transform feature descriptions into well-structured project plans following conventions
-argument-hint: '[feature description, bug report, or improvement idea]'
+argument-hint: "[feature description, bug report, or improvement idea]"
+disable-model-invocation: true
 ---
 
 # Create a plan for a new feature or bug fix
 
 ## Introduction
 
-**Note: The current year is 2025.** Use this when dating plans and searching for recent documentation.
+**Note: The current year is 2026.** Use this when dating plans and searching for recent documentation.
 
 Transform feature descriptions, bug reports, or improvement ideas into well-structured markdown files issues that follow project conventions and best practices. This command provides flexible detail levels to match your needs.
 
@@ -20,26 +21,105 @@ Transform feature descriptions, bug reports, or improvement ideas into well-stru
 
 Do not proceed until you have a clear feature description from the user.
 
+### 0. Idea Refinement
+
+**Check for brainstorm output first:**
+
+Before asking questions, look for recent brainstorm documents in `docs/brainstorms/` that match this feature:
+
+```bash
+ls -la docs/brainstorms/*.md 2>/dev/null | head -10
+```
+
+**Relevance criteria:** A brainstorm is relevant if:
+- The topic (from filename or YAML frontmatter) semantically matches the feature description
+- Created within the last 14 days
+- If multiple candidates match, use the most recent one
+
+**If a relevant brainstorm exists:**
+1. Read the brainstorm document
+2. Announce: "Found brainstorm from [date]: [topic]. Using as context for planning."
+3. Extract key decisions, chosen approach, and open questions
+4. **Skip the idea refinement questions below** - the brainstorm already answered WHAT to build
+5. Use brainstorm decisions as input to the research phase
+
+**If multiple brainstorms could match:**
+Use **AskUserQuestion tool** to ask which brainstorm to use, or whether to proceed without one.
+
+**If no brainstorm found (or not relevant), run idea refinement:**
+
+Refine the idea through collaborative dialogue using the **AskUserQuestion tool**:
+
+- Ask questions one at a time to understand the idea fully
+- Prefer multiple choice questions when natural options exist
+- Focus on understanding: purpose, constraints and success criteria
+- Continue until the idea is clear OR user says "proceed"
+
+**Gather signals for research decision.** During refinement, note:
+
+- **User's familiarity**: Do they know the codebase patterns? Are they pointing to examples?
+- **User's intent**: Speed vs thoroughness? Exploration vs execution?
+- **Topic risk**: Security, payments, external APIs warrant more caution
+- **Uncertainty level**: Is the approach clear or open-ended?
+
+**Skip option:** If the feature description is already detailed, offer:
+"Your description is clear. Should I proceed with research, or would you like to refine it further?"
+
 ## Main Tasks
 
-### 1. Repository Research & Context Gathering
+### 1. Local Research (Always Runs - Parallel)
 
 <thinking>
-First, I need to understand the project's conventions and existing patterns, leveraging all available resources and use paralel subagents to do this.
+First, I need to understand the project's conventions, existing patterns, and any documented learnings. This is fast and local - it informs whether external research is needed.
 </thinking>
 
-Runn these three agents in paralel at the same time:
+Run these agents **in parallel** to gather local context:
 
 - Task repo-research-analyst(feature_description)
+- Task learnings-researcher(feature_description)
+
+**What to look for:**
+- **Repo research:** existing patterns, CLAUDE.md guidance, technology familiarity, pattern consistency
+- **Learnings:** documented solutions in `docs/solutions/` that might apply (gotchas, patterns, lessons learned)
+
+These findings inform the next step.
+
+### 1.5. Research Decision
+
+Based on signals from Step 0 and findings from Step 1, decide on external research.
+
+**High-risk topics → always research.** Security, payments, external APIs, data privacy. The cost of missing something is too high. This takes precedence over speed signals.
+
+**Strong local context → skip external research.** Codebase has good patterns, CLAUDE.md has guidance, user knows what they want. External research adds little value.
+
+**Uncertainty or unfamiliar territory → research.** User is exploring, codebase has no examples, new technology. External perspective is valuable.
+
+**Announce the decision and proceed.** Brief explanation, then continue. User can redirect if needed.
+
+Examples:
+- "Your codebase has solid patterns for this. Proceeding without external research."
+- "This involves payment processing, so I'll research current best practices first."
+
+### 1.5b. External Research (Conditional)
+
+**Only run if Step 1.5 indicates external research is valuable.**
+
+Run these agents in parallel:
+
 - Task best-practices-researcher(feature_description)
 - Task framework-docs-researcher(feature_description)
 
-**Reference Collection:**
+### 1.6. Consolidate Research
 
-- [ ] Document all research findings with specific file paths (e.g., `app/services/example_service.rb:42`)
-- [ ] Include URLs to external documentation and best practices guides
-- [ ] Create a reference list of similar issues or PRs (e.g., `#123`, `#456`)
-- [ ] Note any team conventions discovered in `CLAUDE.md` or team documentation
+After all research steps complete, consolidate findings:
+
+- Document relevant file paths from repo research (e.g., `app/services/example_service.rb:42`)
+- **Include relevant institutional learnings** from `docs/solutions/` (key insights, gotchas to avoid)
+- Note external documentation URLs and best practices (if external research was done)
+- List related issues or PRs discovered
+- Capture CLAUDE.md conventions
+
+**Optional validation:** Briefly summarize findings and ask if anything looks off or missing before proceeding to planning.
 
 ### 2. Issue Planning & Structure
 
@@ -49,8 +129,11 @@ Think like a product manager - what would make this issue clear and actionable? 
 
 **Title & Categorization:**
 
-- [ ] Draft clear, searchable issue title using conventional format (e.g., `feat:`, `fix:`, `docs:`)
+- [ ] Draft clear, searchable issue title using conventional format (e.g., `feat: Add user authentication`, `fix: Cart total calculation`)
 - [ ] Determine issue type: enhancement, bug, refactor
+- [ ] Convert title to filename: add today's date prefix, strip prefix colon, kebab-case, add `-plan` suffix
+  - Example: `feat: Add User Authentication` → `2026-01-21-feat-add-user-authentication-plan.md`
+  - Keep it descriptive (3-5 words after prefix) so plans are findable by context
 
 **Stakeholder Analysis:**
 
@@ -93,6 +176,14 @@ Select how comprehensive you want the issue to be, simpler is mostly better.
 **Structure:**
 
 ````markdown
+---
+title: [Issue Title]
+type: [feat|fix|refactor]
+date: YYYY-MM-DD
+---
+
+# [Issue Title]
+
 [Brief problem/feature description]
 
 ## Acceptance Criteria
@@ -120,6 +211,7 @@ end
 
 - Related issue: #[issue_number]
 - Documentation: [relevant_docs_url]
+````
 
 #### 📋 MORE (Standard Issue)
 
@@ -136,6 +228,14 @@ end
 **Structure:**
 
 ```markdown
+---
+title: [Issue Title]
+type: [feat|fix|refactor]
+date: YYYY-MM-DD
+---
+
+# [Issue Title]
+
 ## Overview
 
 [Comprehensive description]
@@ -192,6 +292,14 @@ end
 **Structure:**
 
 ```markdown
+---
+title: [Issue Title]
+type: [feat|fix|refactor]
+date: YYYY-MM-DD
+---
+
+# [Issue Title]
+
 ## Overview
 
 [Executive summary]
@@ -322,9 +430,9 @@ Apply best practices for clarity and actionability, making the issue easy to sca
 
 **Code & Examples:**
 
-```markdown
+````markdown
 # Good example with syntax highlighting and line references
-```
+
 
 ```ruby
 # app/services/user_service.rb:42
@@ -334,7 +442,6 @@ def process_user(user)
 
 end
 ```
-````
 
 # Collapsible error logs
 
@@ -344,6 +451,7 @@ end
 `Error details here...`
 
 </details>
+````
 
 **AI-Era Considerations:**
 
@@ -367,38 +475,49 @@ end
 
 ## Output Format
 
-Write the plan to `.ai/plans/<issue_title>.md`
+**Filename:** Use the date and kebab-case filename from Step 2 Title & Categorization.
+
+```
+docs/plans/YYYY-MM-DD-<type>-<descriptive-name>-plan.md
+```
+
+Examples:
+- ✅ `docs/plans/2026-01-15-feat-user-authentication-flow-plan.md`
+- ✅ `docs/plans/2026-02-03-fix-checkout-race-condition-plan.md`
+- ✅ `docs/plans/2026-03-10-refactor-api-client-extraction-plan.md`
+- ❌ `docs/plans/2026-01-15-feat-thing-plan.md` (not descriptive - what "thing"?)
+- ❌ `docs/plans/2026-01-15-feat-new-feature-plan.md` (too vague - what feature?)
+- ❌ `docs/plans/2026-01-15-feat: user auth-plan.md` (invalid characters - colon and space)
+- ❌ `docs/plans/feat-user-auth-plan.md` (missing date prefix)
 
 ## Post-Generation Options
 
 After writing the plan file, use the **AskUserQuestion tool** to present these options:
 
-**Question:** "Plan ready at `.ai/plans/<issue_title>.md`. What would you like to do next?"
+**Question:** "Plan ready at `docs/plans/YYYY-MM-DD-<type>-<name>-plan.md`. What would you like to do next?"
 
 **Options:**
-
 1. **Open plan in editor** - Open the plan file for review
 2. **Run `/deepen-plan`** - Enhance each section with parallel research agents (best practices, performance, UI)
-3. **Run `/plan_review`** - Get feedback from reviewers (DHH, Kieran, Simplicity)
-4. **Start `/workflows:work`** - Begin implementing this plan locally
-5. **Start `/workflows:work` on remote** - Begin implementing in Claude Code on the web (use `&` to run in background)
-6. **Create Issue** - Create issue in project tracker (GitHub/Linear)
-7. **Simplify** - Reduce detail level
+3. **Run `/technical_review`** - Technical feedback from code-focused reviewers (DHH, Kieran, Simplicity)
+4. **Review and refine** - Improve the document through structured self-review
+5. **Start `/workflows:work`** - Begin implementing this plan locally
+6. **Start `/workflows:work` on remote** - Begin implementing in Claude Code on the web (use `&` to run in background)
+7. **Create Issue** - Create issue in project tracker (GitHub/Linear)
 
 Based on selection:
-
-- **Open plan in editor** → Run `open .ai/plans/<issue_title>.md` to open the file in the user's default editor
+- **Open plan in editor** → Run `open docs/plans/<plan_filename>.md` to open the file in the user's default editor
 - **`/deepen-plan`** → Call the /deepen-plan command with the plan file path to enhance with research
-- **`/plan_review`** → Call the /plan_review command with the plan file path
+- **`/technical_review`** → Call the /technical_review command with the plan file path
+- **Review and refine** → Load `document-review` skill.
 - **`/workflows:work`** → Call the /workflows:work command with the plan file path
-- **`/workflows:work` on remote** → Run `/workflows:work .ai/plans/<issue_title>.md &` to start work in background for Claude Code web
+- **`/workflows:work` on remote** → Run `/workflows:work docs/plans/<plan_filename>.md &` to start work in background for Claude Code web
 - **Create Issue** → See "Issue Creation" section below
-- **Simplify** → Ask "What should I simplify?" then regenerate simpler version
 - **Other** (automatically provided) → Accept free text for rework or specific changes
 
 **Note:** If running `/workflows:plan` with ultrathink enabled, automatically run `/deepen-plan` after plan creation for maximum depth and grounding.
 
-Loop back to options after Simplify or Other changes until user selects `/workflows:work` or `/plan_review`.
+Loop back to options after Simplify or Other changes until user selects `/workflows:work` or `/technical_review`.
 
 ## Issue Creation
 
@@ -410,17 +529,16 @@ When user selects "Create Issue", detect their project tracker from CLAUDE.md:
 
 2. **If GitHub:**
 
+   Use the title and type from Step 2 (already in context - no need to re-read the file):
+
    ```bash
-   # Extract title from plan filename (kebab-case to Title Case)
-   # Read plan content for body
-   gh issue create --title "feat: [Plan Title]" --body-file .ai/plans/<issue_title>.md
+   gh issue create --title "<type>: <title>" --body-file <plan_path>
    ```
 
 3. **If Linear:**
 
    ```bash
-   # Use linear CLI if available, or provide instructions
-   # linear issue create --title "[Plan Title]" --description "$(cat .ai/plans/<issue_title>.md)"
+   linear issue create --title "<title>" --description "$(cat <plan_path>)"
    ```
 
 4. **If no tracker configured:**
@@ -429,6 +547,6 @@ When user selects "Create Issue", detect their project tracker from CLAUDE.md:
 
 5. **After creation:**
    - Display the issue URL
-   - Ask if they want to proceed to `/workflows:work` or `/plan_review`
+   - Ask if they want to proceed to `/workflows:work` or `/technical_review`
 
 NEVER CODE! Just research and write the plan.

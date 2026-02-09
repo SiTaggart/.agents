@@ -1,0 +1,44 @@
+{
+  "upstream_repo": "/Users/staggart/dev/sandbox/compound-engineering-plugin",
+  "content_root": "plugins/compound-engineering",
+  "last_synced_commit": "e8f3bbcb3580862a2715575d609333306ed02ee3",
+  "last_synced_date": "2026-02-09T00:00:00Z",
+  "skip_patterns": {
+    "filenames": [
+      "dhh-rails-*",
+      "kieran-rails-*",
+      "every-style-*",
+      "ankane-readme-*",
+      "schema-drift-*",
+      "andrew-kane-*",
+      "dhh-rails-style",
+      "dspy-ruby",
+      "rclone",
+      "deploy-docs",
+      "release-docs",
+      "xcode-test",
+      "feature-video"
+    ],
+    "content_markers": [
+      "every.to",
+      "Every's",
+      "bundle exec",
+      "standardrb",
+      "erblint",
+      "brakeman",
+      "ActiveRecord",
+      "schema.rb",
+      "Rails."
+    ]
+  },
+  "path_mappings": {
+    "agents/review/": "agents/",
+    "agents/research/": "agents/",
+    "agents/design/": "agents/",
+    "agents/workflow/": "agents/",
+    "agents/docs/": "agents/",
+    "commands/workflows/": "commands/",
+    "commands/": "commands/",
+    "skills/": "skills/"
+  }
+}

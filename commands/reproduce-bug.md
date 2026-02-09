@@ -2,6 +2,7 @@
 name: reproduce-bug
 description: Reproduce and investigate a bug using logs and console inspection
 argument-hint: "[GitHub issue number]"
+disable-model-invocation: true
 ---
 
 Look at github issue #$ARGUMENTS and read the issue description and comments.
