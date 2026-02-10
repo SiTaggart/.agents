@@ -101,6 +101,57 @@ for (const user of users) {
 - Zero context switching required from the user
 - Go fix failing CI tests without being told how
 
+## Tool Preferences: RepoPrompt First
+
+**When the RepoPrompt MCP server is available, prefer its tools over built-in equivalents. They use ~80% fewer tokens and support richer operations.**
+
+### Exploration & Search
+
+| Instead of | Use | Why |
+|------------|-----|-----|
+| Grep / Glob | `file_search` (MCP) | Combines path + content + regex in one call |
+| `ls` / `find` / Bash | `get_file_tree` (MCP) | Structured tree with depth control |
+| Read (full file) | `read_file` (MCP) | Line slicing built-in, avoids dumping |
+| Reading files for API shape | `get_code_structure` (MCP) | Function/type signatures only — 10x fewer tokens |
+| Spawning explore subagents | `context_builder` (MCP) | Two-stage AI: research model + analysis model in one call |
+
+### Editing & File Operations
+
+| Instead of | Use | Why |
+|------------|-----|-----|
+| Edit tool | `apply_edits` (MCP) | Multi-edit transactions, whole-file rewrites, better whitespace handling |
+| Write tool / Bash file creation | `file_actions` (MCP) | Create/delete/move with auto-selection |
+| Multiple sequential Edit calls | `apply_edits` with `edits` array | Atomic batch, fewer round-trips |
+
+### Git & Review
+
+| Instead of | Use | Why |
+|------------|-----|-----|
+| Bash `git status/diff/log` | `git` (MCP) | Safe read-only, structured output, artifact publishing |
+| Manual diff reading for review | `context_builder` with `response_type="review"` | Full code review with git diff context |
+| Ad-hoc file exploration for planning | `context_builder` with `response_type="plan"` | Architectural plan grounded in real code |
+
+### Key Workflows
+
+1. **Brownfield exploration:** Start with `get_file_tree` → `get_code_structure` on key dirs → `file_search` for specifics. Never dump full files when codemaps suffice.
+2. **Before complex changes:** `context_builder` with `response_type="plan"` — builds optimal file context autonomously, then generates an implementation plan.
+3. **After making changes:** `context_builder` with `response_type="review"` — thorough code review with git diff context.
+4. **Deep Q&A:** `context_builder` with `response_type="question"` — understands unfamiliar code with curated context.
+5. **Iterative refinement:** Use `chat_send` with the returned `chat_id` to continue analysis without rebuilding context.
+6. **Subagent exploration:** Use the `rp-explorer` agent type — it uses `rp-cli` for token-efficient context gathering within subagents.
+
+### Context Curation
+
+- Use `manage_selection` to build focused file sets (full, slices, or codemap_only modes)
+- Use `workspace_context` to snapshot current state before major operations
+- Prefer slices and codemaps over full file content — only promote to full when you need every line
+
+### Fallback
+
+When RepoPrompt MCP is unavailable (e.g., in subagents without MCP access), fall back to:
+- `rp-cli -e '<command>'` via Bash for the same operations
+- Built-in Read/Edit/Grep/Glob as last resort
+
 ## Task Management
 
 1. **Plan First:** Write plan to `.ai/tasks/todo.md` with checkable items
