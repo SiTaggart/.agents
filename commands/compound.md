@@ -1,7 +1,7 @@
 ---
 name: workflows:compound
 description: Document a recently solved problem to compound your team's knowledge
-argument-hint: '[optional: brief context about the fix]'
+argument-hint: "[optional: brief context about the fix]"
 ---
 
 # /compound
@@ -21,61 +21,83 @@ Captures problem solutions while context is fresh, creating structured documenta
 /workflows:compound [brief context]    # Provide additional context hint
 ```
 
-## Execution Strategy: Parallel Subagents
+## Execution Strategy: Two-Phase Orchestration
 
-This command launches multiple specialized subagents IN PARALLEL to maximize efficiency:
+<critical_requirement>
+**Only ONE file gets written - the final documentation.**
 
-### 1. **Context Analyzer** (Parallel)
+Phase 1 subagents return TEXT DATA to the orchestrator. They must NOT use Write, Edit, or create any files. Only the orchestrator (Phase 2) writes the final documentation file.
+</critical_requirement>
 
-- Extracts conversation history
-- Identifies problem type, component, symptoms
-- Validates against CORA schema
-- Returns: YAML frontmatter skeleton
+### Phase 1: Parallel Research
 
-### 2. **Solution Extractor** (Parallel)
+<parallel_tasks>
 
-- Analyzes all investigation steps
-- Identifies root cause
-- Extracts working solution with code examples
-- Returns: Solution content block
+Launch these subagents IN PARALLEL. Each returns text data to the orchestrator.
 
-### 3. **Related Docs Finder** (Parallel)
+#### 1. **Context Analyzer**
+   - Extracts conversation history
+   - Identifies problem type, component, symptoms
+   - Validates against schema
+   - Returns: YAML frontmatter skeleton
 
-- Searches `.ai/docs/solutions/` for related documentation
-- Identifies cross-references and links
-- Finds related GitHub issues
-- Returns: Links and relationships
+#### 2. **Solution Extractor**
+   - Analyzes all investigation steps
+   - Identifies root cause
+   - Extracts working solution with code examples
+   - Returns: Solution content block
 
-### 4. **Prevention Strategist** (Parallel)
+#### 3. **Related Docs Finder**
+   - Searches `.ai/docs/solutions/` for related documentation
+   - Identifies cross-references and links
+   - Finds related GitHub issues
+   - Returns: Links and relationships
 
-- Develops prevention strategies
-- Creates best practices guidance
-- Generates test cases if applicable
-- Returns: Prevention/testing content
+#### 4. **Prevention Strategist**
+   - Develops prevention strategies
+   - Creates best practices guidance
+   - Generates test cases if applicable
+   - Returns: Prevention/testing content
 
-### 5. **Category Classifier** (Parallel)
+#### 5. **Category Classifier**
+   - Determines optimal `.ai/docs/solutions/` category
+   - Validates category against schema
+   - Suggests filename based on slug
+   - Returns: Final path and filename
 
-- Determines optimal `.ai/docs/solutions/` category
-- Validates category against schema
-- Suggests filename based on slug
-- Returns: Final path and filename
+</parallel_tasks>
 
-### 6. **Documentation Writer** (Parallel)
+### Phase 2: Assembly & Write
 
-- Assembles complete markdown file
-- Validates YAML frontmatter
-- Formats content for readability
-- Creates the file in correct location
+<sequential_tasks>
 
-### 7. **Optional: Specialized Agent Invocation** (Post-Documentation)
+**WAIT for all Phase 1 subagents to complete before proceeding.**
 
-Based on problem type detected, automatically invoke applicable agents:
+The orchestrating agent (main conversation) performs these steps:
+
+1. Collect all text results from Phase 1 subagents
+2. Assemble complete markdown file from the collected pieces
+3. Validate YAML frontmatter against schema
+4. Create directory if needed: `mkdir -p .ai/docs/solutions/[category]/`
+5. Write the SINGLE final file: `.ai/docs/solutions/[category]/[filename].md`
+
+</sequential_tasks>
+
+### Phase 3: Optional Enhancement
+
+**WAIT for Phase 2 to complete before proceeding.**
+
+<parallel_tasks>
+
+Based on problem type, optionally invoke specialized agents to review the documentation:
 
 - **performance_issue** → `performance-oracle`
 - **security_issue** → `security-sentinel`
 - **database_issue** → `data-integrity-guardian`
 - **test_failure** → `cora-test-reviewer`
 - Any code-heavy issue → `kieran-rails-reviewer` + `code-simplicity-reviewer`
+
+</parallel_tasks>
 
 ## What It Captures
 
@@ -118,18 +140,25 @@ Based on problem type detected, automatically invoke applicable agents:
 - integration-issues/
 - logic-errors/
 
+## Common Mistakes to Avoid
+
+| ❌ Wrong | ✅ Correct |
+|----------|-----------|
+| Subagents write files like `context-analysis.md`, `solution-draft.md` | Subagents return text data; orchestrator writes one final file |
+| Research and assembly run in parallel | Research completes → then assembly runs |
+| Multiple files created during workflow | Single file: `.ai/docs/solutions/[category]/[filename].md` |
+
 ## Success Output
 
 ```
-✓ Parallel documentation generation complete
+✓ Documentation complete
 
-Primary Subagent Results:
+Subagent Results:
   ✓ Context Analyzer: Identified performance_issue in brief_system
-  ✓ Solution Extractor: Extracted 3 code fixes
-  ✓ Related Docs Finder: Found 2 related issues
-  ✓ Prevention Strategist: Generated test cases
-  ✓ Category Classifier: .ai/docs/solutions/performance-issues/
-  ✓ Documentation Writer: Created complete markdown
+  ✓ Solution Extractor: 3 code fixes
+  ✓ Related Docs Finder: 2 related issues
+  ✓ Prevention Strategist: Prevention strategies, test suggestions
+  ✓ Category Classifier: `performance-issues`
 
 Specialized Agent Reviews (Auto-Triggered):
   ✓ performance-oracle: Validated query optimization approach
@@ -185,26 +214,22 @@ Build → Test → Find Issue → Research → Improve → Document → Validate
 Based on problem type, these agents can enhance documentation:
 
 ### Code Quality & Review
-
 - **kieran-rails-reviewer**: Reviews code examples for Rails best practices
 - **code-simplicity-reviewer**: Ensures solution code is minimal and clear
 - **pattern-recognition-specialist**: Identifies anti-patterns or repeating issues
 
 ### Specific Domain Experts
-
 - **performance-oracle**: Analyzes performance_issue category solutions
 - **security-sentinel**: Reviews security_issue solutions for vulnerabilities
 - **cora-test-reviewer**: Creates test cases for prevention strategies
 - **data-integrity-guardian**: Reviews database_issue migrations and queries
 
 ### Enhancement & Documentation
-
 - **best-practices-researcher**: Enriches solution with industry best practices
 - **every-style-editor**: Reviews documentation style and clarity
 - **framework-docs-researcher**: Links to Rails/gem documentation references
 
 ### When to Invoke
-
 - **Auto-triggered** (optional): Agents can run post-documentation for enhancement
 - **Manual trigger**: User can invoke agents after /workflows:compound completes for deeper review
 
