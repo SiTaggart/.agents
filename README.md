@@ -8,7 +8,7 @@ Shared AI agent configuration synced across projects. Contains agents, commands,
 | ---------- | ----- |
 | Agents     | 31    |
 | Commands   | 20    |
-| Skills     | 36    |
+| Skills     | 37    |
 | Rules      | 2     |
 | Hooks      | 1     |
 
@@ -76,6 +76,7 @@ Shared AI agent configuration synced across projects. Contains agents, commands,
 
 | Command               | Description                                         |
 | --------------------- | --------------------------------------------------- |
+| `/brainstorm`         | Explore requirements through collaborative dialogue |
 | `/plan`               | Create implementation plans                         |
 | `/review`             | Run comprehensive multi-agent code reviews          |
 | `/work`               | Execute work items systematically                   |
@@ -91,7 +92,6 @@ Shared AI agent configuration synced across projects. Contains agents, commands,
 | `/deslop`                | Remove AI-generated code slop from current branch            |
 | `/generate_command`      | Generate new slash commands                                  |
 | `/heal-skill`            | Fix skill documentation issues                               |
-| `/plan_review`           | Multi-agent plan review in parallel                          |
 | `/playwright-test`       | Run browser tests on PR-affected pages                       |
 | `/report-bug`            | Report a bug                                                 |
 | `/reproduce-bug`         | Reproduce bugs using logs and console                        |
@@ -153,6 +153,7 @@ Shared AI agent configuration synced across projects. Contains agents, commands,
 | `compound-docs` | Capture solved problems as categorized documentation     |
 | `file-todos`    | File-based todo tracking system                          |
 | `git-worktree`  | Manage Git worktrees for parallel development            |
+| `setup`         | Configure review agents per project via interactive setup|
 | `standup-skill` | Generate a summary of work from the previous workday     |
 
 ### Integrations

@@ -48,25 +48,25 @@ Ensure that the code is ready for analysis (either in worktree or on current bra
 
 </task_list>
 
+#### Load Review Agents
+
+Read `compound-engineering.local.md` in the project root. If found, use `review_agents` from YAML frontmatter. If the markdown body contains review context, pass it to each agent as additional instructions.
+
+If no settings file exists, invoke the `setup` skill to create one. Then read the newly created file and continue.
+
 #### Parallel Agents to review the PR:
 
 <parallel_tasks>
 
-Run ALL or most of these agents at the same time:
+Run all configured review agents in parallel using Task tool. For each agent in the `review_agents` list:
 
-1. Task kieran-typescript-reviewer(PR content)
-2. Task kieran-python-reviewer(PR content)
-3. Task code-simplicity-reviewer(PR content)
-4. Task git-history-analyzer(PR content)
-5. Task dependency-detective(PR content)
-6. Task pattern-recognition-specialist(PR content)
-7. Task architecture-strategist(PR content)
-8. Task code-philosopher(PR content)
-9. Task security-sentinel(PR content)
-10. Task performance-oracle(PR content)
-11. Task devops-harmony-analyst(PR content)
-12. Task data-integrity-guardian(PR content)
-13. Task agent-native-reviewer(PR content) - Verify new features are agent-accessible
+```
+Task {agent-name}(PR content + review context from settings body)
+```
+
+Additionally, always run these regardless of settings:
+- Task agent-native-reviewer(PR content) - Verify new features are agent-accessible
+- Task learnings-researcher(PR content) - Search .ai/docs/solutions/ for past issues related to this PR's modules and patterns
 
 </parallel_tasks>
 
@@ -183,6 +183,7 @@ Remove duplicates, prioritize by severity and impact.
 <synthesis_tasks>
 
 - [ ] Collect findings from all parallel agents
+- [ ] Surface learnings-researcher results: if past solutions are relevant, flag them as "Known Pattern" with links to .ai/docs/solutions/ files
 - [ ] Categorize by type: security, performance, architecture, quality, etc.
 - [ ] Assign severity levels: 🔴 CRITICAL (P1), 🟡 IMPORTANT (P2), 🔵 NICE-TO-HAVE (P3)
 - [ ] Remove duplicate or overlapping findings
