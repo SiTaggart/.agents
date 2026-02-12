@@ -74,6 +74,7 @@ rp-cli -w <window_id> -e 'tree --type roots'
 - Use `rp-cli -e 'windows'` to list all open windows and their workspaces
 - Always include `-w <window_id>` in ALL subsequent commands
 
+---
 ### Phase 1: Initial Assessment
 
 1. Read any provided files/reports (traces, logs, error reports)

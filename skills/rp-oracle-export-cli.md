@@ -22,9 +22,9 @@ You don't need to specify which files to include—just describe what you need h
 
 ## Workflow
 
-### 0. Workspace Verification (REQUIRED)
+### 0: Workspace Verification (REQUIRED)
 
-Before building context, confirm the target codebase is loaded:
+Before any building context, confirm the target codebase is loaded:
 
 ```bash
 # First, list available windows to find the right one
@@ -35,7 +35,7 @@ rp-cli -w <window_id> -e 'tree --type roots'
 ```
 
 **Check the output:**
-- If your target root appears in a window → note the window ID and proceed
+- If your target root appears in a window → note the window ID and proceed to Step 1
 - If not → the codebase isn't loaded in any window
 
 **CLI Window Routing (CRITICAL):**
@@ -43,6 +43,7 @@ rp-cli -w <window_id> -e 'tree --type roots'
 - Use `rp-cli -e 'windows'` to list all open windows and their workspaces
 - Always include `-w <window_id>` in ALL subsequent commands
 
+---
 ### 1. Build Context
 
 ```bash

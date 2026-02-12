@@ -77,7 +77,6 @@ rp-cli -w <window_id> -e 'tree --type roots'
 - Always include `-w <window_id>` in ALL subsequent commands
 
 ---
-
 ## Step 1: Survey Changes
 ```bash
 rp-cli -w <window_id> -e 'git status'

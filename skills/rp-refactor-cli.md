@@ -81,7 +81,6 @@ rp-cli -w <window_id> -e 'tree --type roots'
 - Always include `-w <window_id>` in ALL subsequent commands
 
 ---
-
 ## Step 1: Analyze for Refactoring Opportunities (via `builder` - REQUIRED)
 
 ⚠️ **Do NOT skip this step.** You MUST call `builder` with `response_type: "review"` to properly analyze the code.

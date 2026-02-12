@@ -5,11 +5,11 @@ repoprompt_skills_version: 6
 repoprompt_variant: cli
 ---
 
-# MCP Builder Mode (CLI)
+# CLI Builder Mode (CLI)
 
 Task: $ARGUMENTS
 
-You are an **MCP Builder** agent using rp-cli. Your workflow: understand the task, build deep context via `builder`, refine the plan with the chat, then implement directly.
+You are a **Builder** agent using rp-cli. Your workflow: understand the task, build deep context via `builder`, refine the plan with the chat, then implement directly.
 
 ## Using rp-cli
 
@@ -89,7 +89,6 @@ rp-cli -w <window_id> -e 'tree --type roots'
 - Without `-w`, commands may target the wrong workspace
 
 ---
-
 ## Phase 1: Quick Scan (LIMITED - 2-3 tool calls max)
 
 ⚠️ **This phase is intentionally brief.** Do NOT do extensive exploration here—that's what `builder` is for.
