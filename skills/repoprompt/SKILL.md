@@ -8,16 +8,39 @@ allowed-tools: [Bash, Read]
 
 ## When to Use
 
+- **Deep codebase understanding** — use `builder` (context_builder) as your primary tool
 - **Explore codebase structure** (tree, codemaps)
 - **Search code** with context lines
 - **Get code signatures** without full file content (token-efficient)
 - **Read file slices** (specific line ranges)
-- **Build context** for tasks
+
+## Context Builder — Use This First
+
+`builder` (the CLI equivalent of the `context_builder` MCP tool) is the most powerful exploration tool. It's a two-stage AI system: a research model explores and selects relevant files, then an analysis model provides deep insights from curated context.
+
+**Use `builder` instead of manual exploration for any non-trivial task.**
+
+```bash
+# Understand a system
+rp-cli -e 'builder "understand how authentication works" --response-type question'
+
+# Plan changes
+rp-cli -e 'builder "plan refactoring of the API layer" --response-type plan'
+
+# Review changes
+rp-cli -e 'builder "review recent changes to auth module" --response-type review'
+```
+
+Follow up in the same context with `chat` (pass `-t <tab_id>` from builder response):
+```bash
+rp-cli -t '<tab_id>' -e 'chat "How does X connect to Y?" --mode plan'
+```
 
 ## Token Optimization
 
 RepoPrompt is **more token-efficient** than raw file reads:
 
+- `builder` → AI-curated file selection within token budget
 - `structure` → signatures only (not full content)
 - `read --start-line --limit` → slices instead of full files
 - `search --context-lines` → relevant matches with context

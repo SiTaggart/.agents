@@ -499,7 +499,7 @@ After writing the plan file, use the **AskUserQuestion tool** to present these o
 **Options:**
 1. **Open plan in editor** - Open the plan file for review
 2. **Run `/deepen-plan`** - Enhance each section with parallel research agents (best practices, performance, UI)
-3. **Run `/technical_review`** - Technical feedback from code-focused reviewers (DHH, Kieran, Simplicity)
+3. **Run plan review agents** - Technical feedback from `plan_review_agents` in `compound-engineering.local.md`
 4. **Review and refine** - Improve the document through structured self-review
 5. **Start `/workflows:work`** - Begin implementing this plan locally
 6. **Start `/workflows:work` on remote** - Begin implementing in Claude Code on the web (use `&` to run in background)
@@ -508,7 +508,7 @@ After writing the plan file, use the **AskUserQuestion tool** to present these o
 Based on selection:
 - **Open plan in editor** → Run `open .ai/docs/plans/<plan_filename>.md` to open the file in the user's default editor
 - **`/deepen-plan`** → Call the /deepen-plan command with the plan file path to enhance with research
-- **`/technical_review`** → Call the /technical_review command with the plan file path
+- **Plan review agents** → Read `plan_review_agents` from `compound-engineering.local.md` frontmatter. If no settings file, invoke the `setup` skill to create one. Run each agent in parallel via Task tool, passing the plan file content. Synthesize findings and present to user.
 - **Review and refine** → Load `document-review` skill.
 - **`/workflows:work`** → Call the /workflows:work command with the plan file path
 - **`/workflows:work` on remote** → Run `/workflows:work .ai/docs/plans/<plan_filename>.md &` to start work in background for Claude Code web
@@ -517,7 +517,7 @@ Based on selection:
 
 **Note:** If running `/workflows:plan` with ultrathink enabled, automatically run `/deepen-plan` after plan creation for maximum depth and grounding.
 
-Loop back to options after Simplify or Other changes until user selects `/workflows:work` or `/technical_review`.
+Loop back to options after Simplify or Other changes until user selects `/workflows:work` or plan review agents.
 
 ## Issue Creation
 
@@ -547,6 +547,6 @@ When user selects "Create Issue", detect their project tracker from CLAUDE.md:
 
 5. **After creation:**
    - Display the issue URL
-   - Ask if they want to proceed to `/workflows:work` or `/technical_review`
+   - Ask if they want to proceed to `/workflows:work` or run plan review agents
 
 NEVER CODE! Just research and write the plan.

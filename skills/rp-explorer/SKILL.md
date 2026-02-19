@@ -133,21 +133,41 @@ Run with: `rp-cli --exec-file ~/scripts/export.rp`
 
 ## Exploration Workflow
 
-### Step 1: Get Overview
+### Step 1: Quick Orientation (2-3 calls max)
 
 ```bash
 rp-cli -e 'tree'
-rp-cli -e 'structure .'
+rp-cli -e 'search "<key term>"'
 ```
 
-### Step 2: Find Relevant Files
+Get a lay of the land, then **stop exploring manually**. Use `builder` for the heavy lifting.
+
+### Step 2: Context Builder (PRIMARY — use this for deep understanding)
+
+`builder` is an AI-powered two-stage system: a research model explores and selects relevant files, then an analysis model provides deep insights. This beats manual exploration every time.
 
 ```bash
-rp-cli -e 'search "auth" --context-lines 2'
-rp-cli -e 'builder "understand authentication"'
+# Deep understanding of a system
+rp-cli -e 'builder "understand how authentication works" --response-type question'
+
+# Planning changes
+rp-cli -e 'builder "plan implementation of feature X" --response-type plan'
+
+# Reviewing recent changes
+rp-cli -e 'builder "review changes to auth module" --response-type review'
 ```
 
-### Step 3: Deep Dive
+**Trust `builder`** — it explores deeply and selects files intelligently within a token budget. You shouldn't need extensive manual exploration afterward.
+
+### Step 3: Follow Up with Chat
+
+Use `chat` to ask clarifying questions in the same context (pass `-t <tab_id>` from builder response):
+
+```bash
+rp-cli -t '<tab_id>' -e 'chat "How does X connect to Y?" --mode plan'
+```
+
+### Step 4: Manual Deep Dive (only if builder missed something)
 
 ```bash
 rp-cli -e 'select set src/auth/'
@@ -155,7 +175,7 @@ rp-cli -e 'structure --scope selected'
 rp-cli -e 'read src/auth/login.ts'
 ```
 
-### Step 4: Export Context
+### Step 5: Export Context
 
 ```bash
 rp-cli -e 'context --all > codebase-map.md'
