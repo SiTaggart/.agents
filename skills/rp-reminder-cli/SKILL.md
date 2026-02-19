@@ -1,7 +1,8 @@
 ---
+name: rp-reminder
 description: Reminder to use rp-cli
 repoprompt_managed: true
-repoprompt_skills_version: 6
+repoprompt_skills_version: 7
 repoprompt_variant: cli
 ---
 
@@ -13,6 +14,7 @@ Continue your current workflow using rp-cli instead of built-in alternatives.
 
 | Task | Use This | Not This |
 |------|----------|----------|
+| **Deep understanding** | **`builder`** | Manual exploration, spawning subagents |
 | Find files/content | `search` | grep, find, Glob |
 | Read files | `read` | cat, Read |
 | Edit files | `edit` | sed, Edit |
@@ -36,6 +38,20 @@ rp-cli -w <window_id> -e 'call apply_edits {"path":"Root/file.swift","search":"a
 rp-cli -w <window_id> -e 'file create Root/new.swift "content..."'
 rp-cli -w <window_id> -e 'file delete /absolute/path.swift'
 rp-cli -w <window_id> -e 'file move Root/old.swift Root/new.swift'
+```
+
+## Context Builder (for deep understanding)
+
+For any non-trivial exploration, use `builder` instead of manual file reads:
+
+```bash
+# AI-powered context building (two-stage: research → analysis)
+rp-cli -w <window_id> -e 'builder "understand how X works" --response-type question'
+rp-cli -w <window_id> -e 'builder "plan changes to Y" --response-type plan'
+rp-cli -w <window_id> -e 'builder "review changes" --response-type review'
+
+# Follow up in the same context
+rp-cli -w <window_id> -t '<tab_id>' -e 'chat "clarifying question" --mode plan'
 ```
 
 ## Context Management

@@ -1,7 +1,8 @@
 ---
+name: rp-refactor
 description: Refactoring assistant using rp-cli to analyze and improve code organization
 repoprompt_managed: true
-repoprompt_skills_version: 6
+repoprompt_skills_version: 7
 repoprompt_variant: cli
 ---
 

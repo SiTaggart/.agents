@@ -1,6 +1,6 @@
 # Critical Pattern Template
 
-Use this template when adding a pattern to `.ai/docs/solutions/patterns/[project]-critical-patterns.md`:
+Use this template when adding a pattern to `.ai/solutions/patterns/[project]-critical-patterns.md`:
 
 ---
 
@@ -22,7 +22,7 @@ Use this template when adding a pattern to `.ai/docs/solutions/patterns/[project
 
 **Placement/Context:** [When this applies]
 
-**Documented in:** `.ai/docs/solutions/[category]/[filename].md`
+**Documented in:** `.ai/solutions/[category]/[filename].md`
 
 ---
 

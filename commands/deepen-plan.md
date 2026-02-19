@@ -25,8 +25,8 @@ The result is a deeply grounded, production-ready plan with concrete implementat
 <plan_path> #$ARGUMENTS </plan_path>
 
 **If the plan path above is empty:**
-1. Check for recent plans: `ls -la .ai/docs/plans/`
-2. Ask the user: "Which plan would you like to deepen? Please provide the path (e.g., `.ai/docs/plans/2026-01-15-feat-my-feature-plan.md`)."
+1. Check for recent plans: `ls -la .ai/plans/`
+2. Ask the user: "Which plan would you like to deepen? Please provide the path (e.g., `.ai/plans/2026-01-15-feat-my-feature-plan.md`)."
 
 Do not proceed until you have a valid plan file path.
 
@@ -152,7 +152,7 @@ Check for documented learnings from /workflows:compound. These are solved proble
 **LEARNINGS LOCATION - Check these exact folders:**
 
 ```
-.ai/docs/solutions/           <-- PRIMARY: Project-level learnings (created by /workflows:compound)
+.ai/solutions/           <-- PRIMARY: Project-level learnings (created by /workflows:compound)
 ├── performance-issues/
 │   └── *.md
 ├── debugging-patterns/
@@ -173,9 +173,9 @@ Run these commands to get every learning file:
 
 ```bash
 # PRIMARY LOCATION - Project learnings
-find .ai/docs/solutions -name "*.md" -type f 2>/dev/null
+find .ai/solutions -name "*.md" -type f 2>/dev/null
 
-# If .ai/docs/solutions doesn't exist, check alternate locations:
+# If .ai/solutions doesn't exist, check alternate locations:
 find .claude/docs -name "*.md" -type f 2>/dev/null
 find ~/.claude/docs -name "*.md" -type f 2>/dev/null
 ```
@@ -199,7 +199,7 @@ root_cause: "Missing includes on association"
 
 ```bash
 # Read first 20 lines of each learning (frontmatter + summary)
-head -20 .ai/docs/solutions/**/*.md
+head -20 .ai/solutions/**/*.md
 ```
 
 **Step 3: Filter - only spawn sub-agents for LIKELY relevant learnings**
@@ -252,14 +252,14 @@ If NOT relevant after deeper analysis:
 # Found 15 learning files, plan is about "Rails API caching"
 
 # SPAWN (likely relevant):
-.ai/docs/solutions/performance-issues/n-plus-one-queries.md      # tags: [activerecord] ✓
-.ai/docs/solutions/performance-issues/redis-cache-stampede.md    # tags: [caching, redis] ✓
-.ai/docs/solutions/configuration-fixes/redis-connection-pool.md  # tags: [redis] ✓
+.ai/solutions/performance-issues/n-plus-one-queries.md      # tags: [activerecord] ✓
+.ai/solutions/performance-issues/redis-cache-stampede.md    # tags: [caching, redis] ✓
+.ai/solutions/configuration-fixes/redis-connection-pool.md  # tags: [redis] ✓
 
 # SKIP (clearly not applicable):
-.ai/docs/solutions/deployment-issues/heroku-memory-quota.md      # not about caching
-.ai/docs/solutions/frontend-issues/stimulus-race-condition.md    # plan is API, not frontend
-.ai/docs/solutions/authentication-issues/jwt-expiry.md           # plan has no auth
+.ai/solutions/deployment-issues/heroku-memory-quota.md      # not about caching
+.ai/solutions/frontend-issues/stimulus-race-condition.md    # plan is API, not frontend
+.ai/solutions/authentication-issues/jwt-expiry.md           # plan has no auth
 ```
 
 **Spawn sub-agents in PARALLEL for all filtered learnings.**
@@ -481,14 +481,14 @@ After writing the enhanced plan, use the **AskUserQuestion tool** to present the
 
 **Options:**
 1. **View diff** - Show what was added/changed
-2. **Run `/technical_review`** - Get feedback from reviewers on enhanced plan
+2. **Run plan review agents** - Technical feedback from `plan_review_agents` in `compound-engineering.local.md`
 3. **Start `/workflows:work`** - Begin implementing this enhanced plan
 4. **Deepen further** - Run another round of research on specific sections
 5. **Revert** - Restore original plan (if backup exists)
 
 Based on selection:
 - **View diff** → Run `git diff [plan_path]` or show before/after
-- **`/technical_review`** → Call the /technical_review command with the plan file path
+- **Plan review agents** → Read `plan_review_agents` from `compound-engineering.local.md` frontmatter. If no settings file, invoke the `setup` skill to create one. Run each agent in parallel via Task tool, passing the plan file content. Synthesize findings and present to user.
 - **`/workflows:work`** → Call the /workflows:work command with the plan file path
 - **Deepen further** → Ask which sections need more research, then re-run those agents
 - **Revert** → Restore from git or backup

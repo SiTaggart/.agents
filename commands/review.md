@@ -66,7 +66,7 @@ Task {agent-name}(PR content + review context from settings body)
 
 Additionally, always run these regardless of settings:
 - Task agent-native-reviewer(PR content) - Verify new features are agent-accessible
-- Task learnings-researcher(PR content) - Search .ai/docs/solutions/ for past issues related to this PR's modules and patterns
+- Task learnings-researcher(PR content) - Search .ai/solutions/ for past issues related to this PR's modules and patterns
 
 </parallel_tasks>
 
@@ -183,7 +183,7 @@ Remove duplicates, prioritize by severity and impact.
 <synthesis_tasks>
 
 - [ ] Collect findings from all parallel agents
-- [ ] Surface learnings-researcher results: if past solutions are relevant, flag them as "Known Pattern" with links to .ai/docs/solutions/ files
+- [ ] Surface learnings-researcher results: if past solutions are relevant, flag them as "Known Pattern" with links to .ai/solutions/ files
 - [ ] Categorize by type: security, performance, architecture, quality, etc.
 - [ ] Assign severity levels: 🔴 CRITICAL (P1), 🟡 IMPORTANT (P2), 🔵 NICE-TO-HAVE (P3)
 - [ ] Remove duplicate or overlapping findings

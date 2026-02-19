@@ -57,23 +57,41 @@ rp-cli --chat "How does auth work?"
 
 ## Exploration Workflow
 
-### Step 1: Get Overview
+### Step 1: Quick Orientation (2-3 calls max)
 
 ```bash
 rp-cli -e 'tree'
-rp-cli -e 'tree --folders'
-rp-cli -e 'structure .'
+rp-cli -e 'search "<key term>" --context-lines 3'
 ```
 
-### Step 2: Find Relevant Files
+Get a lay of the land, then **stop exploring manually**. Use `builder` for the heavy lifting.
+
+### Step 2: Context Builder (PRIMARY — always use this)
+
+`builder` is a two-stage AI system: a research model explores and selects relevant files, then an analysis model provides deep insights. This beats manual exploration every time.
 
 ```bash
-rp-cli -e 'search "pattern" --context-lines 3'
-rp-cli -e 'search "TODO" --extensions .ts,.tsx --max-results 20'
-rp-cli -e 'builder "understand auth system"'
+# Deep understanding of a system
+rp-cli -e 'builder "understand how auth system works" --response-type question'
+
+# Planning changes
+rp-cli -e 'builder "plan implementation of feature X" --response-type plan'
+
+# Reviewing recent changes
+rp-cli -e 'builder "review changes to auth module" --response-type review'
 ```
 
-### Step 3: Deep Dive
+**Trust `builder`** — it explores deeply and selects files intelligently within a token budget.
+
+### Step 3: Follow Up with Chat
+
+Use `chat` to ask clarifying questions in the same context (pass `-t <tab_id>` from builder response):
+
+```bash
+rp-cli -t '<tab_id>' -e 'chat "How does X connect to Y?" --mode plan'
+```
+
+### Step 4: Manual Deep Dive (only if builder missed something)
 
 ```bash
 rp-cli -e 'select set src/auth/'
@@ -81,7 +99,7 @@ rp-cli -e 'structure --scope selected'
 rp-cli -e 'read src/auth/middleware.ts --start-line 1 --limit 50'
 ```
 
-### Step 4: Export Context
+### Step 5: Export Context
 
 ```bash
 rp-cli -e 'context'

@@ -50,16 +50,16 @@ tags: [n-plus-one, eager-loading, performance]
 
 Based on `problem_type`, documentation is filed in:
 
-- **build_error** → `.ai/docs/solutions/build-errors/`
-- **test_failure** → `.ai/docs/solutions/test-failures/`
-- **runtime_error** → `.ai/docs/solutions/runtime-errors/`
-- **performance_issue** → `.ai/docs/solutions/performance-issues/`
-- **database_issue** → `.ai/docs/solutions/database-issues/`
-- **security_issue** → `.ai/docs/solutions/security-issues/`
-- **ui_bug** → `.ai/docs/solutions/ui-bugs/`
-- **integration_issue** → `.ai/docs/solutions/integration-issues/`
-- **logic_error** → `.ai/docs/solutions/logic-errors/`
-- **developer_experience** → `.ai/docs/solutions/developer-experience/`
-- **workflow_issue** → `.ai/docs/solutions/workflow-issues/`
-- **best_practice** → `.ai/docs/solutions/best-practices/`
-- **documentation_gap** → `.ai/docs/solutions/documentation-gaps/`
+- **build_error** → `.ai/solutions/build-errors/`
+- **test_failure** → `.ai/solutions/test-failures/`
+- **runtime_error** → `.ai/solutions/runtime-errors/`
+- **performance_issue** → `.ai/solutions/performance-issues/`
+- **database_issue** → `.ai/solutions/database-issues/`
+- **security_issue** → `.ai/solutions/security-issues/`
+- **ui_bug** → `.ai/solutions/ui-bugs/`
+- **integration_issue** → `.ai/solutions/integration-issues/`
+- **logic_error** → `.ai/solutions/logic-errors/`
+- **developer_experience** → `.ai/solutions/developer-experience/`
+- **workflow_issue** → `.ai/solutions/workflow-issues/`
+- **best_practice** → `.ai/solutions/best-practices/`
+- **documentation_gap** → `.ai/solutions/documentation-gaps/`
