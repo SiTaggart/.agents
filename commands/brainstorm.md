@@ -72,11 +72,11 @@ Use **AskUserQuestion tool** to ask which approach the user prefers.
 
 ### Phase 3: Capture the Design
 
-Write a brainstorm document to `.ai/docs/brainstorms/YYYY-MM-DD-<topic>-brainstorm.md`.
+Write a brainstorm document to `.ai/brainstorms/YYYY-MM-DD-<topic>-brainstorm.md`.
 
 **Document structure:** See the `brainstorming` skill for the template format. Key sections: What We're Building, Why This Approach, Key Decisions, Open Questions.
 
-Ensure `.ai/docs/brainstorms/` directory exists before writing.
+Ensure `.ai/brainstorms/` directory exists before writing.
 
 **IMPORTANT:** Before proceeding to Phase 4, check if there are any Open Questions listed in the brainstorm document. If there are open questions, YOU MUST ask the user about each one using AskUserQuestion before offering to proceed to planning. Move resolved questions to a "Resolved Questions" section.
 
@@ -110,7 +110,7 @@ When complete, display:
 ```
 Brainstorm complete!
 
-Document: .ai/docs/brainstorms/YYYY-MM-DD-<topic>-brainstorm.md
+Document: .ai/brainstorms/YYYY-MM-DD-<topic>-brainstorm.md
 
 Key decisions:
 - [Decision 1]
