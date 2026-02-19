@@ -1,7 +1,8 @@
 ---
+name: rp-investigate
 description: Deep codebase investigation and architecture research with rp-cli commands
 repoprompt_managed: true
-repoprompt_skills_version: 6
+repoprompt_skills_version: 7
 repoprompt_variant: cli
 ---
 

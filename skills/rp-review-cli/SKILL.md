@@ -1,7 +1,8 @@
 ---
+name: rp-review
 description: Code review workflow using rp-cli git tool and context_builder
 repoprompt_managed: true
-repoprompt_skills_version: 6
+repoprompt_skills_version: 7
 repoprompt_variant: cli
 ---
 
