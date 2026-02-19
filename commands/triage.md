@@ -5,7 +5,6 @@ argument-hint: '[findings list or source type]'
 disable-model-invocation: true
 ---
 
-- First set the /model to Haiku
 - Then read all pending todos in the todos/ directory
 
 Present all findings, decisions, or issues here one by one for triage. The goal is to go through each item and decide whether to add it to the CLI todo system.
@@ -60,7 +59,6 @@ Do you want to add this to the todo list?
 1. **Update existing todo file** (if it exists) or **Create new filename:**
 
    If todo already exists (from code review):
-
    - Rename file from `{id}-pending-{priority}-{desc}.md` → `{id}-ready-{priority}-{desc}.md`
    - Update YAML frontmatter: `status: pending` → `status: ready`
    - Keep issue_id, priority, and description unchanged
@@ -72,7 +70,6 @@ Do you want to add this to the todo list?
    ```
 
    Priority mapping:
-
    - 🔴 P1 (CRITICAL) → `p1`
    - 🟡 P2 (IMPORTANT) → `p2`
    - 🔵 P3 (NICE-TO-HAVE) → `p3`

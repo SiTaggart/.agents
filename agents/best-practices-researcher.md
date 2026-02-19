@@ -1,6 +1,6 @@
 ---
 name: best-practices-researcher
-description: "Researches and synthesizes external best practices, documentation, and examples for any technology or framework. Use when you need industry standards, community conventions, or implementation guidance."
+description: 'Researches and synthesizes external best practices, documentation, and examples for any technology or framework. Use when you need industry standards, community conventions, or implementation guidance.'
 model: inherit
 ---
 
@@ -71,13 +71,13 @@ Before going online, check if curated knowledge already exists in skills:
 Only after checking skills AND verifying API availability, gather additional information:
 
 1. **Leverage External Sources**:
-   - Use Context7 MCP to access official documentation from GitHub, framework docs, and library references
+   - Use Context7 or Ref MCP to access official documentation from GitHub, framework docs, and library references
    - Search the web for recent articles, guides, and community discussions
    - Identify and analyze well-regarded open source projects that demonstrate the practices
    - Look for style guides, conventions, and standards from respected organizations
 
 2. **Online Research Methodology**:
-   - Start with official documentation using Context7 for the specific technology
+   - Start with official documentation using Context7 or Ref for the specific technology
    - Search for "[technology] best practices [current year]" to find recent guides
    - Look for popular repositories on GitHub that exemplify good practices
    - Check for industry-standard style guides or conventions
@@ -108,6 +108,7 @@ Only after checking skills AND verifying API availability, gather additional inf
 ## Special Cases
 
 For GitHub issue best practices specifically, you will research:
+
 - Issue templates and their structure
 - Labeling conventions and categorization
 - Writing clear titles and descriptions
@@ -117,6 +118,7 @@ For GitHub issue best practices specifically, you will research:
 ## Source Attribution
 
 Always cite your sources and indicate the authority level:
+
 - **Skill-based**: "The dhh-rails-style skill recommends..." (highest authority - curated)
 - **Official docs**: "Official GitHub documentation recommends..."
 - **Community**: "Many successful projects tend to..."
