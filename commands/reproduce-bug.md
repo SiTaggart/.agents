@@ -7,6 +7,12 @@ disable-model-invocation: true
 
 Look at github issue #$ARGUMENTS and read the issue description and comments.
 
+**Search QMD for prior investigations:** Before launching agents, search for prior work on this area:
+- `mcp__qmd__vector_search` with the issue title and affected module against the `ai` collection
+- Look for: prior bug investigations, root cause analyses, and related design docs
+- If prior investigations exist, use their findings to guide the reproduction — the root cause may already be documented
+- For subagents without MCP: `qmd query "issue description"` via Bash
+
 Then, run the following agents in parallel to reproduce the bug:
 
 1. Task rails-console-explorer(issue_description)

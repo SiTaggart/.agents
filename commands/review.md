@@ -67,6 +67,7 @@ Task {agent-name}(PR content + review context from settings body)
 Additionally, always run these regardless of settings:
 - Task agent-native-reviewer(PR content) - Verify new features are agent-accessible
 - Task learnings-researcher(PR content) - Search .ai/solutions/ for past issues related to this PR's modules and patterns
+- **QMD search** (direct, no subagent needed) - `mcp__qmd__vector_search` with the PR title and changed modules against both `ai` and `docs` collections. Surface design docs that motivated these changes, prior specs with constraints, and related meeting notes. Include relevant findings in the synthesis step.
 
 </parallel_tasks>
 

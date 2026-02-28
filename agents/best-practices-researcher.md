@@ -55,7 +55,18 @@ Before going online, check if curated knowledge already exists in skills:
    - If skills provide partial guidance → note what's covered, proceed to Phase 1.5 and Phase 2 for gaps
    - If no relevant skills found → proceed to Phase 1.5 and Phase 2
 
-### Phase 1.5: MANDATORY Deprecation Check (for external APIs/services)
+### Phase 1.5: Search Local Knowledge (QMD)
+
+Before going online, search indexed local documentation via QMD:
+
+1. **Keyword search**: `mcp__qmd__search` for exact terms, feature names, identifiers in the `docs` collection
+2. **Semantic search**: `mcp__qmd__vector_search` across both `ai` and `docs` collections for conceptual matches
+3. **What to look for**: Meeting notes, research synthesis, project specs, and prior design docs often contain domain-specific best practices, stakeholder constraints, and rationale that external sources won't have
+4. **Assess coverage**: If QMD results provide comprehensive guidance → incorporate and note the source. If partial → note what's covered and proceed to Phase 2 for gaps
+
+For subagents without MCP access: `qmd search "keywords" -c docs` or `qmd query "question"` via Bash.
+
+### Phase 1.75: MANDATORY Deprecation Check (for external APIs/services)
 
 **Before recommending any external API, OAuth flow, SDK, or third-party service:**
 

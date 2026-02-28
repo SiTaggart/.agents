@@ -33,6 +33,23 @@ You are working with a senior Design Engineer specializing in TypeScript and Rea
 
 ## Workflow Orchestration
 
+### 0. Prior Art Search (before planning)
+
+For any non-trivial task, search QMD before planning or writing code:
+
+- Use `mcp__qmd__search` (keyword, ~30ms) for exact terms, identifiers, feature names
+- Use `mcp__qmd__vector_search` (semantic, ~2s) for conceptual matches when you don't know the exact vocabulary
+- Search both collections: **ai** for agent artifacts (designs, plans, reviews, investigations), **docs** for project documentation (specs, meeting notes, research)
+- If prior art exists, reference it in your context block and build on it — don't reinvent
+- For subagents without MCP: `qmd search "keywords" -c ai` or `qmd query "question"` via Bash
+
+| Situation | What to search | Collection |
+|-----------|---------------|------------|
+| Starting a feature | Prior designs, specs, related plans | both |
+| Debugging | Prior investigations in the same module | ai |
+| Architecture decision | Prior decisions, meeting notes with rationale | both |
+| Writing docs | Existing docs on the topic to extend or reference | docs |
+
 ### 1. Plan Mode Default
 
 - Enter plan mode for ANY non-trivial task (3+ steps or architectural decisions)

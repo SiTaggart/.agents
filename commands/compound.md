@@ -49,9 +49,10 @@ Launch these subagents IN PARALLEL. Each returns text data to the orchestrator.
 
 #### 3. **Related Docs Finder**
    - Searches `.ai/solutions/` for related documentation
+   - **Searches QMD** (`mcp__qmd__vector_search` against both `ai` and `docs` collections) for prior designs, specs, and investigations related to this problem area. For subagents without MCP: `qmd query "problem description"` via Bash
    - Identifies cross-references and links
    - Finds related GitHub issues
-   - Returns: Links and relationships
+   - Returns: Links and relationships (including QMD matches)
 
 #### 4. **Prevention Strategist**
    - Develops prevention strategies

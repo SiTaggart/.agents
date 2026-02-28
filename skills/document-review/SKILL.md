@@ -15,6 +15,8 @@ Improve brainstorm or plan documents through structured review.
 
 ## Step 2: Assess
 
+**Search QMD for related context:** Before assessing, search for related specs and decisions: `mcp__qmd__vector_search` with the document's topic against both `ai` and `docs` collections. Look for prior decisions, related specs, and meeting notes that this document should align with. For subagents without MCP: `qmd query "document topic"` via Bash. This catches contradictions with existing decisions and prevents duplicated work.
+
 Read through the document and ask:
 
 - What is unclear?
@@ -22,6 +24,7 @@ Read through the document and ask:
 - What decision is being avoided?
 - What assumptions are unstated?
 - Where could scope accidentally expand?
+- **Does this contradict or duplicate existing documented decisions?** (check QMD results)
 
 These questions surface issues. Don't fix yet—just note what you find.
 
