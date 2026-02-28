@@ -146,10 +146,21 @@ Task general-purpose: "Use the security-patterns skill at ~/.claude/skills/secur
 ### 3. Discover and Apply Learnings/Solutions
 
 <thinking>
-Check for documented learnings from /workflows:compound. These are solved problems stored as markdown files. Spawn a sub-agent for each learning to check if it's relevant.
+Check for documented learnings from /workflows:compound and search QMD for related prior work. QMD's semantic search catches relevant docs that keyword matching misses.
 </thinking>
 
-**LEARNINGS LOCATION - Check these exact folders:**
+**Step 0: QMD Semantic Search (FAST — run first)**
+
+Search QMD for prior work related to this plan:
+
+- `mcp__qmd__vector_search` with the plan's topic/summary against both `ai` and `docs` collections
+- `mcp__qmd__search` with key technical terms from the plan against `ai` collection
+- Look for: prior designs, archived decisions, meeting notes with constraints, related investigations
+- For subagents without MCP: `qmd query "plan topic"` via Bash
+
+QMD results often surface relevant context that file-system searches miss — meeting notes, design rationale, and cross-project patterns.
+
+**LEARNINGS LOCATION - Also check these exact folders:**
 
 ```
 .ai/solutions/           <-- PRIMARY: Project-level learnings (created by /workflows:compound)

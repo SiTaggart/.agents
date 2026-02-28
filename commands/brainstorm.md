@@ -37,13 +37,17 @@ Use **AskUserQuestion tool** to suggest: "Your requirements seem detailed enough
 
 ### Phase 1: Understand the Idea
 
-#### 1.1 Repository Research (Lightweight)
+#### 1.1 Context Gathering (Lightweight)
 
-Run a quick repo scan to understand existing patterns:
+Run these **in parallel** to understand existing context:
 
 - Task repo-research-analyst("Understand existing patterns related to: <feature_description>")
+- **QMD search** (direct, no subagent needed):
+  - `mcp__qmd__vector_search` with the feature description against both `ai` and `docs` collections
+  - Look for: prior brainstorms, design specs, meeting notes, and archived decisions on this topic
+  - For subagents without MCP: `qmd query "feature description"` via Bash
 
-Focus on: similar features, established patterns, CLAUDE.md guidance.
+Focus on: similar features, established patterns, CLAUDE.md guidance, and **prior designs or discussions** that inform what to build.
 
 #### 1.2 Collaborative Dialogue
 

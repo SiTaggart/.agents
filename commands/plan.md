@@ -73,14 +73,19 @@ Refine the idea through collaborative dialogue using the **AskUserQuestion tool*
 First, I need to understand the project's conventions, existing patterns, and any documented learnings. This is fast and local - it informs whether external research is needed.
 </thinking>
 
-Run these agents **in parallel** to gather local context:
+Run these **in parallel** to gather local context:
 
 - Task repo-research-analyst(feature_description)
 - Task learnings-researcher(feature_description)
+- **QMD search** (direct, no subagent needed):
+  - `mcp__qmd__vector_search` with the feature description against both `ai` and `docs` collections
+  - Look for: prior designs, specs, meeting notes, archived decisions related to this feature area
+  - For subagents without MCP: `qmd query "feature description"` via Bash
 
 **What to look for:**
 - **Repo research:** existing patterns, CLAUDE.md guidance, technology familiarity, pattern consistency
 - **Learnings:** documented solutions in `.ai/solutions/` that might apply (gotchas, patterns, lessons learned)
+- **QMD results:** prior designs or specs to build on, meeting notes with stakeholder constraints, archived decisions that explain why things are the way they are
 
 These findings inform the next step.
 
@@ -115,6 +120,7 @@ After all research steps complete, consolidate findings:
 
 - Document relevant file paths from repo research (e.g., `app/services/example_service.rb:42`)
 - **Include relevant institutional learnings** from `.ai/solutions/` (key insights, gotchas to avoid)
+- **Include QMD prior art** — reference any prior designs, specs, or meeting notes found; note decisions already made that constrain the approach
 - Note external documentation URLs and best practices (if external research was done)
 - List related issues or PRs discovered
 - Capture CLAUDE.md conventions
