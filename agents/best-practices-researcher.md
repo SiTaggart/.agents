@@ -59,8 +59,8 @@ Before going online, check if curated knowledge already exists in skills:
 
 Before going online, search indexed local documentation via QMD:
 
-1. **Keyword search**: `mcp__qmd__search` for exact terms, feature names, identifiers in the `docs` collection
-2. **Semantic search**: `mcp__qmd__vector_search` across both `ai` and `docs` collections for conceptual matches
+1. **Keyword search**: `mcp__qmd__query` with a `lex` search for exact terms, feature names, and identifiers in the `docs` collection
+2. **Semantic search**: `mcp__qmd__query` with a `vec` search across both `ai` and `docs` collections for conceptual matches
 3. **What to look for**: Meeting notes, research synthesis, project specs, and prior design docs often contain domain-specific best practices, stakeholder constraints, and rationale that external sources won't have
 4. **Assess coverage**: If QMD results provide comprehensive guidance → incorporate and note the source. If partial → note what's covered and proceed to Phase 2 for gaps
 

@@ -78,7 +78,7 @@ Run these **in parallel** to gather local context:
 - Task repo-research-analyst(feature_description)
 - Task learnings-researcher(feature_description)
 - **QMD search** (direct, no subagent needed):
-  - `mcp__qmd__vector_search` with the feature description against both `ai` and `docs` collections
+  - `mcp__qmd__query` with the feature description against both `ai` and `docs` collections
   - Look for: prior designs, specs, meeting notes, archived decisions related to this feature area
   - For subagents without MCP: `qmd query "feature description"` via Bash
 

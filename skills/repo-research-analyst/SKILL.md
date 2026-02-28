@@ -59,7 +59,7 @@ When spawned, you will receive:
 ### Step 0: Search Project Documentation (QMD)
 
 Before scanning the codebase, search QMD for project-level documentation:
-- `mcp__qmd__vector_search` with the research focus against both `ai` and `docs` collections
+- `mcp__qmd__query` with the research focus against both `ai` and `docs` collections
 - Look for: specs, meeting notes, prior designs, and archived decisions that supplement codebase analysis
 - This surfaces institutional knowledge not visible in the repository itself
 - For subagents without MCP: `qmd query "research focus"` via Bash

@@ -39,7 +39,7 @@ When you receive a specification, plan, or feature description, you will:
 ## Phase 0: Prior Art Search
 
 Before analyzing flows, search QMD for prior specs and decisions on this feature area:
-- `mcp__qmd__vector_search` with the feature description against both `ai` and `docs` collections
+- `mcp__qmd__query` with the feature description against both `ai` and `docs` collections
 - Look for: prior specs, meeting notes with stakeholder constraints, archived design decisions, and related feature implementations
 - Prior decisions may constrain the flows (e.g., "we decided X in the meeting on Y") — surface these before analyzing
 - For subagents without MCP: `qmd query "feature description"` via Bash

@@ -153,8 +153,8 @@ Check for documented learnings from /workflows:compound and search QMD for relat
 
 Search QMD for prior work related to this plan:
 
-- `mcp__qmd__vector_search` with the plan's topic/summary against both `ai` and `docs` collections
-- `mcp__qmd__search` with key technical terms from the plan against `ai` collection
+- `mcp__qmd__query` with the plan's topic/summary against both `ai` and `docs` collections
+- `mcp__qmd__query` with key technical terms from the plan against `ai` collection
 - Look for: prior designs, archived decisions, meeting notes with constraints, related investigations
 - For subagents without MCP: `qmd query "plan topic"` via Bash
 

@@ -43,7 +43,7 @@ Run these **in parallel** to understand existing context:
 
 - Task repo-research-analyst("Understand existing patterns related to: <feature_description>")
 - **QMD search** (direct, no subagent needed):
-  - `mcp__qmd__vector_search` with the feature description against both `ai` and `docs` collections
+  - `mcp__qmd__query` with the feature description against both `ai` and `docs` collections
   - Look for: prior brainstorms, design specs, meeting notes, and archived decisions on this topic
   - For subagents without MCP: `qmd query "feature description"` via Bash
 

@@ -32,7 +32,7 @@ If user declines, work freeform. If user accepts, proceed to Stage 1.
 ### Pre-load Related Context (QMD)
 
 Before asking the user questions, search QMD for related existing documents:
-- `mcp__qmd__vector_search` with the document topic against both `ai` and `docs` collections
+- `mcp__qmd__query` with the document topic against both `ai` and `docs` collections
 - Look for: related specs, meeting notes, prior designs, and existing documentation on this topic
 - If relevant docs exist, summarize what was found so the user doesn't have to re-explain context that's already documented
 - For subagents without MCP: `qmd query "document topic"` via Bash
