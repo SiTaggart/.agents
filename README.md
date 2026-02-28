@@ -7,10 +7,10 @@ Shared AI agent configuration synced across projects. Contains agents, commands,
 | Component  | Count |
 | ---------- | ----- |
 | Agents     | 31    |
-| Commands   | 20    |
-| Skills     | 37    |
+| Commands   | 19    |
+| Skills     | 53    |
 | Rules      | 2     |
-| Hooks      | 1     |
+| Hooks      | 3     |
 
 ## Agents
 
@@ -96,7 +96,6 @@ Shared AI agent configuration synced across projects. Contains agents, commands,
 | `/report-bug`            | Report a bug                                                 |
 | `/reproduce-bug`         | Reproduce bugs using logs and console                        |
 | `/resolve_parallel`      | Resolve TODO comments in parallel                            |
-| `/resolve_pr_parallel`   | Resolve PR comments in parallel                              |
 | `/resolve_todo_parallel` | Resolve todos in parallel                                    |
 | `/set-custom-rules`      | Set custom rules for the project                             |
 | `/triage`                | Triage and prioritize issues                                 |
@@ -106,37 +105,73 @@ Shared AI agent configuration synced across projects. Contains agents, commands,
 
 ### Architecture and Design
 
-| Skill                       | Description                                                |
-| --------------------------- | ---------------------------------------------------------- |
-| `agent-native-architecture` | Build AI agents using prompt-native architecture           |
-| `frontend-design`           | Create production-grade frontend interfaces                |
-| `web-design-guidelines`     | Review UI code for Web Interface Guidelines compliance     |
-| `vercel-react-best-practices` | React and Next.js performance optimization from Vercel   |
+| Skill                          | Description                                            |
+| ------------------------------ | ------------------------------------------------------ |
+| `agent-native-architecture`    | Build AI agents using prompt-native architecture       |
+| `frontend-design`              | Create production-grade frontend interfaces            |
+| `web-design-guidelines`        | Review UI code for Web Interface Guidelines compliance |
+| `vercel-react-best-practices`  | React and Next.js performance optimization from Vercel |
+
+### Code Quality
+
+| Skill              | Description                                                  |
+| ------------------ | ------------------------------------------------------------ |
+| `code-simplifier`  | Simplify and refine code for clarity and maintainability     |
+| `deslop`           | Remove AI-generated code slop from current branch            |
+| `find-bugs`        | Find bugs, security vulnerabilities, and code quality issues |
+| `security-review`  | Security code review for vulnerabilities (OWASP)             |
+| `skill-scanner`    | Scan agent skills for security issues and prompt injection   |
 
 ### Development Tools
 
-| Skill                        | Description                                              |
-| ---------------------------- | -------------------------------------------------------- |
-| `create-agent-skills`        | Expert guidance for creating Claude Code skills          |
-| `skill-creator`              | Guide for creating effective skills                      |
-| `test-driven-development`    | Test-driven development workflows                        |
-| `typescript-advanced-types`  | Master TypeScript's advanced type system                 |
-| `github-search`              | Search GitHub code, repos, issues, and PRs via CLI       |
-| `repo-research-analyst`      | Analyze repository structure and patterns                |
-| `deslop`                     | Remove AI-generated code slop from current branch        |
+| Skill                       | Description                                          |
+| --------------------------- | ---------------------------------------------------- |
+| `claude-settings-audit`     | Generate recommended Claude Code settings.json       |
+| `create-agent-skills`       | Expert guidance for creating Claude Code skills      |
+| `github-search`             | Search GitHub code, repos, issues, and PRs via CLI   |
+| `repo-research-analyst`     | Analyze repository structure and patterns            |
+| `skill-creator`             | Guide for creating effective skills                  |
+| `test-driven-development`   | Test-driven development workflows                    |
+| `typescript-advanced-types` | Master TypeScript's advanced type system             |
 
 ### Codebase Exploration
 
-| Skill           | Description                                               |
-| --------------- | --------------------------------------------------------- |
-| `repoprompt`    | Use RepoPrompt CLI for codebase exploration               |
-| `rp-explorer`   | Token-efficient codebase exploration using RepoPrompt     |
-| `rp-build-cli`  | Build with rp-cli context builder, chat, and implement    |
-| `rp-investigate-cli` | Deep codebase investigation and architecture research |
-| `rp-oracle-export-cli` | Export context for oracle consultation              |
-| `rp-refactor-cli` | Refactoring assistant using rp-cli                      |
-| `rp-reminder-cli` | Reminder to use rp-cli                                  |
-| `rp-review-cli` | Code review workflow using rp-cli                         |
+| Skill                  | Description                                           |
+| ---------------------- | ----------------------------------------------------- |
+| `repoprompt`           | Use RepoPrompt CLI for codebase exploration           |
+| `rp-explorer`          | Token-efficient codebase exploration using RepoPrompt |
+| `rp-build-cli`         | Build with rp-cli context builder, chat, and implement|
+| `rp-investigate-cli`   | Deep codebase investigation and architecture research |
+| `rp-oracle-export-cli` | Export context for oracle consultation                |
+| `rp-refactor-cli`      | Refactoring assistant using rp-cli                    |
+| `rp-reminder-cli`      | Reminder to use rp-cli                                |
+| `rp-review-cli`        | Code review workflow using rp-cli                     |
+
+### Documentation
+
+| Skill              | Description                                          |
+| ------------------ | ---------------------------------------------------- |
+| `agents-md`        | Create and maintain AGENTS.md / CLAUDE.md files      |
+| `compound-docs`    | Capture solved problems as categorized documentation |
+| `doc-coauthoring`  | Structured workflow for co-authoring documentation   |
+| `document-review`  | Refine brainstorm or plan documents before next step |
+
+### Knowledge Search
+
+| Skill       | Description                                                  |
+| ----------- | ------------------------------------------------------------ |
+| `defuddle`  | Extract clean markdown from web pages, removing clutter      |
+| `qmd`       | Search markdown knowledge bases, notes, and documentation    |
+
+### Obsidian
+
+| Skill               | Description                                              |
+| -------------------- | -------------------------------------------------------- |
+| `obsidian-vault`     | Manage Obsidian vaults via CLI (notes, tasks, properties)|
+| `obsidian-cli`       | CLI interaction with Obsidian including plugin dev        |
+| `obsidian-markdown`  | Obsidian-flavored markdown (wikilinks, callouts, embeds) |
+| `obsidian-bases`     | Create and edit Obsidian Bases (.base files)             |
+| `json-canvas`        | Create and edit JSON Canvas files (.canvas)              |
 
 ### Orchestration
 
@@ -146,15 +181,16 @@ Shared AI agent configuration synced across projects. Contains agents, commands,
 
 ### Workflow and Git
 
-| Skill           | Description                                              |
-| --------------- | -------------------------------------------------------- |
-| `commit`        | Create git commits with user approval                    |
-| `describe_pr`   | Generate comprehensive PR descriptions                   |
-| `compound-docs` | Capture solved problems as categorized documentation     |
-| `file-todos`    | File-based todo tracking system                          |
-| `git-worktree`  | Manage Git worktrees for parallel development            |
-| `setup`         | Configure review agents per project via interactive setup|
-| `standup-skill` | Generate a summary of work from the previous workday     |
+| Skill                  | Description                                              |
+| ---------------------- | -------------------------------------------------------- |
+| `commit`               | Create git commits with user approval                    |
+| `create-pr`            | Create pull requests following conventions               |
+| `describe_pr`          | Generate comprehensive PR descriptions                   |
+| `file-todos`           | File-based todo tracking system                          |
+| `git-worktree`         | Manage Git worktrees for parallel development            |
+| `resolve-pr-parallel`  | Resolve all PR comments using parallel processing        |
+| `setup`                | Configure review agents per project via interactive setup|
+| `standup-skill`        | Generate a summary of work from the previous workday     |
 
 ### Integrations
 
@@ -167,13 +203,13 @@ Shared AI agent configuration synced across projects. Contains agents, commands,
 | `notion-spec-to-implementation` | Turn specs into concrete Notion tasks for implementation       |
 | `skills-sh-marketplace`         | Search, discover, and install skills from skills.sh            |
 
-### Image Generation
+### Image Generation and Browser
 
 | Skill             | Description                                              |
 | ----------------- | -------------------------------------------------------- |
+| `agent-browser`   | Browser automation for web testing and interaction       |
 | `gemini-imagegen` | Generate and edit images using Google's Gemini API       |
 | `imagegen`        | Generate or edit images via the OpenAI Image API         |
-| `agent-browser`   | Browser automation for web testing and interaction       |
 
 ## Rules
 
@@ -182,9 +218,17 @@ Shared AI agent configuration synced across projects. Contains agents, commands,
 | `agent-orchestration.md`  | Rules for multi-agent coordination|
 | `git-commits.md`          | Git commit conventions            |
 
+## Hooks
+
+| Hook                       | Description                                              |
+| -------------------------- | -------------------------------------------------------- |
+| `cm-reflect.sh`            | Run cass index + cm reflect on session end               |
+| `prevent-main-commit.sh`   | Block direct commits to main/master                      |
+| `trauma_guard.py`          | Guard against traumatic agent behaviors                  |
+
 ## Key Files
 
-- **`AGENTS.md`** — Global agent instructions: code style, workflow orchestration, task management, and core principles
+- **`AGENTS.md`** — Global agent instructions: code style, workflow orchestration, task management, QMD prior-art search, and core principles
 
 ## License
 
