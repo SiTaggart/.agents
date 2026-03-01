@@ -49,7 +49,7 @@ qmd mcp stop                # Stop daemon
 
 ## Tools
 
-### structured_search
+### query
 
 Search with pre-expanded queries.
 
@@ -65,6 +65,8 @@ Search with pre-expanded queries.
   "minScore": 0.0
 }
 ```
+
+`structured_search` is the legacy name in older clients; prefer `query`.
 
 | Type | Method | Input |
 |------|--------|-------|

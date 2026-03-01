@@ -37,8 +37,8 @@ You are working with a senior Design Engineer specializing in TypeScript and Rea
 
 For any non-trivial task, search QMD before planning or writing code:
 
-- Use `mcp__qmd__search` (keyword, ~30ms) for exact terms, identifiers, feature names
-- Use `mcp__qmd__vector_search` (semantic, ~2s) for conceptual matches when you don't know the exact vocabulary
+- Use `mcp__qmd__query` with `lex` searches (keyword, ~30ms) for exact terms, identifiers, feature names
+- Use `mcp__qmd__query` with `vec` searches (semantic, ~2s) for conceptual matches when you don't know the exact vocabulary
 - Search both collections: **ai** for agent artifacts (designs, plans, reviews, investigations), **docs** for project documentation (specs, meeting notes, research)
 - If prior art exists, reference it in your context block and build on it — don't reinvent
 - For subagents without MCP: `qmd search "keywords" -c ai` or `qmd query "question"` via Bash

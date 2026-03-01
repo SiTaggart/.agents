@@ -24,7 +24,7 @@ This command takes a work document (plan, specification, or todo file) and execu
 
    - Read the work document completely
    - Review any references or links provided in the plan
-   - **Search QMD** for related prior work: `mcp__qmd__vector_search` with the plan's topic against both `ai` and `docs` collections. Look for prior investigations, gotchas, and archived designs that might affect execution. For subagents without MCP: `qmd query "topic"` via Bash
+   - **Search QMD** for related prior work: `mcp__qmd__query` with the plan's topic against both `ai` and `docs` collections. Look for prior investigations, gotchas, and archived designs that might affect execution. For subagents without MCP: `qmd query "topic"` via Bash
    - If anything is unclear or ambiguous, ask clarifying questions now
    - Get user approval to proceed
    - **Do not skip this** - better to ask questions now than build the wrong thing
