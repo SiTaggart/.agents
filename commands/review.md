@@ -1,5 +1,5 @@
 ---
-name: workflows:review
+name: ce:review
 description: Perform exhaustive code reviews using multi-agent analysis, ultra-thinking, and worktrees
 argument-hint: '[PR number, GitHub URL, branch name, or latest]'
 ---
@@ -37,8 +37,8 @@ First, I need to determine the review target type and set up the code for analys
 
 - [ ] Determine review type: PR number (numeric), GitHub URL, file path (.md), or empty (current branch)
 - [ ] Check current git branch
-- [ ] If ALREADY on the PR branch → proceed with analysis on current branch
-- [ ] If DIFFERENT branch → offer to use worktree: "Use git-worktree skill for isolated Call `skill: git-worktree` with branch name
+- [ ] If ALREADY on the target branch (PR branch, requested branch name, or the branch already checked out for review) → proceed with analysis on current branch
+- [ ] If DIFFERENT branch than the review target → offer to use worktree: "Use git-worktree skill for isolated Call `skill: git-worktree` with branch name"
 - [ ] Fetch PR metadata using `gh pr view --json` for title, body, files, linked issues
 - [ ] Set up language-specific analysis tools
 - [ ] Prepare security scanning environment
@@ -47,6 +47,17 @@ First, I need to determine the review target type and set up the code for analys
 Ensure that the code is ready for analysis (either in worktree or on current branch). ONLY then proceed to the next step.
 
 </task_list>
+
+#### Protected Artifacts
+
+<protected_artifacts>
+The following paths are compound-engineering pipeline artifacts and must never be flagged for deletion, removal, or gitignore by any review agent:
+
+- `.ai/plans/*.md` — Plan files created by `/ce:plan`. These are living documents that track implementation progress (checkboxes are checked off by `/ce:work`).
+- `.ai/solutions/*.md` — Solution documents created during the pipeline.
+
+If a review agent flags any file in these directories for cleanup or removal, discard that finding during synthesis. Do not create a todo for it.
+</protected_artifacts>
 
 #### Load Review Agents
 
@@ -185,6 +196,7 @@ Remove duplicates, prioritize by severity and impact.
 
 - [ ] Collect findings from all parallel agents
 - [ ] Surface learnings-researcher results: if past solutions are relevant, flag them as "Known Pattern" with links to .ai/solutions/ files
+- [ ] Discard any findings that recommend deleting or gitignoring files in `.ai/plans/` or `.ai/solutions/` (see Protected Artifacts above)
 - [ ] Categorize by type: security, performance, architecture, quality, etc.
 - [ ] Assign severity levels: 🔴 CRITICAL (P1), 🟡 IMPORTANT (P2), 🔵 NICE-TO-HAVE (P3)
 - [ ] Remove duplicate or overlapping findings
