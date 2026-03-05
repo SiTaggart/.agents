@@ -551,7 +551,7 @@ Use the Write tool to save the complete plan to `.ai/plans/YYYY-MM-DD-<type>-<de
 
 Confirm: "Plan written to .ai/plans/[filename]"
 
-**Pipeline mode:** If invoked from an automated workflow (LFG, SLFG, or any `disable-model-invocation` context), skip all AskUserQuestion calls. Make decisions automatically and proceed to writing the plan without interactive prompts.
+**Pipeline mode:** If invoked as a sub-step of another command (e.g., LFG or SLFG calls `/ce:plan` as one step in a sequence), skip AskUserQuestion calls. Make decisions automatically and proceed to writing the plan without interactive prompts. When run standalone by the user, always use interactive prompts.
 
 ## Output Format
 
