@@ -198,8 +198,8 @@ Work logs serve as:
 
 | Trigger     | Flow                                               | Tool                 |
 | ----------- | -------------------------------------------------- | -------------------- |
-| Code review | `/workflows:review` → Findings → `/triage` → Todos | Review agent + skill |
-| PR comments | `/resolve_pr_parallel` → Individual fixes → Todos  | gh CLI + skill       |
+| Code review | `/ce:review` → Findings → `/triage` → Todos | Review agent + skill |
+| PR comments | `/resolve-pr-parallel` → Individual fixes → Todos  | gh CLI + skill       |
 | Code TODOs  | `/resolve_todo_parallel` → Fixes + Complex todos   | Agent + skill        |
 | Planning    | Brainstorm → Create todo → Work → Complete         | Skill                |
 | Feedback    | Discussion → Create todo → Triage → Work           | Skill + slash        |

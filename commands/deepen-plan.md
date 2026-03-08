@@ -11,7 +11,7 @@ disable-model-invocation: true
 
 **Note: The current year is 2026.** Use this when searching for recent documentation and best practices.
 
-This command takes an existing plan (from `/workflows:plan`) and enhances each section with parallel research agents. Each major element gets its own dedicated research sub-agent to find:
+This command takes an existing plan (from `/ce:plan`) and enhances each section with parallel research agents. Each major element gets its own dedicated research sub-agent to find:
 - Best practices and industry patterns
 - Performance optimizations
 - UI/UX improvements (if applicable)
@@ -146,7 +146,7 @@ Task general-purpose: "Use the security-patterns skill at ~/.claude/skills/secur
 ### 3. Discover and Apply Learnings/Solutions
 
 <thinking>
-Check for documented learnings from /workflows:compound and search QMD for related prior work. QMD's semantic search catches relevant docs that keyword matching misses.
+Check for documented learnings from /ce:compound and search QMD for related prior work. QMD's semantic search catches relevant docs that keyword matching misses.
 </thinking>
 
 **Step 0: QMD Semantic Search (FAST — run first)**
@@ -163,7 +163,7 @@ QMD results often surface relevant context that file-system searches miss — me
 **LEARNINGS LOCATION - Also check these exact folders:**
 
 ```
-.ai/solutions/           <-- PRIMARY: Project-level learnings (created by /workflows:compound)
+.ai/solutions/           <-- PRIMARY: Project-level learnings (created by /ce:compound)
 ├── performance-issues/
 │   └── *.md
 ├── debugging-patterns/
@@ -382,7 +382,7 @@ Wait for ALL parallel agents to complete - skills, research agents, review agent
 **Collect outputs from ALL sources:**
 
 1. **Skill-based sub-agents** - Each skill's full output (code examples, patterns, recommendations)
-2. **Learnings/Solutions sub-agents** - Relevant documented learnings from /workflows:compound
+2. **Learnings/Solutions sub-agents** - Relevant documented learnings from /ce:compound
 3. **Research agents** - Best practices, documentation, real-world examples
 4. **Review agents** - All feedback from every reviewer (architecture, security, performance, simplicity, etc.)
 5. **Context7 queries** - Framework documentation and patterns
@@ -493,27 +493,27 @@ After writing the enhanced plan, use the **AskUserQuestion tool** to present the
 **Options:**
 1. **View diff** - Show what was added/changed
 2. **Run plan review agents** - Technical feedback from `plan_review_agents` in `compound-engineering.local.md`
-3. **Start `/workflows:work`** - Begin implementing this enhanced plan
+3. **Start `/ce:work`** - Begin implementing this enhanced plan
 4. **Deepen further** - Run another round of research on specific sections
 5. **Revert** - Restore original plan (if backup exists)
 
 Based on selection:
 - **View diff** → Run `git diff [plan_path]` or show before/after
 - **Plan review agents** → Read `plan_review_agents` from `compound-engineering.local.md` frontmatter. If no settings file, invoke the `setup` skill to create one. Run each agent in parallel via Task tool, passing the plan file content. Synthesize findings and present to user.
-- **`/workflows:work`** → Call the /workflows:work command with the plan file path
+- **`/ce:work`** → Call the /ce:work command with the plan file path
 - **Deepen further** → Ask which sections need more research, then re-run those agents
 - **Revert** → Restore from git or backup
 
 ## Example Enhancement
 
-**Before (from /workflows:plan):**
+**Before (from /ce:plan):**
 ```markdown
 ## Technical Approach
 
 Use React Query for data fetching with optimistic updates.
 ```
 
-**After (from /workflows:deepen-plan):**
+**After (from /deepen-plan):**
 ```markdown
 ## Technical Approach
 
