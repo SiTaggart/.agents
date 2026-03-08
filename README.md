@@ -96,7 +96,6 @@ Shared AI agent configuration synced across projects. Contains agents, commands,
 | `/report-bug`            | Report a bug                                                 |
 | `/reproduce-bug`         | Reproduce bugs using logs and console                        |
 | `/resolve_parallel`      | Resolve TODO comments in parallel                            |
-| `/resolve-pr-parallel`   | Resolve PR comments in parallel                              |
 | `/resolve_todo_parallel` | Resolve todos in parallel                                    |
 | `/set-custom-rules`      | Set custom rules for the project                             |
 | `/triage`                | Triage and prioritize issues                                 |

@@ -513,7 +513,7 @@ Based on selection:
 Use React Query for data fetching with optimistic updates.
 ```
 
-**After (from /ce:deepen-plan):**
+**After (from /deepen-plan):**
 ```markdown
 ## Technical Approach
 
