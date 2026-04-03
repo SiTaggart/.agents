@@ -10,7 +10,7 @@ qmd embed
 
 ## Configure MCP Client
 
-**Claude Code** (`~/.claude/settings.json`):
+**Claude Code** (`~/.claude.json` global mcpServers):
 ```json
 {
   "mcpServers": {
@@ -60,13 +60,12 @@ Search with pre-expanded queries.
     { "type": "vec", "query": "natural language question" },
     { "type": "hyde", "query": "hypothetical answer passage..." }
   ],
+  "collections": ["docs"],
+  "intent": "optional disambiguation string",
   "limit": 10,
-  "collection": "optional",
   "minScore": 0.0
 }
 ```
-
-`structured_search` is the legacy name in older clients; prefer `query`.
 
 | Type | Method | Input |
 |------|--------|-------|

@@ -1,76 +1,174 @@
 ---
 name: agent-native-architecture
-description: This skill should be used when building AI agents using prompt-native architecture where features are defined in prompts, not code. Use it when creating autonomous agents, designing MCP servers, implementing self-modifying systems, or adopting the "trust the agent's intelligence" philosophy.
+description: Build applications where agents are first-class citizens. Use this skill when designing autonomous agents, creating MCP tools, implementing self-modifying systems, or building apps where features are outcomes achieved by agents operating in a loop.
 ---
 
-<essential_principles>
-## The Prompt-Native Philosophy
+<why_now>
+## Why Now
 
-Agent native engineering inverts traditional software architecture. Instead of writing code that the agent executes, you define outcomes in prompts and let the agent figure out HOW to achieve them.
+Software agents work reliably now. Claude Code demonstrated that an LLM with access to bash and file tools, operating in a loop until an objective is achieved, can accomplish complex multi-step tasks autonomously.
 
-### The Foundational Principle
+The surprising discovery: **a really good coding agent is actually a really good general-purpose agent.** The same architecture that lets Claude Code refactor a codebase can let an agent organize your files, manage your reading list, or automate your workflows.
 
-**Whatever the user can do, the agent can do. Many things the developer can do, the agent can do.**
+The Claude Code SDK makes this accessible. You can build applications where features aren't code you write—they're outcomes you describe, achieved by an agent with tools, operating in a loop until the outcome is reached.
 
-Don't artificially limit the agent. If a user could read files, write code, browse the web, deploy an app—the agent should be able to do those things too. The agent figures out HOW to achieve an outcome; it doesn't just call your pre-written functions.
+This opens up a new field: software that works the way Claude Code works, applied to categories far beyond coding.
+</why_now>
 
-### Features Are Prompts
+<core_principles>
+## Core Principles
 
-Each feature is a prompt that defines an outcome and gives the agent the tools it needs. The agent then figures out how to accomplish it.
+### 1. Parity
 
-**Traditional:** Feature = function in codebase that agent calls
-**Prompt-native:** Feature = prompt defining desired outcome + primitive tools
+**Whatever the user can do through the UI, the agent should be able to achieve through tools.**
 
-The agent doesn't execute your code. It uses primitives to achieve outcomes you describe.
+This is the foundational principle. Without it, nothing else matters.
 
-### Tools Provide Capability, Not Behavior
+Imagine you build a notes app with a beautiful interface for creating, organizing, and tagging notes. A user asks the agent: "Create a note summarizing my meeting and tag it as urgent."
 
-Tools should be primitives that enable capability. The prompt defines what to do with that capability.
+If you built UI for creating notes but no agent capability to do the same, the agent is stuck. It might apologize or ask clarifying questions, but it can't help—even though the action is trivial for a human using the interface.
 
-**Wrong:** `generate_dashboard(data, layout, filters)` — agent executes your workflow
-**Right:** `read_file`, `write_file`, `list_files` — agent figures out how to build a dashboard
+**The fix:** Ensure the agent has tools (or combinations of tools) that can accomplish anything the UI can do.
 
-Pure primitives are better, but domain primitives (like `store_feedback`) are OK if they don't encode logic—just storage/retrieval.
+This isn't about creating a 1:1 mapping of UI buttons to tools. It's about ensuring the agent can **achieve the same outcomes**. Sometimes that's a single tool (`create_note`). Sometimes it's composing primitives (`write_file` to a notes directory with proper formatting).
 
-### The Development Lifecycle
+**The discipline:** When adding any UI capability, ask: can the agent achieve this outcome? If not, add the necessary tools or primitives.
 
-1. **Start in the prompt** - New features begin as natural language defining outcomes
-2. **Iterate rapidly** - Change behavior by editing prose, not refactoring code
-3. **Graduate when stable** - Harden to code when requirements stabilize AND speed/reliability matter
-4. **Many features stay as prompts** - Not everything needs to become code
+A capability map helps:
 
-### Self-Modification (Advanced)
+| User Action | How Agent Achieves It |
+|-------------|----------------------|
+| Create a note | `write_file` to notes directory, or `create_note` tool |
+| Tag a note as urgent | `update_file` metadata, or `tag_note` tool |
+| Search notes | `search_files` or `search_notes` tool |
+| Delete a note | `delete_file` or `delete_note` tool |
 
-The advanced tier: agents that can evolve their own code, prompts, and behavior. Not required for every app, but a big part of the future.
+**The test:** Pick any action a user can take in your UI. Describe it to the agent. Can it accomplish the outcome?
 
-When implementing:
-- Approval gates for code changes
-- Auto-commit before modifications (rollback capability)
-- Health checks after changes
-- Build verification before restart
+---
 
-### When NOT to Use This Approach
+### 2. Granularity
 
-- **High-frequency operations** - thousands of calls per second
-- **Deterministic requirements** - exact same output every time
-- **Cost-sensitive scenarios** - when API costs would be prohibitive
-- **High security** - though this is overblown for most apps
-</essential_principles>
+**Prefer atomic primitives. Features are outcomes achieved by an agent operating in a loop.**
+
+A tool is a primitive capability: read a file, write a file, run a bash command, store a record, send a notification.
+
+A **feature** is not a function you write. It's an outcome you describe in a prompt, achieved by an agent that has tools and operates in a loop until the outcome is reached.
+
+**Less granular (limits the agent):**
+```
+Tool: classify_and_organize_files(files)
+→ You wrote the decision logic
+→ Agent executes your code
+→ To change behavior, you refactor
+```
+
+**More granular (empowers the agent):**
+```
+Tools: read_file, write_file, move_file, list_directory, bash
+Prompt: "Organize the user's downloads folder. Analyze each file,
+        determine appropriate locations based on content and recency,
+        and move them there."
+Agent: Operates in a loop—reads files, makes judgments, moves things,
+       checks results—until the folder is organized.
+→ Agent makes the decisions
+→ To change behavior, you edit the prompt
+```
+
+**The key shift:** The agent is pursuing an outcome with judgment, not executing a choreographed sequence. It might encounter unexpected file types, adjust its approach, or ask clarifying questions. The loop continues until the outcome is achieved.
+
+The more atomic your tools, the more flexibly the agent can use them. If you bundle decision logic into tools, you've moved judgment back into code.
+
+**The test:** To change how a feature behaves, do you edit prose or refactor code?
+
+---
+
+### 3. Composability
+
+**With atomic tools and parity, you can create new features just by writing new prompts.**
+
+This is the payoff of the first two principles. When your tools are atomic and the agent can do anything users can do, new features are just new prompts.
+
+Want a "weekly review" feature that summarizes activity and suggests priorities? That's a prompt:
+
+```
+"Review files modified this week. Summarize key changes. Based on
+incomplete items and approaching deadlines, suggest three priorities
+for next week."
+```
+
+The agent uses `list_files`, `read_file`, and its judgment to accomplish this. You didn't write weekly-review code. You described an outcome, and the agent operates in a loop until it's achieved.
+
+**This works for developers and users.** You can ship new features by adding prompts. Users can customize behavior by modifying prompts or creating their own. "When I say 'file this,' always move it to my Action folder and tag it urgent" becomes a user-level prompt that extends the application.
+
+**The constraint:** This only works if tools are atomic enough to be composed in ways you didn't anticipate, and if the agent has parity with users. If tools encode too much logic, or the agent can't access key capabilities, composition breaks down.
+
+**The test:** Can you add a new feature by writing a new prompt section, without adding new code?
+
+---
+
+### 4. Emergent Capability
+
+**The agent can accomplish things you didn't explicitly design for.**
+
+When tools are atomic, parity is maintained, and prompts are composable, users will ask the agent for things you never anticipated. And often, the agent can figure it out.
+
+*"Cross-reference my meeting notes with my task list and tell me what I've committed to but haven't scheduled."*
+
+You didn't build a "commitment tracker" feature. But if the agent can read notes, read tasks, and reason about them—operating in a loop until it has an answer—it can accomplish this.
+
+**This reveals latent demand.** Instead of guessing what features users want, you observe what they're asking the agent to do. When patterns emerge, you can optimize them with domain-specific tools or dedicated prompts. But you didn't have to anticipate them—you discovered them.
+
+**The flywheel:**
+1. Build with atomic tools and parity
+2. Users ask for things you didn't anticipate
+3. Agent composes tools to accomplish them (or fails, revealing a gap)
+4. You observe patterns in what's being requested
+5. Add domain tools or prompts to make common patterns efficient
+6. Repeat
+
+This changes how you build products. You're not trying to imagine every feature upfront. You're creating a capable foundation and learning from what emerges.
+
+**The test:** Give the agent an open-ended request relevant to your domain. Can it figure out a reasonable approach, operating in a loop until it succeeds? If it just says "I don't have a feature for that," your architecture is too constrained.
+
+---
+
+### 5. Improvement Over Time
+
+**Agent-native applications get better through accumulated context and prompt refinement.**
+
+Unlike traditional software, agent-native applications can improve without shipping code:
+
+**Accumulated context:** The agent can maintain state across sessions—what exists, what the user has done, what worked, what didn't. A `context.md` file the agent reads and updates is layer one. More sophisticated approaches involve structured memory and learned preferences.
+
+**Prompt refinement at multiple levels:**
+- **Developer level:** You ship updated prompts that change agent behavior for all users
+- **User level:** Users customize prompts for their workflow
+- **Agent level:** The agent modifies its own prompts based on feedback (advanced)
+
+**Self-modification (advanced):** Agents that can edit their own prompts or even their own code. For production use cases, consider adding safety rails—approval gates, automatic checkpoints for rollback, health checks. This is where things are heading.
+
+The improvement mechanisms are still being discovered. Context and prompt refinement are proven. Self-modification is emerging. What's clear: the architecture supports getting better in ways traditional software doesn't.
+
+**The test:** Does the application work better after a month of use than on day one, even without code changes?
+</core_principles>
 
 <intake>
-What aspect of agent native architecture do you need help with?
+## What aspect of agent-native architecture do you need help with?
 
-1. **Design architecture** - Plan a new prompt-native agent system
-2. **Create MCP tools** - Build primitive tools following the philosophy
-3. **Write system prompts** - Define agent behavior in prompts
-4. **Self-modification** - Enable agents to safely evolve themselves
-5. **Review/refactor** - Make existing code more prompt-native
-6. **Context injection** - Inject runtime app state into agent prompts
-7. **Action parity** - Ensure agents can do everything users can do
-8. **Shared workspace** - Set up agents and users in the same data space
-9. **Testing** - Test agent-native apps for capability and parity
-10. **Mobile patterns** - Handle background execution, permissions, cost
-11. **API integration** - Connect to external APIs (HealthKit, HomeKit, GraphQL)
+1. **Design architecture** - Plan a new agent-native system from scratch
+2. **Files & workspace** - Use files as the universal interface, shared workspace patterns
+3. **Tool design** - Build primitive tools, dynamic capability discovery, CRUD completeness
+4. **Domain tools** - Know when to add domain tools vs stay with primitives
+5. **Execution patterns** - Completion signals, partial completion, context limits
+6. **System prompts** - Define agent behavior in prompts, judgment criteria
+7. **Context injection** - Inject runtime app state into agent prompts
+8. **Action parity** - Ensure agents can do everything users can do
+9. **Self-modification** - Enable agents to safely evolve themselves
+10. **Product design** - Progressive disclosure, latent demand, approval patterns
+11. **Mobile patterns** - iOS storage, background execution, checkpoint/resume
+12. **Testing** - Test agent-native apps for capability and parity
+13. **Refactoring** - Make existing code more agent-native
 
 **Wait for response before proceeding.**
 </intake>
@@ -78,64 +176,78 @@ What aspect of agent native architecture do you need help with?
 <routing>
 | Response | Action |
 |----------|--------|
-| 1, "design", "architecture", "plan" | Read [architecture-patterns.md](./references/architecture-patterns.md), then apply Architecture Checklist below |
-| 2, "tool", "mcp", "primitive" | Read [mcp-tool-design.md](./references/mcp-tool-design.md) |
-| 3, "prompt", "system prompt", "behavior" | Read [system-prompt-design.md](./references/system-prompt-design.md) |
-| 4, "self-modify", "evolve", "git" | Read [self-modification.md](./references/self-modification.md) |
-| 5, "review", "refactor", "existing" | Read [refactoring-to-prompt-native.md](./references/refactoring-to-prompt-native.md) |
-| 6, "context", "inject", "runtime", "dynamic" | Read [dynamic-context-injection.md](./references/dynamic-context-injection.md) |
-| 7, "parity", "ui action", "capability map" | Read [action-parity-discipline.md](./references/action-parity-discipline.md) |
-| 8, "workspace", "shared", "files", "filesystem" | Read [shared-workspace-architecture.md](./references/shared-workspace-architecture.md) |
-| 9, "test", "testing", "verify", "validate" | Read [agent-native-testing.md](./references/agent-native-testing.md) |
-| 10, "mobile", "ios", "android", "background" | Read [mobile-patterns.md](./references/mobile-patterns.md) |
-| 11, "api", "healthkit", "homekit", "graphql", "external" | Read [mcp-tool-design.md](./references/mcp-tool-design.md) (Dynamic Capability Discovery section) |
+| 1, "design", "architecture", "plan" | Read `references/architecture-patterns.md`, then apply Architecture Checklist below |
+| 2, "files", "workspace", "filesystem" | Read `references/files-universal-interface.md` and `references/shared-workspace-architecture.md` |
+| 3, "tool", "mcp", "primitive", "crud" | Read `references/mcp-tool-design.md` |
+| 4, "domain tool", "when to add" | Read `references/from-primitives-to-domain-tools.md` |
+| 5, "execution", "completion", "loop" | Read `references/agent-execution-patterns.md` |
+| 6, "prompt", "system prompt", "behavior" | Read `references/system-prompt-design.md` |
+| 7, "context", "inject", "runtime", "dynamic" | Read `references/dynamic-context-injection.md` |
+| 8, "parity", "ui action", "capability map" | Read `references/action-parity-discipline.md` |
+| 9, "self-modify", "evolve", "git" | Read `references/self-modification.md` |
+| 10, "product", "progressive", "approval", "latent demand" | Read `references/product-implications.md` |
+| 11, "mobile", "ios", "android", "background", "checkpoint" | Read `references/mobile-patterns.md` |
+| 12, "test", "testing", "verify", "validate" | Read `references/agent-native-testing.md` |
+| 13, "review", "refactor", "existing" | Read `references/refactoring-to-prompt-native.md` |
 
 **After reading the reference, apply those patterns to the user's specific context.**
 </routing>
 
 <architecture_checklist>
-## Architecture Review Checklist (Apply During Design)
+## Architecture Review Checklist
 
 When designing an agent-native system, verify these **before implementation**:
 
+### Core Principles
+- [ ] **Parity:** Every UI action has a corresponding agent capability
+- [ ] **Granularity:** Tools are primitives; features are prompt-defined outcomes
+- [ ] **Composability:** New features can be added via prompts alone
+- [ ] **Emergent Capability:** Agent can handle open-ended requests in your domain
+
 ### Tool Design
-- [ ] **Dynamic vs Static:** For external APIs where agent should have full user-level access (HealthKit, HomeKit, GraphQL), use Dynamic Capability Discovery. Only use static mapping if intentionally limiting agent scope.
-- [ ] **CRUD Completeness:** Every entity has create, read, update, AND delete tools
-- [ ] **Primitives not Workflows:** Tools enable capability, they don't encode business logic
+- [ ] **Dynamic vs Static:** For external APIs where agent should have full access, use Dynamic Capability Discovery
+- [ ] **CRUD Completeness:** Every entity has create, read, update, AND delete
+- [ ] **Primitives not Workflows:** Tools enable capability, don't encode business logic
 - [ ] **API as Validator:** Use `z.string()` inputs when the API validates, not `z.enum()`
 
-### Action Parity
-- [ ] **Capability Map:** Every UI action has a corresponding agent tool
-- [ ] **Edit/Delete:** If UI can edit or delete, agent must be able to too
-- [ ] **The Write Test:** "Write something to [app location]" must work for all locations
+### Files & Workspace
+- [ ] **Shared Workspace:** Agent and user work in same data space
+- [ ] **context.md Pattern:** Agent reads/updates context file for accumulated knowledge
+- [ ] **File Organization:** Entity-scoped directories with consistent naming
 
-### UI Integration
-- [ ] **Agent → UI:** Define how agent changes reflect in UI (shared service, file watching, or event bus)
-- [ ] **No Silent Actions:** Agent writes should trigger UI updates immediately
-- [ ] **Capability Discovery:** Users can learn what agent can do (onboarding, hints)
+### Agent Execution
+- [ ] **Completion Signals:** Agent has explicit `complete_task` tool (not heuristic detection)
+- [ ] **Partial Completion:** Multi-step tasks track progress for resume
+- [ ] **Context Limits:** Designed for bounded context from the start
 
 ### Context Injection
 - [ ] **Available Resources:** System prompt includes what exists (files, data, types)
-- [ ] **Available Capabilities:** System prompt documents what agent can do with user vocabulary
+- [ ] **Available Capabilities:** System prompt documents tools with user vocabulary
 - [ ] **Dynamic Context:** Context refreshes for long sessions (or provide `refresh_context` tool)
 
+### UI Integration
+- [ ] **Agent → UI:** Agent changes reflect in UI (shared service, file watching, or event bus)
+- [ ] **No Silent Actions:** Agent writes trigger UI updates immediately
+- [ ] **Capability Discovery:** Users can learn what agent can do
+
 ### Mobile (if applicable)
-- [ ] **Background Execution:** Checkpoint/resume pattern for iOS app suspension
-- [ ] **Permissions:** Just-in-time permission requests in tools
+- [ ] **Checkpoint/Resume:** Handle iOS app suspension gracefully
+- [ ] **iCloud Storage:** iCloud-first with local fallback for multi-device sync
 - [ ] **Cost Awareness:** Model tier selection (Haiku/Sonnet/Opus)
 
 **When designing architecture, explicitly address each checkbox in your plan.**
 </architecture_checklist>
 
 <quick_start>
-Build a prompt-native agent in three steps:
+## Quick Start: Build an Agent-Native Feature
 
-**Step 1: Define primitive tools**
+**Step 1: Define atomic tools**
 ```typescript
 const tools = [
   tool("read_file", "Read any file", { path: z.string() }, ...),
   tool("write_file", "Write any file", { path: z.string(), content: z.string() }, ...),
   tool("list_files", "List directory", { path: z.string() }, ...),
+  tool("complete_task", "Signal task completion", { summary: z.string() }, ...),
 ];
 ```
 
@@ -145,201 +257,180 @@ const tools = [
 When asked to organize content, you should:
 1. Read existing files to understand the structure
 2. Analyze what organization makes sense
-3. Create appropriate pages using write_file
+3. Create/move files using your tools
 4. Use your judgment about layout and formatting
+5. Call complete_task when you're done
 
 You decide the structure. Make it good.
 ```
 
-**Step 3: Let the agent work**
+**Step 3: Let the agent work in a loop**
 ```typescript
-query({
+const result = await agent.run({
   prompt: userMessage,
-  options: {
-    systemPrompt,
-    mcpServers: { files: fileServer },
-    permissionMode: "acceptEdits",
-  }
+  tools: tools,
+  systemPrompt: systemPrompt,
+  // Agent loops until it calls complete_task
 });
 ```
 </quick_start>
 
 <reference_index>
-## Domain Knowledge
+## Reference Files
 
 All references in `references/`:
 
 **Core Patterns:**
-- **Architecture:** [architecture-patterns.md](./references/architecture-patterns.md)
-- **Tool Design:** [mcp-tool-design.md](./references/mcp-tool-design.md) - includes Dynamic Capability Discovery, CRUD Completeness
-- **Prompts:** [system-prompt-design.md](./references/system-prompt-design.md)
-- **Self-Modification:** [self-modification.md](./references/self-modification.md)
-- **Refactoring:** [refactoring-to-prompt-native.md](./references/refactoring-to-prompt-native.md)
+- `references/architecture-patterns.md` - Event-driven, unified orchestrator, agent-to-UI
+- `references/files-universal-interface.md` - Why files, organization patterns, context.md
+- `references/mcp-tool-design.md` - Tool design, dynamic capability discovery, CRUD
+- `references/from-primitives-to-domain-tools.md` - When to add domain tools, graduating to code
+- `references/agent-execution-patterns.md` - Completion signals, partial completion, context limits
+- `references/system-prompt-design.md` - Features as prompts, judgment criteria
 
 **Agent-Native Disciplines:**
-- **Context Injection:** [dynamic-context-injection.md](./references/dynamic-context-injection.md)
-- **Action Parity:** [action-parity-discipline.md](./references/action-parity-discipline.md)
-- **Shared Workspace:** [shared-workspace-architecture.md](./references/shared-workspace-architecture.md)
-- **Testing:** [agent-native-testing.md](./references/agent-native-testing.md)
-- **Mobile Patterns:** [mobile-patterns.md](./references/mobile-patterns.md)
+- `references/dynamic-context-injection.md` - Runtime context, what to inject
+- `references/action-parity-discipline.md` - Capability mapping, parity workflow
+- `references/shared-workspace-architecture.md` - Shared data space, UI integration
+- `references/product-implications.md` - Progressive disclosure, latent demand, approval
+- `references/agent-native-testing.md` - Testing outcomes, parity tests
+
+**Platform-Specific:**
+- `references/mobile-patterns.md` - iOS storage, checkpoint/resume, cost awareness
+- `references/self-modification.md` - Git-based evolution, guardrails
+- `references/refactoring-to-prompt-native.md` - Migrating existing code
 </reference_index>
 
 <anti_patterns>
-## What NOT to Do
+## Anti-Patterns
+
+### Common Approaches That Aren't Fully Agent-Native
+
+These aren't necessarily wrong—they may be appropriate for your use case. But they're worth recognizing as different from the architecture this document describes.
+
+**Agent as router** — The agent figures out what the user wants, then calls the right function. The agent's intelligence is used to route, not to act. This can work, but you're using a fraction of what agents can do.
+
+**Build the app, then add agent** — You build features the traditional way (as code), then expose them to an agent. The agent can only do what your features already do. You won't get emergent capability.
+
+**Request/response thinking** — Agent gets input, does one thing, returns output. This misses the loop: agent gets an outcome to achieve, operates until it's done, handles unexpected situations along the way.
+
+**Defensive tool design** — You over-constrain tool inputs because you're used to defensive programming. Strict enums, validation at every layer. This is safe, but it prevents the agent from doing things you didn't anticipate.
+
+**Happy path in code, agent just executes** — Traditional software handles edge cases in code—you write the logic for what happens when X goes wrong. Agent-native lets the agent handle edge cases with judgment. If your code handles all the edge cases, the agent is just a caller.
+
+---
+
+### Specific Anti-Patterns
 
 **THE CARDINAL SIN: Agent executes your code instead of figuring things out**
-
-This is the most common mistake. You fall back into writing workflow code and having the agent call it, instead of defining outcomes and letting the agent figure out HOW.
 
 ```typescript
 // WRONG - You wrote the workflow, agent just executes it
 tool("process_feedback", async ({ message }) => {
-  const category = categorize(message);      // Your code
-  const priority = calculatePriority(message); // Your code
-  await store(message, category, priority);   // Your code
-  if (priority > 3) await notify();           // Your code
+  const category = categorize(message);      // Your code decides
+  const priority = calculatePriority(message); // Your code decides
+  await store(message, category, priority);   // Your code orchestrates
+  if (priority > 3) await notify();           // Your code decides
 });
 
 // RIGHT - Agent figures out how to process feedback
-tool("store_item", { key, value }, ...);  // Primitive
-tool("send_message", { channel, content }, ...);  // Primitive
-// Prompt says: "Rate importance 1-5 based on actionability, store feedback, notify if >= 4"
+tools: store_item, send_message  // Primitives
+prompt: "Rate importance 1-5 based on actionability, store feedback, notify if >= 4"
 ```
 
-**Don't artificially limit what the agent can do**
+**Workflow-shaped tools** — `analyze_and_organize` bundles judgment into the tool. Break it into primitives and let the agent compose them.
 
-If a user could do it, the agent should be able to do it.
-
-```typescript
-// WRONG - limiting agent capabilities
-tool("read_approved_files", { path }, async ({ path }) => {
-  if (!ALLOWED_PATHS.includes(path)) throw new Error("Not allowed");
-  return readFile(path);
-});
-
-// RIGHT - give full capability, use guardrails appropriately
-tool("read_file", { path }, ...);  // Agent can read anything
-// Use approval gates for writes, not artificial limits on reads
-```
-
-**Don't encode decisions in tools**
-```typescript
-// Wrong - tool decides format
-tool("format_report", { format: z.enum(["markdown", "html", "pdf"]) }, ...)
-
-// Right - agent decides format via prompt
-tool("write_file", ...) // Agent chooses what to write
-```
-
-**Don't over-specify in prompts**
-```markdown
-// Wrong - micromanaging the HOW
-When creating a summary, use exactly 3 bullet points,
-each under 20 words, formatted with em-dashes...
-
-// Right - define outcome, trust intelligence
-Create clear, useful summaries. Use your judgment.
-```
-
-### Agent-Native Anti-Patterns
-
-**Context Starvation**
-Agent doesn't know what resources exist in the app.
+**Context starvation** — Agent doesn't know what resources exist in the app.
 ```
 User: "Write something about Catherine the Great in my feed"
 Agent: "What feed? I don't understand what system you're referring to."
 ```
-Fix: Inject available resources, capabilities, and vocabulary into the system prompt at runtime.
+Fix: Inject available resources, capabilities, and vocabulary into system prompt.
 
-**Orphan Features**
-UI action with no agent equivalent.
-```swift
-// UI has a "Publish to Feed" button
-Button("Publish") { publishToFeed(insight) }
-// But no agent tool exists to do the same thing
+**Orphan UI actions** — User can do something through the UI that the agent can't achieve. Fix: maintain parity.
+
+**Silent actions** — Agent changes state but UI doesn't update. Fix: Use shared data stores with reactive binding, or file system observation.
+
+**Heuristic completion detection** — Detecting agent completion through heuristics (consecutive iterations without tool calls, checking for expected output files). This is fragile. Fix: Require agents to explicitly signal completion through a `complete_task` tool.
+
+**Static tool mapping for dynamic APIs** — Building 50 tools for 50 API endpoints when a `discover` + `access` pattern would give more flexibility.
+```typescript
+// WRONG - Every API type needs a hardcoded tool
+tool("read_steps", ...)
+tool("read_heart_rate", ...)
+tool("read_sleep", ...)
+// When glucose tracking is added... code change required
+
+// RIGHT - Dynamic capability discovery
+tool("list_available_types", ...)  // Discover what's available
+tool("read_health_data", { dataType: z.string() }, ...)  // Access any type
 ```
-Fix: Add corresponding tool and document in system prompt for every UI action.
 
-**Sandbox Isolation**
-Agent works in separate data space from user.
+**Incomplete CRUD** — Agent can create but not update or delete.
+```typescript
+// User: "Delete that journal entry"
+// Agent: "I don't have a tool for that"
+tool("create_journal_entry", ...)  // Missing: update, delete
+```
+Fix: Every entity needs full CRUD.
+
+**Sandbox isolation** — Agent works in separate data space from user.
 ```
 Documents/
 ├── user_files/        ← User's space
 └── agent_output/      ← Agent's space (isolated)
 ```
-Fix: Use shared workspace where both agent and user operate on the same files.
+Fix: Use shared workspace where both operate on same files.
 
-**Silent Actions**
-Agent changes state but UI doesn't update.
-```typescript
-// Agent writes to database
-await db.insert("feed", content);
-// But UI doesn't observe this table - user sees nothing
-```
-Fix: Use shared data stores with reactive binding, or file system observation.
+**Gates without reason** — Domain tool is the only way to do something, and you didn't intend to restrict access. The default is open. Keep primitives available unless there's a specific reason to gate.
 
-**Capability Hiding**
-Users can't discover what agents can do.
-```
-User: "Help me with my reading"
-Agent: "What would you like help with?"
-// Agent doesn't mention it can publish to feed, research books, etc.
-```
-Fix: Include capability hints in agent responses or provide onboarding.
-
-**Static Tool Mapping (for agent-native apps)**
-Building individual tools for each API endpoint when you want the agent to have full access.
-```typescript
-// You built 50 tools for 50 HealthKit types
-tool("read_steps", ...)
-tool("read_heart_rate", ...)
-tool("read_sleep", ...)
-// When glucose tracking is added... code change required
-// Agent can only access what you anticipated
-```
-Fix: Use Dynamic Capability Discovery - one `list_*` tool to discover what's available, one generic tool to access any type. See [mcp-tool-design.md](./references/mcp-tool-design.md). (Note: Static mapping is fine for constrained agents with intentionally limited scope.)
-
-**Incomplete CRUD**
-Agent can create but not update or delete.
-```typescript
-// ❌ User: "Delete that journal entry"
-// Agent: "I don't have a tool for that"
-tool("create_journal_entry", ...)
-// Missing: update_journal_entry, delete_journal_entry
-```
-Fix: Every entity needs full CRUD (Create, Read, Update, Delete). The CRUD Audit: for each entity, verify all four operations exist.
+**Artificial capability limits** — Restricting what the agent can do out of vague safety concerns rather than specific risks. Be thoughtful about restricting capabilities. The agent should generally be able to do what users can do.
 </anti_patterns>
 
 <success_criteria>
-You've built a prompt-native agent when:
+## Success Criteria
 
-**Core Prompt-Native Criteria:**
-- [ ] The agent figures out HOW to achieve outcomes, not just calls your functions
-- [ ] Whatever a user could do, the agent can do (no artificial limits)
-- [ ] Features are prompts that define outcomes, not code that defines workflows
-- [ ] Tools are primitives (read, write, store, call API) that enable capability
-- [ ] Changing behavior means editing prose, not refactoring code
-- [ ] The agent can surprise you with clever approaches you didn't anticipate
-- [ ] You could add a new feature by writing a new prompt section, not new code
+You've built an agent-native application when:
 
-**Tool Design Criteria:**
-- [ ] External APIs (where agent should have full access) use Dynamic Capability Discovery
-- [ ] Every entity has full CRUD (Create, Read, Update, Delete)
-- [ ] API validates inputs, not your enum definitions
-- [ ] Discovery tools exist for each API surface (`list_*`, `discover_*`)
+### Architecture
+- [ ] The agent can achieve anything users can achieve through the UI (parity)
+- [ ] Tools are atomic primitives; domain tools are shortcuts, not gates (granularity)
+- [ ] New features can be added by writing new prompts (composability)
+- [ ] The agent can accomplish tasks you didn't explicitly design for (emergent capability)
+- [ ] Changing behavior means editing prompts, not refactoring code
 
-**Agent-Native Criteria:**
-- [ ] System prompt includes dynamic context about app state (available resources, recent activity)
+### Implementation
+- [ ] System prompt includes dynamic context about app state
 - [ ] Every UI action has a corresponding agent tool (action parity)
-- [ ] Agent tools are documented in the system prompt with user vocabulary
+- [ ] Agent tools are documented in system prompt with user vocabulary
 - [ ] Agent and user work in the same data space (shared workspace)
-- [ ] Agent actions are immediately reflected in the UI (shared service, file watching, or event bus)
-- [ ] The "write something to [app location]" test passes for all locations
-- [ ] Users can discover what the agent can do (capability hints, onboarding)
-- [ ] Context refreshes for long sessions (or `refresh_context` tool exists)
+- [ ] Agent actions are immediately reflected in the UI
+- [ ] Every entity has full CRUD (Create, Read, Update, Delete)
+- [ ] Agents explicitly signal completion (no heuristic detection)
+- [ ] context.md or equivalent for accumulated knowledge
 
-**Mobile-Specific Criteria (if applicable):**
-- [ ] Background execution handling implemented (checkpoint/resume)
-- [ ] Permission requests handled gracefully in tools
-- [ ] Cost-aware design (appropriate model tiers, batching)
+### Product
+- [ ] Simple requests work immediately with no learning curve
+- [ ] Power users can push the system in unexpected directions
+- [ ] You're learning what users want by observing what they ask the agent to do
+- [ ] Approval requirements match stakes and reversibility
+
+### Mobile (if applicable)
+- [ ] Checkpoint/resume handles app interruption
+- [ ] iCloud-first storage with local fallback
+- [ ] Background execution uses available time wisely
+- [ ] Model tier matched to task complexity
+
+---
+
+### The Ultimate Test
+
+**Describe an outcome to the agent that's within your application's domain but that you didn't build a specific feature for.**
+
+Can it figure out how to accomplish it, operating in a loop until it succeeds?
+
+If yes, you've built something agent-native.
+
+If it says "I don't have a feature for that"—your architecture is still too constrained.
 </success_criteria>
+
