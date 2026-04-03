@@ -2,3 +2,4 @@ backup/
 **/.system
 .claude/sync-report.md
 .cass/
+ai-refresh-setup.md
