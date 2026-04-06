@@ -1,5 +1,12 @@
 <overview>
-Architectural patterns for building prompt-native agent systems. These patterns emerge from the philosophy that features should be defined in prompts, not code, and that tools should be primitives.
+Architectural patterns for building agent-native systems. These patterns emerge from the five core principles: Parity, Granularity, Composability, Emergent Capability, and Improvement Over Time.
+
+Features are outcomes achieved by agents operating in a loop, not functions you write. Tools are atomic primitives. The agent applies judgment; the prompt defines the outcome.
+
+See also:
+- [files-universal-interface.md](./files-universal-interface.md) for file organization and context.md patterns
+- [agent-execution-patterns.md](./agent-execution-patterns.md) for completion signals and partial completion
+- [product-implications.md](./product-implications.md) for progressive disclosure and approval patterns
 </overview>
 
 <pattern name="event-driven-agent">
