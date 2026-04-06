@@ -23,7 +23,7 @@ The caller receives findings with their original classifications intact and deci
 
 Callers invoke headless mode by including `mode:headless` in the skill arguments, e.g.:
 ```
-Skill("document-review", "mode:headless docs/plans/my-plan.md")
+Skill("document-review", "mode:headless .ai/plans/my-plan.md")
 ```
 
 
@@ -33,15 +33,15 @@ If `mode:headless` is not present, the skill runs in its default interactive mod
 
 **If a document path is provided:** Read it, then proceed.
 
-**If no document is specified (interactive mode):** Ask which document to review, or find the most recent in `docs/brainstorms/` or `docs/plans/` using a file-search/glob tool (e.g., Glob in Claude Code).
+**If no document is specified (interactive mode):** Ask which document to review, or find the most recent in `.ai/brainstorms/` or `.ai/plans/` using a file-search/glob tool (e.g., Glob in Claude Code).
 
 **If no document is specified (headless mode):** Output "Review failed: headless mode requires a document path. Re-invoke with: Skill(\"document-review\", \"mode:headless <path>\")" without dispatching agents.
 
 ### Classify Document Type
 
 After reading, classify the document:
-- **requirements** -- from `docs/brainstorms/`, focuses on what to build and why
-- **plan** -- from `docs/plans/`, focuses on how to build it with implementation details
+- **requirements** -- from `.ai/brainstorms/`, focuses on what to build and why
+- **plan** -- from `.ai/plans/`, focuses on how to build it with implementation details
 
 ### Select Conditional Personas
 
@@ -237,9 +237,9 @@ Include the Coverage table, auto-fixes applied, residual concerns, and deferred 
 ### Protected Artifacts
 
 During synthesis, discard any finding that recommends deleting or removing files in:
-- `docs/brainstorms/`
-- `docs/plans/`
-- `docs/solutions/`
+- `.ai/brainstorms/`
+- `.ai/plans/`
+- `.ai/solutions/`
 
 These are pipeline artifacts and must not be flagged for removal.
 

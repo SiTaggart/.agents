@@ -82,6 +82,21 @@ When porting content from upstream, common adaptations include:
 - **Adjust agent tool lists** — Upstream agents may reference Rails-specific tools (standardrb, erblint, etc.)
 - **Flatten paths** — Upstream uses subdirectories for agent categories; local uses flat structure
 - **Update cross-references** — Links between agents/skills may use upstream paths
+- **Strip all attribution and branding** — Remove any content that advertises the upstream project or AI tools. This includes:
+  - "Generated with [MODEL]" badge footers on PRs or commits
+  - "Compound Engineered" badges or references to "Compound Engineering" as a product/brand
+  - Co-Authored-By lines or instructions to add them
+  - Model name + context window + harness attribution templates
+  - Any `HARNESS`, `HARNESS_URL`, `CURRENT_MODEL`, `DELEGATE_MODEL` placeholder systems
+  - Attribution sections that credit the upstream project or other tools
+  - All output should look like the user authored it — no tool fingerprints
+- **Rewrite `docs/` document paths to `.ai/`** — Upstream uses `docs/brainstorms/`, `docs/plans/`, `docs/solutions/` etc. Local convention stores all generated documents under `.ai/`. Replace all bare `docs/` paths with the `.ai/` equivalent:
+  - `docs/brainstorms/` → `.ai/brainstorms/`
+  - `docs/plans/` → `.ai/plans/`
+  - `docs/solutions/` → `.ai/solutions/`
+  - `docs/handoffs/` → `.ai/handoffs/`
+  - `docs/tasks/` → `.ai/tasks/`
+  - `docs/todos/` → `.ai/todos/`
 
 ## Report Template
 

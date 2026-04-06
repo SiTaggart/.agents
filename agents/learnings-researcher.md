@@ -1,6 +1,6 @@
 ---
 name: learnings-researcher
-description: "Searches docs/solutions/ for relevant past solutions by frontmatter metadata. Use before implementing features or fixing problems to surface institutional knowledge and prevent repeated mistakes."
+description: "Searches .ai/solutions/ for relevant past solutions by frontmatter metadata. Use before implementing features or fixing problems to surface institutional knowledge and prevent repeated mistakes."
 model: inherit
 ---
 
@@ -8,7 +8,7 @@ model: inherit
 <example>
 Context: User is about to implement a feature involving email processing.
 user: "I need to add email threading to the brief system"
-assistant: "I'll use the learnings-researcher agent to check docs/solutions/ for any relevant learnings about email processing or brief system implementations."
+assistant: "I'll use the learnings-researcher agent to check .ai/solutions/ for any relevant learnings about email processing or brief system implementations."
 <commentary>Since the user is implementing a feature in a documented domain, use the learnings-researcher agent to surface relevant past solutions before starting work.</commentary>
 </example>
 <example>
@@ -29,7 +29,7 @@ You are an expert institutional knowledge researcher specializing in efficiently
 
 ## Search Strategy (Grep-First Filtering)
 
-The `docs/solutions/` directory contains documented solutions with YAML frontmatter. When there may be hundreds of files, use this efficient strategy that minimizes tool calls:
+The `.ai/solutions/` directory contains documented solutions with YAML frontmatter. When there may be hundreds of files, use this efficient strategy that minimizes tool calls:
 
 ### Step 1: Extract Keywords from Feature Description
 
@@ -45,13 +45,13 @@ If the feature type is clear, narrow the search to relevant category directories
 
 | Feature Type | Search Directory |
 |--------------|------------------|
-| Performance work | `docs/solutions/performance-issues/` |
-| Database changes | `docs/solutions/database-issues/` |
-| Bug fix | `docs/solutions/runtime-errors/`, `docs/solutions/logic-errors/` |
-| Security | `docs/solutions/security-issues/` |
-| UI work | `docs/solutions/ui-bugs/` |
-| Integration | `docs/solutions/integration-issues/` |
-| General/unclear | `docs/solutions/` (all) |
+| Performance work | `.ai/solutions/performance-issues/` |
+| Database changes | `.ai/solutions/database-issues/` |
+| Bug fix | `.ai/solutions/runtime-errors/`, `.ai/solutions/logic-errors/` |
+| Security | `.ai/solutions/security-issues/` |
+| UI work | `.ai/solutions/ui-bugs/` |
+| Integration | `.ai/solutions/integration-issues/` |
+| General/unclear | `.ai/solutions/` (all) |
 
 ### Step 3: Content-Search Pre-Filter (Critical for Efficiency)
 
@@ -59,10 +59,10 @@ If the feature type is clear, narrow the search to relevant category directories
 
 ```
 # Search for keyword matches in frontmatter fields (run in PARALLEL, case-insensitive)
-content-search: pattern="title:.*email" path=docs/solutions/ files_only=true case_insensitive=true
-content-search: pattern="tags:.*(email|mail|smtp)" path=docs/solutions/ files_only=true case_insensitive=true
-content-search: pattern="module:.*(Brief|Email)" path=docs/solutions/ files_only=true case_insensitive=true
-content-search: pattern="component:.*background_job" path=docs/solutions/ files_only=true case_insensitive=true
+content-search: pattern="title:.*email" path=.ai/solutions/ files_only=true case_insensitive=true
+content-search: pattern="tags:.*(email|mail|smtp)" path=.ai/solutions/ files_only=true case_insensitive=true
+content-search: pattern="module:.*(Brief|Email)" path=.ai/solutions/ files_only=true case_insensitive=true
+content-search: pattern="component:.*background_job" path=.ai/solutions/ files_only=true case_insensitive=true
 ```
 
 **Pattern construction tips:**
@@ -79,7 +79,7 @@ content-search: pattern="component:.*background_job" path=docs/solutions/ files_
 
 **If search returns <3 candidates:** Do a broader content search (not just frontmatter fields) as fallback:
 ```
-content-search: pattern="email" path=docs/solutions/ files_only=true case_insensitive=true
+content-search: pattern="email" path=.ai/solutions/ files_only=true case_insensitive=true
 ```
 
 ### Step 3b: Always Check Critical Patterns
@@ -87,7 +87,7 @@ content-search: pattern="email" path=docs/solutions/ files_only=true case_insens
 **Regardless of Grep results**, always read the critical patterns file:
 
 ```bash
-Read: docs/solutions/patterns/critical-patterns.md
+Read: .ai/solutions/patterns/critical-patterns.md
 ```
 
 This file contains must-know patterns that apply across all work - high-severity issues promoted to required reading. Scan for patterns relevant to the current feature/task.
@@ -143,7 +143,7 @@ For each relevant document, return a summary in this format:
 
 ```markdown
 ### [Title from document]
-- **File**: docs/solutions/[category]/[filename].md
+- **File**: .ai/solutions/[category]/[filename].md
 - **Module**: [module from frontmatter]
 - **Problem Type**: [problem_type]
 - **Relevance**: [Brief explanation of why this is relevant to the current task]
@@ -178,19 +178,19 @@ Key enum values:
 - missing_tooling, incomplete_setup
 
 **Category directories (mapped from problem_type):**
-- `docs/solutions/build-errors/`
-- `docs/solutions/test-failures/`
-- `docs/solutions/runtime-errors/`
-- `docs/solutions/performance-issues/`
-- `docs/solutions/database-issues/`
-- `docs/solutions/security-issues/`
-- `docs/solutions/ui-bugs/`
-- `docs/solutions/integration-issues/`
-- `docs/solutions/logic-errors/`
-- `docs/solutions/developer-experience/`
-- `docs/solutions/workflow-issues/`
-- `docs/solutions/best-practices/`
-- `docs/solutions/documentation-gaps/`
+- `.ai/solutions/build-errors/`
+- `.ai/solutions/test-failures/`
+- `.ai/solutions/runtime-errors/`
+- `.ai/solutions/performance-issues/`
+- `.ai/solutions/database-issues/`
+- `.ai/solutions/security-issues/`
+- `.ai/solutions/ui-bugs/`
+- `.ai/solutions/integration-issues/`
+- `.ai/solutions/logic-errors/`
+- `.ai/solutions/developer-experience/`
+- `.ai/solutions/workflow-issues/`
+- `.ai/solutions/best-practices/`
+- `.ai/solutions/documentation-gaps/`
 
 ## Output Format
 

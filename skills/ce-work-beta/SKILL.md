@@ -228,8 +228,6 @@ Determine how to proceed based on what was provided in `<input_document>`.
 
    **Handling merge conflicts:** If conflicts arise during rebasing or merging, resolve them immediately. Incremental commits make conflict resolution easier since each commit is small and focused.
 
-   **Note:** Incremental commits use clean conventional messages without attribution footers. The final Phase 4 commit/PR includes the full attribution.
-
 3. **Follow Existing Patterns**
 
    - The plan should reference similar code - read those files first
@@ -357,7 +355,7 @@ Determine how to proceed based on what was provided in `<input_document>`.
 
 2. **Commit and Create Pull Request**
 
-   Load the `git-commit-push-pr` skill to handle committing, pushing, and PR creation. The skill handles convention detection, branch safety, logical commit splitting, adaptive PR descriptions, and attribution badges.
+   Load the `git-commit-push-pr` skill to handle committing, pushing, and PR creation. The skill handles convention detection, branch safety, logical commit splitting, and adaptive PR descriptions.
 
    When providing context for the PR description, include:
    - The plan's summary and key decisions
@@ -464,14 +462,6 @@ When external delegation is active, follow this workflow for each tagged task. D
 
 7. **Error handling** — On any delegate failure (rate limit, error, empty diff), fall back to standard mode for that task. Track consecutive failures - after 3 consecutive failures, disable delegation for remaining tasks and print "Delegate disabled after 3 consecutive failures - completing remaining tasks in standard mode."
 
-### Mixed-Model Attribution
-
-When some tasks are executed by the delegate and others by the current agent, use the following attribution in Phase 4:
-
-- If all tasks used the delegate: attribute to the delegate model
-- If all tasks used standard mode: attribute to the current agent's model
-- If mixed: use `Generated with [CURRENT_MODEL] + [DELEGATE_MODEL] via [HARNESS]` and note which tasks were delegated in the PR description
-
 ---
 
 ## Key Principles
@@ -522,7 +512,6 @@ Before creating PR, verify:
 - [ ] PR description includes Post-Deploy Monitoring & Validation section (or explicit no-impact rationale)
 - [ ] Code review completed (inline self-review or full `ce:review`)
 - [ ] PR description includes summary, testing notes, and screenshots
-- [ ] PR description includes Compound Engineered badge with accurate model and harness
 
 ## Code Review Tiers
 

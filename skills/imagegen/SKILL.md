@@ -30,7 +30,7 @@ Generates or edits images for the current project (e.g., website assets, game as
 
 ## Temp and output conventions
 - Use `tmp/imagegen/` for intermediate files (for example JSONL batches); delete when done.
-- Write final artifacts under `output/imagegen/` when working in this repo.
+- **Save all final images to `~/Desktop/ai-generated/`** — never write generated images into the project directory. Create the directory if it doesn't exist. Organize by date or topic subfolder as needed (e.g., `~/Desktop/ai-generated/2026-04-06-hero-images/`).
 - Use `--out` or `--out-dir` to control output paths; keep filenames stable and descriptive.
 
 ## Dependencies (install if missing)

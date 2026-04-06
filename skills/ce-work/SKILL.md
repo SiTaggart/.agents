@@ -227,8 +227,6 @@ Determine how to proceed based on what was provided in `<input_document>`.
 
    **Handling merge conflicts:** If conflicts arise during rebasing or merging, resolve them immediately. Incremental commits make conflict resolution easier since each commit is small and focused.
 
-   **Note:** Incremental commits use clean conventional messages without attribution footers. The final Phase 4 commit/PR includes the full attribution.
-
 3. **Follow Existing Patterns**
 
    - The plan should reference similar code - read those files first
@@ -348,7 +346,7 @@ Determine how to proceed based on what was provided in `<input_document>`.
 
 2. **Commit and Create Pull Request**
 
-   Load the `git-commit-push-pr` skill to handle committing, pushing, and PR creation. The skill handles convention detection, branch safety, logical commit splitting, adaptive PR descriptions, and attribution badges.
+   Load the `git-commit-push-pr` skill to handle committing, pushing, and PR creation. The skill handles convention detection, branch safety, logical commit splitting, and adaptive PR descriptions.
 
    When providing context for the PR description, include:
    - The plan's summary and key decisions
@@ -449,7 +447,6 @@ Before creating PR, verify:
 - [ ] PR description includes Post-Deploy Monitoring & Validation section (or explicit no-impact rationale)
 - [ ] Code review completed (inline self-review or full `ce:review`)
 - [ ] PR description includes summary, testing notes, and screenshots
-- [ ] PR description includes Compound Engineered badge with accurate model and harness
 
 ## Code Review Tiers
 

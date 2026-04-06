@@ -353,7 +353,7 @@ Cover these areas:
 
 While writing each section, check whether any file from the inventory's `docs` list is directly relevant to what the section explains. If so, link inline:
 
-> Authentication uses token-based middleware -- see [`docs/solutions/auth-pattern.md`](docs/solutions/auth-pattern.md) for the full pattern.
+> Authentication uses token-based middleware -- see [`.ai/solutions/auth-pattern.md`](.ai/solutions/auth-pattern.md) for the full pattern.
 
 Do not create a separate references or further-reading section. If no relevant docs exist for a section, the section stands alone -- do not mention their absence.
 

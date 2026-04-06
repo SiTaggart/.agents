@@ -1,6 +1,6 @@
 # YAML Frontmatter Schema
 
-`schema.yaml` in this directory is the canonical contract for `docs/solutions/` frontmatter written by `ce:compound`.
+`schema.yaml` in this directory is the canonical contract for `.ai/solutions/` frontmatter written by `ce:compound`.
 
 Use this file as the quick reference for:
 - required fields
@@ -60,19 +60,19 @@ Docs created before the track system may have `symptoms`/`root_cause`/`resolutio
 
 ## Category Mapping
 
-- `build_error` -> `docs/solutions/build-errors/`
-- `test_failure` -> `docs/solutions/test-failures/`
-- `runtime_error` -> `docs/solutions/runtime-errors/`
-- `performance_issue` -> `docs/solutions/performance-issues/`
-- `database_issue` -> `docs/solutions/database-issues/`
-- `security_issue` -> `docs/solutions/security-issues/`
-- `ui_bug` -> `docs/solutions/ui-bugs/`
-- `integration_issue` -> `docs/solutions/integration-issues/`
-- `logic_error` -> `docs/solutions/logic-errors/`
-- `developer_experience` -> `docs/solutions/developer-experience/`
-- `workflow_issue` -> `docs/solutions/workflow-issues/`
-- `best_practice` -> `docs/solutions/best-practices/`
-- `documentation_gap` -> `docs/solutions/documentation-gaps/`
+- `build_error` -> `.ai/solutions/build-errors/`
+- `test_failure` -> `.ai/solutions/test-failures/`
+- `runtime_error` -> `.ai/solutions/runtime-errors/`
+- `performance_issue` -> `.ai/solutions/performance-issues/`
+- `database_issue` -> `.ai/solutions/database-issues/`
+- `security_issue` -> `.ai/solutions/security-issues/`
+- `ui_bug` -> `.ai/solutions/ui-bugs/`
+- `integration_issue` -> `.ai/solutions/integration-issues/`
+- `logic_error` -> `.ai/solutions/logic-errors/`
+- `developer_experience` -> `.ai/solutions/developer-experience/`
+- `workflow_issue` -> `.ai/solutions/workflow-issues/`
+- `best_practice` -> `.ai/solutions/best-practices/`
+- `documentation_gap` -> `.ai/solutions/documentation-gaps/`
 
 ## Validation Rules
 

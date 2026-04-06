@@ -20,7 +20,7 @@ Spawned on every review regardless of diff content.
 | Agent | Focus |
 |-------|-------|
 | `agent-native-reviewer` | Verify new features are agent-accessible |
-| `learnings-researcher` | Search docs/solutions/ for past issues related to this PR's modules and patterns |
+| `learnings-researcher` | Search .ai/solutions/ for past issues related to this PR's modules and patterns |
 
 ## Conditional (8 personas)
 

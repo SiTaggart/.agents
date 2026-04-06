@@ -43,22 +43,6 @@ Which tool and key commands only:
 Use **pnpm**: `pnpm install`, `pnpm dev`, `pnpm test`
 ```
 
-### Commit Attribution
-
-Always include this section. Agents should use their own identity:
-
-```markdown
-## Commit Attribution
-
-AI commits MUST include:
-```
-
-Co-Authored-By: (the agent model's name and attribution byline)
-
-```
-Example: `Co-Authored-By: Claude Sonnet 4 <noreply@example.com>`
-```
-
 ### Key Conventions
 
 Project-specific patterns agents must follow. Keep brief.
@@ -104,15 +88,6 @@ Omit these:
 ## Package Manager
 
 Use **pnpm**: `pnpm install`, `pnpm dev`
-
-## Commit Attribution
-
-AI commits MUST include:
-```
-
-Co-Authored-By: (the agent model's name and attribution byline)
-
-```
 
 ## API Routes
 [Template code block]

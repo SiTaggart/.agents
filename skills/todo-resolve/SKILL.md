@@ -22,7 +22,7 @@ If a specific todo ID or pattern was passed as an argument, filter to matching t
 
 Residual actionable work from `ce:review mode:autofix` after its `safe_auto` pass will already be `ready`.
 
-Skip any todo that recommends deleting, removing, or gitignoring files in `docs/brainstorms/`, `docs/plans/`, or `docs/solutions/` — these are intentional pipeline artifacts.
+Skip any todo that recommends deleting, removing, or gitignoring files in `.ai/brainstorms/`, `.ai/plans/`, or `.ai/solutions/` — these are intentional pipeline artifacts.
 
 ### 2. Plan
 
@@ -46,7 +46,7 @@ GATE: STOP. Verify todos resolved and changes committed before proceeding.
 
 Load the `ce:compound` skill to document what was learned. Todo resolutions often surface patterns and architectural insights worth capturing.
 
-GATE: STOP. Verify the compound skill produced a solution document in `docs/solutions/`. If none (user declined or no learnings), continue.
+GATE: STOP. Verify the compound skill produced a solution document in `.ai/solutions/`. If none (user declined or no learnings), continue.
 
 ### 6. Clean Up
 

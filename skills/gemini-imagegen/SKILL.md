@@ -228,6 +228,10 @@ file image.png
 # If output shows "JPEG image data" - rename to .jpg!
 ```
 
+## Output conventions
+
+**Save all final images to `~/Desktop/ai-generated/`** — never write generated images into the project directory. Create the directory if it doesn't exist. Organize by date or topic subfolder as needed (e.g., `~/Desktop/ai-generated/2026-04-06-logos/`).
+
 ## Notes
 
 - All generated images include SynthID watermarks

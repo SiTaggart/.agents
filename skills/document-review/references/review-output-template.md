@@ -9,7 +9,7 @@ Use this **exact format** when presenting synthesized review findings. Findings 
 ```markdown
 ## Document Review Results
 
-**Document:** docs/plans/2026-03-15-feat-user-auth-plan.md
+**Document:** .ai/plans/2026-03-15-feat-user-auth-plan.md
 **Type:** plan
 **Reviewers:** coherence, feasibility, security-lens, scope-guardian
 - security-lens -- plan adds public API endpoint with auth flow

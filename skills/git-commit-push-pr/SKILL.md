@@ -342,40 +342,6 @@ Write:
 
 When referencing actual GitHub issues or PRs, use the full format: `org/repo#123` or the full URL. Never use bare `#123` unless you have verified it refers to the correct issue in the current repository.
 
-#### Compound Engineering badge
-
-Append a badge footer to the PR description, separated by a `---` rule. Do not add one if the description already contains a Compound Engineering badge (e.g., added by another skill like ce-work).
-
-**Plugin version (pre-resolved):** !`jq -r .version "${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json"`
-
-If the line above resolved to a semantic version (e.g., `2.42.0`), use it as `[VERSION]` in the versioned badge below. Otherwise (empty, a literal command string, or an error), use the versionless badge. Do not attempt to resolve the version at runtime.
-
-**Versioned badge** (when version resolved above):
-
-```markdown
----
-
-🤖 Generated with [MODEL] ([CONTEXT] context, [THINKING]) via [HARNESS](HARNESS_URL)
-```
-
-**Versionless badge** (when version is not available):
-
-```markdown
----
-
-🤖 Generated with [MODEL] ([CONTEXT] context, [THINKING]) via [HARNESS](HARNESS_URL)
-```
-
-Fill in at PR creation time:
-
-| Placeholder | Value | Example |
-|-------------|-------|---------|
-| `[MODEL]` | Model name | Claude Opus 4.6, GPT-5.4 |
-| `[CONTEXT]` | Context window (if known) | 200K, 1M |
-| `[THINKING]` | Thinking level (if known) | extended thinking |
-| `[HARNESS]` | Tool running you | Claude Code, Codex, Gemini CLI |
-| `[HARNESS_URL]` | Link to that tool | `https://claude.com/claude-code` |
-
 ### Step 7: Create or update the PR
 
 #### New PR (no existing PR from Step 3)
@@ -383,16 +349,9 @@ Fill in at PR creation time:
 ```bash
 gh pr create --title "the pr title" --body "$(cat <<'EOF'
 PR description here
-
----
-
-[BADGE LINE FROM BADGE SECTION ABOVE]
-🤖 Generated with [MODEL] ([CONTEXT] context, [THINKING]) via [HARNESS](HARNESS_URL)
 EOF
 )"
 ```
-
-Use the versioned or versionless badge line resolved in the Compound Engineering badge section above.
 
 Keep the PR title under 72 characters. The title follows the same convention as commit messages (Step 2).
 
@@ -400,7 +359,7 @@ Keep the PR title under 72 characters. The title follows the same convention as 
 
 The new commits are already on the PR from the push in Step 5. Report the PR URL, then ask the user whether they want the PR description updated to reflect the new changes. Use the platform's blocking question tool (`AskUserQuestion` in Claude Code, `request_user_input` in Codex, `ask_user` in Gemini). If no question tool is available, present the option and wait for the user's reply before proceeding.
 
-- If **yes** -- write a new description following the same principles in Step 6 (size the full PR, not just the new commits), including the Compound Engineering badge unless one is already present in the existing description. Apply it:
+- If **yes** -- write a new description following the same principles in Step 6 (size the full PR, not just the new commits). Apply it:
 
   ```bash
   gh pr edit --body "$(cat <<'EOF'

@@ -11,7 +11,7 @@ CRITICAL: You MUST execute every step below IN ORDER. Do NOT skip any required s
 
 2. `/ce:plan $ARGUMENTS`
 
-   GATE: STOP. Verify that the `ce:plan` workflow produced a plan file in `docs/plans/`. If no plan file was created, run `/ce:plan $ARGUMENTS` again. Do NOT proceed to step 3 until a written plan exists. **Record the plan file path** — it will be passed to ce:review in step 4.
+   GATE: STOP. Verify that the `ce:plan` workflow produced a plan file in `.ai/plans/`. If no plan file was created, run `/ce:plan $ARGUMENTS` again. Do NOT proceed to step 3 until a written plan exists. **Record the plan file path** — it will be passed to ce:review in step 4.
 
 3. `/ce:work`
 

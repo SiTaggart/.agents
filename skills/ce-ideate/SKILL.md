@@ -124,7 +124,7 @@ Run agents in parallel in the **foreground** (do not use background dispatch —
 Consolidate all results into a short grounding summary. When issue intelligence is present, keep it as a distinct section so ideation sub-agents can distinguish between code-observed and user-reported signals:
 
 - **Codebase context** — project shape, notable patterns, obvious pain points, likely leverage points
-- **Past learnings** — relevant institutional knowledge from docs/solutions/
+- **Past learnings** — relevant institutional knowledge from .ai/solutions/
 - **Issue intelligence** (when present) — theme summaries from the issue intelligence agent, preserving theme titles, descriptions, issue counts, and trend directions
 
 Do **not** do external research in v1.

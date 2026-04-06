@@ -382,6 +382,3 @@ Announce document completion. Provide a few final tips:
 - Each iteration should make meaningful improvements
 - The goal is a document that actually works for readers
 
-## Attribution
-
-This skill was adapted from [anthropics/skills](https://github.com/anthropics/courses/tree/master/claude-code/skills/doc-coauthoring).

@@ -58,12 +58,12 @@ A plan is ready when an implementer can start confidently without needing the pl
 
 #### 0.1 Resume Existing Plan Work When Appropriate
 
-If the user references an existing plan file or there is an obvious recent matching plan in `docs/plans/`:
+If the user references an existing plan file or there is an obvious recent matching plan in `.ai/plans/`:
 - Read it
 - Confirm whether to update it in place or create a new plan
 - If updating, preserve completed checkboxes and revise only the still-relevant sections
 
-**Deepen intent:** The word "deepen" (or "deepening") in reference to a plan is the primary trigger for the deepening fast path. When the user says "deepen the plan", "deepen my plan", "run a deepening pass", or similar, the target document is a **plan** in `docs/plans/`, not a requirements document. Use any path, keyword, or context the user provides to identify the right plan. If a path is provided, verify it is actually a plan document. If the match is not obvious, confirm with the user before proceeding.
+**Deepen intent:** The word "deepen" (or "deepening") in reference to a plan is the primary trigger for the deepening fast path. When the user says "deepen the plan", "deepen my plan", "run a deepening pass", or similar, the target document is a **plan** in `.ai/plans/`, not a requirements document. Use any path, keyword, or context the user provides to identify the right plan. If a path is provided, verify it is actually a plan document. If the match is not obvious, confirm with the user before proceeding.
 
 Words like "strengthen", "confidence", "gaps", and "rigor" are NOT sufficient on their own to trigger deepening. These words appear in normal editing requests ("strengthen that section about the diagram", "there are gaps in the test scenarios") and should not cause a holistic deepening pass. Only treat them as deepening intent when the request clearly targets the plan as a whole and does not name a specific section or content area to change — and even then, prefer to confirm with the user before entering the deepening flow.
 
@@ -75,7 +75,7 @@ If the plan already has a `deepened: YYYY-MM-DD` frontmatter field and there is 
 
 #### 0.2 Find Upstream Requirements Document
 
-Before asking planning questions, search `docs/brainstorms/` for files matching `*-requirements.md`.
+Before asking planning questions, search `.ai/brainstorms/` for files matching `*-requirements.md`.
 
 **Relevance criteria:** A requirements document is relevant if:
 - The topic semantically matches the feature description
@@ -164,7 +164,7 @@ Collect:
 - Architectural patterns and conventions to follow
 - Implementation patterns, relevant files, modules, and tests
 - AGENTS.md guidance that materially affects the plan, with CLAUDE.md used only as compatibility fallback when present
-- Institutional learnings from `docs/solutions/`
+- Institutional learnings from `.ai/solutions/`
 
 #### 1.1b Detect Execution Posture Signals
 
@@ -277,8 +277,8 @@ Ask the user only when the answer materially affects architecture, scope, sequen
 
 - Draft a clear, searchable title using conventional format such as `feat: Add user authentication` or `fix: Prevent checkout double-submit`
 - Determine the plan type: `feat`, `fix`, or `refactor`
-- Build the filename following the repository convention: `docs/plans/YYYY-MM-DD-NNN-<type>-<descriptive-name>-plan.md`
-  - Create `docs/plans/` if it does not exist
+- Build the filename following the repository convention: `.ai/plans/YYYY-MM-DD-NNN-<type>-<descriptive-name>-plan.md`
+  - Create `.ai/plans/` if it does not exist
   - Check existing files for today's date to determine the next sequence number (zero-padded to 3 digits, starting at 001)
   - Keep the descriptive name concise (3-5 words) and kebab-cased
   - Examples: `2026-01-15-001-feat-user-authentication-flow-plan.md`, `2026-02-03-002-fix-checkout-race-condition-plan.md`
@@ -415,7 +415,7 @@ title: [Plan Title]
 type: [feat|fix|refactor]
 status: active
 date: YYYY-MM-DD
-origin: docs/brainstorms/YYYY-MM-DD-<topic>-requirements.md  # include when planning from a requirements doc
+origin: .ai/brainstorms/YYYY-MM-DD-<topic>-requirements.md  # include when planning from a requirements doc
 deepened: YYYY-MM-DD  # optional, set when the confidence check substantively strengthens the plan
 ---
 
@@ -446,7 +446,7 @@ deepened: YYYY-MM-DD  # optional, set when the confidence check substantively st
 
 ### Institutional Learnings
 
-- [Relevant `docs/solutions/` insight]
+- [Relevant `.ai/solutions/` insight]
 
 ### External References
 
@@ -529,7 +529,7 @@ deepened: YYYY-MM-DD  # optional, set when the confidence check substantively st
 
 ## Sources & References
 
-- **Origin document:** [docs/brainstorms/YYYY-MM-DD-<topic>-requirements.md](path)
+- **Origin document:** [.ai/brainstorms/YYYY-MM-DD-<topic>-requirements.md](path)
 - Related code: [path or symbol]
 - Related PRs/issues: #[number]
 - External docs: [url]
@@ -648,13 +648,13 @@ If the plan originated from a requirements document, re-read that document and v
 Use the Write tool to save the complete plan to:
 
 ```text
-docs/plans/YYYY-MM-DD-NNN-<type>-<descriptive-name>-plan.md
+.ai/plans/YYYY-MM-DD-NNN-<type>-<descriptive-name>-plan.md
 ```
 
 Confirm:
 
 ```text
-Plan written to docs/plans/[filename]
+Plan written to .ai/plans/[filename]
 ```
 
 **Pipeline mode:** If invoked from an automated workflow such as LFG, SLFG, or any `disable-model-invocation` context, skip interactive questions. Make the needed choices automatically and proceed to writing the plan.
@@ -967,7 +967,7 @@ If artifact-backed mode was used:
 
 After document-review completes, present the options using the platform's blocking question tool when available (see Interaction Method). Otherwise present numbered options in chat and wait for the user's reply before proceeding.
 
-**Question:** "Plan ready at `docs/plans/YYYY-MM-DD-NNN-<type>-<name>-plan.md`. What would you like to do next?"
+**Question:** "Plan ready at `.ai/plans/YYYY-MM-DD-NNN-<type>-<name>-plan.md`. What would you like to do next?"
 
 **Options:**
 1. **Start `/ce:work`** - Begin implementing this plan in the current environment (recommended)
@@ -978,11 +978,11 @@ After document-review completes, present the options using the platform's blocki
 6. **Create Issue** - Create an issue in the configured tracker
 
 Based on selection:
-- **Open plan in editor** → Open `docs/plans/<plan_filename>.md` using the current platform's file-open or editor mechanism (e.g., `open` on macOS, `xdg-open` on Linux, or the IDE's file-open API)
+- **Open plan in editor** → Open `.ai/plans/<plan_filename>.md` using the current platform's file-open or editor mechanism (e.g., `open` on macOS, `xdg-open` on Linux, or the IDE's file-open API)
 - **Run additional document review** → Load the `document-review` skill with the plan path for another pass
 - **Share to Proof** → Upload the plan:
   ```bash
-  CONTENT=$(cat docs/plans/<plan_filename>.md)
+  CONTENT=$(cat .ai/plans/<plan_filename>.md)
   TITLE="Plan: <plan title from frontmatter>"
   RESPONSE=$(curl -s -X POST https://www.proofeditor.ai/share/markdown \
     -H "Content-Type: application/json" \
