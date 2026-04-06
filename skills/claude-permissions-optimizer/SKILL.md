@@ -68,7 +68,7 @@ Show the work done using the script's `stats`. Reaffirm the scope. Keep it to 4-
 
 **Example:**
 ```
-## Analysis (compound-engineering-plugin)
+## Analysis (selected scope)
 
 Scanned **24 sessions** for this project.
 Found **312 unique Bash commands** across those sessions.

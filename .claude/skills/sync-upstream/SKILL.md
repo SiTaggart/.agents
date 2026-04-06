@@ -92,6 +92,7 @@ When porting content from upstream, common adaptations include:
   - All output should look like the user authored it — no tool fingerprints
 - **Rewrite `docs/` document paths to `.ai/`** — Upstream uses `docs/brainstorms/`, `docs/plans/`, `docs/solutions/` etc. Local convention stores all generated documents under `.ai/`. Replace all bare `docs/` paths with the `.ai/` equivalent:
   - `docs/brainstorms/` → `.ai/brainstorms/`
+  - `docs/ideation/` → `.ai/ideation/`
   - `docs/plans/` → `.ai/plans/`
   - `docs/solutions/` → `.ai/solutions/`
   - `docs/handoffs/` → `.ai/handoffs/`

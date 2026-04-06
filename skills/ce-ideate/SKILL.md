@@ -14,7 +14,7 @@ argument-hint: "[feature, focus area, or constraint]"
 - `ce:brainstorm` answers: "What exactly should one chosen idea mean?"
 - `ce:plan` answers: "How should it be built?"
 
-This workflow produces a ranked ideation artifact in `docs/ideation/`. It does **not** produce requirements, plans, or code.
+This workflow produces a ranked ideation artifact in `.ai/ideation/`. It does **not** produce requirements, plans, or code.
 
 ## Interaction Method
 
@@ -51,7 +51,7 @@ If no argument is provided, proceed with open-ended ideation.
 
 #### 0.1 Check for Recent Ideation Work
 
-Look in `docs/ideation/` for ideation documents created within the last 30 days.
+Look in `.ai/ideation/` for ideation documents created within the last 30 days.
 
 Treat a prior ideation doc as relevant when:
 - the topic matches the requested focus
@@ -265,10 +265,10 @@ Always write or update the artifact before:
 
 To write the artifact:
 
-1. Ensure `docs/ideation/` exists
+1. Ensure `.ai/ideation/` exists
 2. Choose the file path:
-   - `docs/ideation/YYYY-MM-DD-<topic>-ideation.md`
-   - `docs/ideation/YYYY-MM-DD-open-ideation.md` when no focus exists
+   - `.ai/ideation/YYYY-MM-DD-<topic>-ideation.md`
+   - `.ai/ideation/YYYY-MM-DD-open-ideation.md` when no focus exists
 3. Write or update the ideation document
 
 Use this structure and omit clearly irrelevant fields only when necessary:

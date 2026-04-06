@@ -359,7 +359,6 @@ Task({
 - `data-integrity-guardian` - Database and data safety
 - `data-migration-expert` - Migration validation
 - `deployment-verification-agent` - Pre-deploy checklists
-- `dhh-rails-reviewer` - DHH/37signals Rails style
 - `julik-frontend-races-reviewer` - JavaScript race conditions
 - `kieran-python-reviewer` - Python best practices
 - `kieran-rails-reviewer` - Rails best practices

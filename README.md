@@ -10,7 +10,7 @@ Shared AI agent configuration synced across projects. Contains agents, commands,
 | Commands   | 4     |
 | Skills     | 71    |
 | Rules      | 2     |
-| Hooks      | 3     |
+| Hooks      | 1     |
 
 ## Agents
 
@@ -262,8 +262,6 @@ Shared AI agent configuration synced across projects. Contains agents, commands,
 
 | Hook                       | Description                                              |
 | -------------------------- | -------------------------------------------------------- |
-| `cm-reflect.sh`            | Run cass index + cm reflect on session end               |
-| `prevent-main-commit.sh`   | Block direct commits to main/master                      |
 | `trauma_guard.py`          | Guard against traumatic agent behaviors                  |
 
 ## Key Files

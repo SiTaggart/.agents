@@ -101,7 +101,7 @@ Routing rules:
 
 ## Reviewers
 
-17 reviewer personas in layered conditionals, plus CE-specific agents. See the persona catalog included below for the full catalog.
+16 reviewer personas in layered conditionals, plus CE-specific agents. See the persona catalog included below for the full catalog.
 
 **Always-on (every review):**
 
@@ -131,7 +131,6 @@ Routing rules:
 
 | Agent | Select when diff touches... |
 |-------|---------------------------|
-| `dhh-rails-reviewer` | Rails architecture, service objects, session/auth choices, or Hotwire-vs-SPA boundaries |
 | `kieran-rails-reviewer` | Rails application code where conventions, naming, and maintainability are in play |
 | `kieran-python-reviewer` | Python modules, endpoints, scripts, or services |
 | `kieran-typescript-reviewer` | TypeScript components, services, hooks, utilities, or shared types |
@@ -141,12 +140,11 @@ Routing rules:
 
 | Agent | Select when diff includes migration files |
 |-------|------------------------------------------|
-| `schema-drift-detector` | Cross-references schema.rb against included migrations |
 | `deployment-verification-agent` | Produces deployment checklist with SQL verification queries |
 
 ## Review Scope
 
-Every review spawns all 4 always-on personas plus the 2 CE always-on agents, then adds whichever cross-cutting and stack-specific conditionals fit the diff. The model naturally right-sizes: a small config change triggers 0 conditionals = 6 reviewers. A Rails auth feature might trigger security + reliability + kieran-rails + dhh-rails = 10 reviewers.
+Every review spawns all 4 always-on personas plus the 2 CE always-on agents, then adds whichever cross-cutting and stack-specific conditionals fit the diff. The model naturally right-sizes: a small config change triggers 0 conditionals = 6 reviewers. A TypeScript API feature might trigger security + reliability + kieran-typescript = 9 reviewers.
 
 ## Protected Artifacts
 
@@ -356,10 +354,9 @@ Review team:
 - agent-native-reviewer (always)
 - learnings-researcher (always)
 - security -- new endpoint in routes.rb accepts user-provided redirect URL
-- kieran-rails -- controller and Turbo flow changed in app/controllers and app/views
-- dhh-rails -- diff adds service objects around ordinary Rails CRUD
+- kieran-typescript -- shared API types and service layer changed
 - data-migrations -- adds migration 20260303_add_index_to_orders
-- schema-drift-detector -- migration files present
+- deployment-verification-agent -- migration files present
 ```
 
 This is progress reporting, not a blocking confirmation.
@@ -381,7 +378,7 @@ Persona sub-agents do focused, scoped work and should use cheaper/faster models 
 
 Use the platform's cheapest capable model for all persona and CE sub-agents. In Claude Code, pass `model: "haiku"` in the Agent tool call. On other platforms, use the equivalent fast/cheap tier (e.g., `gpt-4o-mini` in Codex). If the platform has no model override mechanism or the available model names are unknown, omit the model parameter and let agents inherit the default -- a working review on the parent model is better than a broken dispatch from an unrecognized model name.
 
-CE always-on agents (agent-native-reviewer, learnings-researcher) and CE conditional agents (schema-drift-detector, deployment-verification-agent) also use the cheaper model tier since they perform scoped, focused work.
+CE always-on agents (agent-native-reviewer, learnings-researcher) and CE conditional agents (deployment-verification-agent) also use the cheaper model tier since they perform scoped, focused work.
 
 The orchestrator (this skill) stays on the default model because it handles intent discovery, reviewer selection, finding merge/dedup, and synthesis -- tasks that benefit from stronger reasoning.
 
@@ -413,7 +410,7 @@ Each persona sub-agent returns JSON matching the findings schema included below:
 
 **CE always-on agents** (agent-native-reviewer, learnings-researcher) are dispatched as standard Agent calls in parallel with the persona agents. Give them the same review context bundle the personas receive: entry mode, any PR metadata gathered in Stage 1, intent summary, review base branch name when known, `BASE:` marker, file list, diff, and `UNTRACKED:` scope notes. Do not invoke them with a generic "review this" prompt. Their output is unstructured and synthesized separately in Stage 6.
 
-**CE conditional agents** (schema-drift-detector, deployment-verification-agent) are also dispatched as standard Agent calls when applicable. Pass the same review context bundle plus the applicability reason (for example, which migration files triggered the agent). For schema-drift-detector specifically, pass the resolved review base branch explicitly so it never assumes `main`. Their output is unstructured and must be preserved for Stage 6 synthesis just like the CE always-on agents.
+**CE conditional agents** (deployment-verification-agent) are also dispatched as standard Agent calls when applicable. Pass the same review context bundle plus the applicability reason (for example, which migration files triggered the agent). Their output is unstructured and must be preserved for Stage 6 synthesis just like the CE always-on agents.
 
 ### Stage 5: Merge findings
 
@@ -432,7 +429,7 @@ Convert multiple reviewer JSON payloads into one deduplicated, confidence-gated 
    - report-only queue: `advisory` findings plus anything owned by `human` or `release`
 8. **Sort.** Order by severity (P0 first) -> confidence (descending) -> file path -> line number.
 9. **Collect coverage data.** Union residual_risks and testing_gaps across reviewers.
-10. **Preserve CE agent artifacts.** Keep the learnings, agent-native, schema-drift, and deployment-verification outputs alongside the merged finding set. Do not drop unstructured agent output just because it does not match the persona JSON schema.
+10. **Preserve CE agent artifacts.** Keep the learnings, agent-native, and deployment-verification outputs alongside the merged finding set. Do not drop unstructured agent output just because it does not match the persona JSON schema.
 
 ### Stage 6: Synthesize and present
 
@@ -449,10 +446,9 @@ Assemble the final report using **pipe-delimited markdown tables for findings** 
 6. **Pre-existing.** Separate section, does not count toward verdict.
 7. **Learnings & Past Solutions.** Surface learnings-researcher results: if past solutions are relevant, flag them as "Known Pattern" with links to .ai/solutions/ files.
 8. **Agent-Native Gaps.** Surface agent-native-reviewer results. Omit section if no gaps found.
-9. **Schema Drift Check.** If schema-drift-detector ran, summarize whether drift was found. If drift exists, list the unrelated schema objects and the required cleanup command. If clean, say so briefly.
-10. **Deployment Notes.** If deployment-verification-agent ran, surface the key Go/No-Go items: blocking pre-deploy checks, the most important verification queries, rollback caveats, and monitoring focus areas. Keep the checklist actionable rather than dropping it into Coverage.
-11. **Coverage.** Suppressed count, residual risks, testing gaps, failed/timed-out reviewers, and any intent uncertainty carried by non-interactive modes.
-12. **Verdict.** Ready to merge / Ready with fixes / Not ready. Fix order if applicable. When an `explicit` plan has unaddressed requirements, the verdict must reflect it — a PR that's code-clean but missing planned requirements is "Not ready" unless the omission is intentional. When an `inferred` plan has unaddressed requirements, note it in the verdict reasoning but do not block on it alone.
+9. **Deployment Notes.** If deployment-verification-agent ran, surface the key Go/No-Go items: blocking pre-deploy checks, the most important verification queries, rollback caveats, and monitoring focus areas. Keep the checklist actionable rather than dropping it into Coverage.
+10. **Coverage.** Suppressed count, residual risks, testing gaps, failed/timed-out reviewers, and any intent uncertainty carried by non-interactive modes.
+11. **Verdict.** Ready to merge / Ready with fixes / Not ready. Fix order if applicable. When an `explicit` plan has unaddressed requirements, the verdict must reflect it — a PR that's code-clean but missing planned requirements is "Not ready" unless the omission is intentional. When an `inferred` plan has unaddressed requirements, note it in the verdict reasoning but do not block on it alone.
 
 Do not include time estimates.
 

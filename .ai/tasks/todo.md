@@ -21,3 +21,29 @@
 - Validation run:
   - `bash -n hooks/scripts/cm-reflect.sh` passed.
   - No repo lint/typecheck config or project manifests were found, so no additional linter/type-checker command was available to run.
+
+# Task: Upstream sync cleanup for PR #7 review findings
+
+## Context
+- Goal: remove broken references and inaccurate docs left behind by the upstream sync.
+- Business reason: synced skills need to match the actual local agent inventory and `.ai/` document conventions so they can be used reliably.
+- Constraints/scope: keep missing Rails-only agents intentionally absent, prefer minimal local adaptations over broader rewrites, and only touch the affected skills/docs.
+- Intended approach: patch the synced skills to stop referencing intentionally missing agents, move ideation artifacts under `.ai/`, and correct remaining README and branding inaccuracies.
+
+## Checklist
+- [x] review-planned: Confirm the affected skills, docs, and local inventory mismatches
+- [x] implementation: Remove references to intentionally missing agents from synced skills
+- [x] implementation: Move ideation artifact guidance to a local `.ai/` path and document it
+- [x] implementation: Correct stale README and example branding mismatches
+- [x] validation: Read back changed lines for every edited file
+- [x] validation: Run available repo validation commands
+
+## Review
+- Removed references to intentionally omitted local agents from `ce-review`, its persona catalog/template guidance, `ce-compound`, and `orchestrating-swarms`.
+- Moved `ce-ideate` artifact guidance to `.ai/ideation/`, documented that path in `AGENTS.md`, and taught the sync-upstream adaptation notes to rewrite `docs/ideation/` on future syncs.
+- Corrected stale inventory/branding mismatches in `README.md` and `claude-permissions-optimizer`.
+- Validation run:
+  - Read back every edited block after patching to confirm the changes applied.
+  - `git diff --check` passed.
+  - Stale reference scan passed; only the sync rule’s own `docs/ideation -> .ai/ideation` mapping remains, which is intentional.
+  - No `package.json`, `tsconfig.json`, ESLint, Biome, or similar project config exists in this repo root, so there was no runnable linter or type-checker command to execute.

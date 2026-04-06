@@ -328,6 +328,7 @@ All generated documents live under the `.ai/` directory. This keeps agent artifa
 |---------|------|
 | Plans | `.ai/plans/` |
 | Brainstorms | `.ai/brainstorms/` |
+| Ideation | `.ai/ideation/` |
 | Solutions | `.ai/solutions/` |
 | Todos | `.ai/todos/` |
 | Tasks | `.ai/tasks/` |
