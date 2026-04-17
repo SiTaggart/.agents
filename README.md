@@ -6,9 +6,9 @@ Shared AI agent configuration synced across projects. Contains agents, commands,
 
 | Component  | Count |
 | ---------- | ----- |
-| Agents     | 55    |
+| Agents     | 56    |
 | Commands   | 4     |
-| Skills     | 71    |
+| Skills     | 77    |
 | Rules      | 2     |
 | Hooks      | 1     |
 
@@ -56,7 +56,7 @@ Shared AI agent configuration synced across projects. Contains agents, commands,
 | `security-reviewer`              | Review diffs touching auth, endpoints, or user input for vulnerabilities |
 | `security-sentinel`              | Security audits and vulnerability assessments                   |
 
-### Research (7)
+### Research (10)
 
 | Agent                       | Description                                         |
 | --------------------------- | --------------------------------------------------- |
@@ -67,6 +67,9 @@ Shared AI agent configuration synced across projects. Contains agents, commands,
 | `learnings-researcher`      | Search past solutions in .ai/solutions/ for institutional knowledge |
 | `repo-research-analyst`     | Research repository structure and conventions       |
 | `rp-explorer`               | Token-efficient codebase exploration via RepoPrompt |
+| `session-historian`         | Analyze past agent sessions across Claude Code / Codex / Cursor |
+| `slack-researcher`          | Research organizational context from Slack workspaces |
+| `web-researcher`            | Research external documentation and web references  |
 
 ### Design (4)
 
@@ -89,12 +92,10 @@ Shared AI agent configuration synced across projects. Contains agents, commands,
 | `react-test-architect`           | Design and implement React test strategies             |
 | `testing-reviewer`               | Review code for test coverage gaps and weak assertions  |
 
-### Workflow (5)
+### Workflow (3)
 
 | Agent                        | Description                                       |
 | ---------------------------- | ------------------------------------------------- |
-| `bug-reproduction-validator` | Reproduce and validate bug reports                |
-| `lint`                       | Run linting and code quality checks               |
 | `pr-comment-resolver`        | Address PR comments and implement fixes           |
 | `spec-flow-analyzer`         | Analyze user flows and identify gaps in specs     |
 | `task-orchestrator`          | Determine optimal delegation across sub-agents    |
@@ -134,7 +135,6 @@ Shared AI agent configuration synced across projects. Contains agents, commands,
 
 | Skill                       | Description                                          |
 | --------------------------- | ---------------------------------------------------- |
-| `claude-permissions-optimizer` | Optimize Claude Code permissions from session history |
 | `claude-settings-audit`     | Generate recommended Claude Code settings.json       |
 | `github-search`             | Search GitHub code, repos, issues, and PRs via CLI   |
 | `onboarding`                | Generate ONBOARDING.md for new contributors          |
@@ -180,12 +180,6 @@ Shared AI agent configuration synced across projects. Contains agents, commands,
 | `obsidian-bases`     | Create and edit Obsidian Bases (.base files)             |
 | `json-canvas`        | Create and edit JSON Canvas files (.canvas)              |
 
-### Orchestration
-
-| Skill                  | Description                                                    |
-| ---------------------- | -------------------------------------------------------------- |
-| `orchestrating-swarms` | Multi-agent swarm orchestration with TeammateTool and Tasks    |
-
 ### Workflow and Git
 
 | Skill                        | Description                                              |
@@ -198,7 +192,6 @@ Shared AI agent configuration synced across projects. Contains agents, commands,
 | `git-commit-push-pr`         | Commit, push, and open a PR in one step                  |
 | `git-worktree`               | Manage Git worktrees for parallel development            |
 | `resolve-pr-feedback`        | Resolve PR review feedback by evaluating and fixing in parallel |
-| `setup`                      | Configure review agents per project via interactive setup|
 | `standup-skill`              | Generate a summary of work from the previous workday     |
 
 ### Task Management
@@ -216,20 +209,30 @@ Shared AI agent configuration synced across projects. Contains agents, commands,
 | `ce-brainstorm`        | Explore requirements through collaborative dialogue            |
 | `ce-compound`          | Document solved problems to compound team knowledge            |
 | `ce-compound-refresh`  | Refresh stale learnings and pattern docs against current codebase |
+| `ce-debug`             | Systematic debugging with anti-patterns and investigation techniques |
+| `ce-demo-reel`         | Capture demo reels via terminal / screenshot / browser pipelines |
+| `ce-grill`             | Stress-test a plan or design through interview-style questions |
 | `ce-ideate`            | Generate and evaluate grounded improvement ideas for a project |
+| `ce-optimize`          | Auto-research loop for tuning prompts and evaluating solutions |
 | `ce-plan`              | Transform requirements into structured implementation plans    |
+| `ce-polish-beta`       | Human-in-the-loop polish phase between /ce:review and merge    |
+| `ce-pr-description`    | Focused skill for generating high-quality PR descriptions      |
+| `ce-release-notes`     | Browse plugin release history                                  |
 | `ce-review`            | Structured code review with tiered persona agents              |
+| `ce-sessions`          | Cross-platform session history analysis                        |
+| `ce-setup`             | Unified setup skill with dependency management                 |
+| `ce-slack-research`    | Research organizational context from Slack                     |
+| `ce-update`            | Check plugin versions and bump references                      |
 | `ce-work`              | Execute work efficiently while maintaining quality             |
 | `ce-work-beta`         | Execute work with experimental Codex delegation support        |
 | `changelog`            | Create engaging changelogs for recent merges                   |
+| `proof`                | Verify claims and results before declaring work done           |
 
 ### Autonomous Workflows
 
 | Skill              | Description                                              |
 | ------------------ | -------------------------------------------------------- |
 | `lfg`              | Full autonomous engineering workflow                     |
-| `slfg`             | Full autonomous engineering workflow using swarm mode     |
-| `reproduce-bug`    | Systematically reproduce and investigate a bug from GitHub |
 | `test-browser`     | Run browser tests on pages affected by current PR        |
 
 ### Integrations
@@ -243,13 +246,14 @@ Shared AI agent configuration synced across projects. Contains agents, commands,
 | `notion-spec-to-implementation` | Turn specs into concrete Notion tasks for implementation       |
 | `skills-sh-marketplace`         | Search, discover, and install skills from skills.sh            |
 
-### Image Generation and Browser
+### Image Generation
 
 | Skill             | Description                                              |
 | ----------------- | -------------------------------------------------------- |
-| `agent-browser`   | Browser automation for web testing and interaction       |
 | `gemini-imagegen` | Generate and edit images using Google's Gemini API       |
 | `imagegen`        | Generate or edit images via the OpenAI Image API         |
+
+> **Browser automation:** install the standalone `vercel-labs/agent-browser` plugin — it bundles the CLI alongside its own skill. `test-browser`, `design-iterator`, `design-implementation-reviewer`, and `figma-design-sync` all expect the `agent-browser` CLI to be on your `$PATH`.
 
 ## Rules
 

@@ -131,7 +131,15 @@ Determine how to proceed based on what was provided in `<input_document>`.
    |----------|-------------|
    | **Inline** | 1-2 small tasks, or tasks needing user interaction mid-flight. **Default for bare-prompt work** — bare prompts rarely produce enough structured context to justify subagent dispatch |
    | **Serial subagents** | 3+ tasks with dependencies between them. Each subagent gets a fresh context window focused on one unit — prevents context degradation across many tasks. Requires plan-unit metadata (Goal, Files, Approach, Test scenarios) |
-   | **Parallel subagents** | 3+ tasks where some units have no shared dependencies and touch non-overlapping files. Dispatch independent units simultaneously, run dependent units after their prerequisites complete. Requires plan-unit metadata |
+   | **Parallel subagents** | 3+ tasks that pass the Parallel Safety Check (below). Dispatch independent units simultaneously, run dependent units after their prerequisites complete. Requires plan-unit metadata |
+
+   **Parallel Safety Check** — required before choosing parallel dispatch:
+
+   1. Build a file-to-unit mapping from every candidate unit's `Files:` section (Create, Modify, and Test paths)
+   2. Check for intersection — any file path appearing in 2+ units means overlap
+   3. If any overlap is found, downgrade to serial subagents. Log the reason (e.g., "Units 2 and 4 share `config/routes.rb` — using serial dispatch"). Serial subagents still provide context-window isolation without shared-directory risks
+
+   Even with no file overlap, parallel subagents sharing a working directory face git index contention (concurrent staging/committing corrupts the index) and test interference (concurrent test runs pick up each other's in-progress changes). The parallel subagent constraints below mitigate these.
 
    **Subagent dispatch** uses your available subagent or task spawning mechanism. For each unit, give the subagent:
    - The full plan file path (for overall context)
@@ -139,9 +147,26 @@ Determine how to proceed based on what was provided in `<input_document>`.
    - Any resolved deferred questions relevant to that unit
    - Instruction to check whether the unit's test scenarios cover all applicable categories (happy paths, edge cases, error paths, integration) and supplement gaps before writing tests
 
-   After each subagent completes, update the plan checkboxes and task list before dispatching the next dependent unit.
+   **Parallel subagent constraints** — when dispatching units in parallel (not serial or inline):
+   - Instruct each subagent: "Do not stage files (`git add`), create commits, or run the project test suite. The orchestrator handles testing, staging, and committing after all parallel units complete."
+   - These constraints prevent git index contention and test interference between concurrent subagents
 
-   For genuinely large plans needing persistent inter-agent communication (agents challenging each other's approaches, shared coordination across 10+ tasks), see Swarm Mode below which uses Agent Teams.
+   **Permission mode:** Omit the `mode` parameter when dispatching subagents so the user's configured permission settings apply. Do not pass `mode: "auto"` — it overrides user-level settings like `bypassPermissions`.
+
+   **After each subagent completes (serial mode):**
+   1. Review the subagent's diff — verify changes match the unit's scope and `Files:` list
+   2. Run the relevant test suite to confirm the tree is healthy
+   3. If tests fail, diagnose and fix before proceeding — do not dispatch dependent units on a broken tree
+   4. Update the plan checkboxes and task list
+   5. Dispatch the next unit
+
+   **After all parallel subagents in a batch complete:**
+   1. Wait for every subagent in the current parallel batch to finish before acting on any of their results
+   2. Cross-check for discovered file collisions: compare the actual files modified by all subagents in the batch (not just their declared `Files:` lists). Subagents may create or modify files not anticipated during planning — this is expected, since plans describe *what* not *how*. A collision only matters when 2+ subagents in the same batch modified the same file. In a shared working directory, only the last writer's version survives — the other unit's changes to that file are lost. If a collision is detected: commit all non-colliding files from all units first, then re-run the affected units serially for the shared file so each builds on the other's committed work
+   3. For each completed unit, in dependency order: review the diff, run the relevant test suite, stage only that unit's files, and commit with a conventional message derived from the unit's Goal
+   4. If tests fail after committing a unit's changes, diagnose and fix before committing the next unit
+   5. Update the plan checkboxes and task list
+   6. Dispatch the next batch of independent units, or the next dependent unit
 
 ### Phase 2: Execute
 
@@ -227,6 +252,10 @@ Determine how to proceed based on what was provided in `<input_document>`.
 
    **Handling merge conflicts:** If conflicts arise during rebasing or merging, resolve them immediately. Incremental commits make conflict resolution easier since each commit is small and focused.
 
+   **Note:** Incremental commits use clean conventional messages without attribution footers. The final Phase 4 commit/PR includes the full attribution.
+
+   **Parallel subagent mode:** When units run as parallel subagents, the subagents do not commit — the orchestrator handles staging and committing after the entire parallel batch completes (see Parallel subagent constraints in Phase 1 Step 4). The commit guidance in this section applies to inline and serial execution, and to the orchestrator's commit decisions after parallel batch completion.
+
 3. **Follow Existing Patterns**
 
    - The plan should reference similar code - read those files first
@@ -266,138 +295,9 @@ Determine how to proceed based on what was provided in `<input_document>`.
    - Create new tasks if scope expands
    - Keep user informed of major milestones
 
-### Phase 3: Quality Check
+### Phase 3-4: Quality Check and Ship It
 
-1. **Run Core Quality Checks**
-
-   Always run before submitting:
-
-   ```bash
-   # Run full test suite (use project's test command)
-   # Examples: bin/rails test, npm test, pytest, go test, etc.
-
-   # Run linting (per AGENTS.md)
-   # Use linting-agent before pushing to origin
-   ```
-
-2. **Code Review** (REQUIRED)
-
-   Every change gets reviewed before shipping. The depth scales with the change's risk profile, but review itself is never skipped.
-
-   **Tier 2: Full review (default)** — REQUIRED unless Tier 1 criteria are explicitly met. Invoke the `ce:review` skill with `mode:autofix` to run specialized reviewer agents, auto-apply safe fixes, and surface residual work as todos. When the plan file path is known, pass it as `plan:<path>`. This is the mandatory default — proceed to Tier 1 only after confirming every criterion below.
-
-   **Tier 1: Inline self-review** — A lighter alternative permitted only when **all four** criteria are true. Before choosing Tier 1, explicitly state which criteria apply and why. If any criterion is uncertain, use Tier 2.
-   - Purely additive (new files only, no existing behavior modified)
-   - Single concern (one skill, one component — not cross-cutting)
-   - Pattern-following (implementation mirrors an existing example with no novel logic)
-   - Plan-faithful (no scope growth, no deferred questions resolved with surprising answers)
-
-3. **Final Validation**
-   - All tasks marked completed
-   - Testing addressed -- tests pass and new/changed behavior has corresponding test coverage (or an explicit justification for why tests are not needed)
-   - Linting passes
-   - Code follows existing patterns
-   - Figma designs match (if applicable)
-   - No console errors or warnings
-   - If the plan has a `Requirements Trace`, verify each requirement is satisfied by the completed work
-   - If any `Deferred to Implementation` questions were noted, confirm they were resolved during execution
-
-4. **Prepare Operational Validation Plan** (REQUIRED)
-   - Add a `## Post-Deploy Monitoring & Validation` section to the PR description for every change.
-   - Include concrete:
-     - Log queries/search terms
-     - Metrics or dashboards to watch
-     - Expected healthy signals
-     - Failure signals and rollback/mitigation trigger
-     - Validation window and owner
-   - If there is truly no production/runtime impact, still include the section with: `No additional operational monitoring required` and a one-line reason.
-
-### Phase 4: Ship It
-
-1. **Capture and Upload Screenshots for UI Changes** (REQUIRED for any UI work)
-
-   For **any** design changes, new views, or UI modifications, capture and upload screenshots before creating the PR:
-
-   **Step 1: Start dev server** (if not running)
-   ```bash
-   bin/dev  # Run in background
-   ```
-
-   **Step 2: Capture screenshots with agent-browser CLI**
-   ```bash
-   agent-browser open http://localhost:3000/[route]
-   agent-browser snapshot -i
-   agent-browser screenshot output.png
-   ```
-   See the `agent-browser` skill for detailed usage.
-
-   **Step 3: Upload using imgup skill**
-   ```bash
-   skill: imgup
-   # Then upload each screenshot:
-   imgup -h pixhost screenshot.png  # pixhost works without API key
-   # Alternative hosts: catbox, imagebin, beeimg
-   ```
-
-   **What to capture:**
-   - **New screens**: Screenshot of the new UI
-   - **Modified screens**: Before AND after screenshots
-   - **Design implementation**: Screenshot showing Figma design match
-
-2. **Commit and Create Pull Request**
-
-   Load the `git-commit-push-pr` skill to handle committing, pushing, and PR creation. The skill handles convention detection, branch safety, logical commit splitting, and adaptive PR descriptions.
-
-   When providing context for the PR description, include:
-   - The plan's summary and key decisions
-   - Testing notes (tests added/modified, manual testing performed)
-   - Screenshot URLs from step 1 (if applicable)
-   - Figma design link (if applicable)
-   - The Post-Deploy Monitoring & Validation section (see Phase 3 Step 4)
-
-   If the user prefers to commit without creating a PR, load the `git-commit` skill instead.
-
-3. **Update Plan Status**
-
-   If the input document has YAML frontmatter with a `status` field, update it to `completed`:
-   ```
-   status: active  →  status: completed
-   ```
-
-4. **Notify User**
-   - Summarize what was completed
-   - Link to PR (if one was created)
-   - Note any follow-up work needed
-   - Suggest next steps if applicable
-
----
-
-## Swarm Mode with Agent Teams (Optional)
-
-For genuinely large plans where agents need to communicate with each other, challenge approaches, or coordinate across 10+ tasks with persistent specialized roles, use agent team capabilities if available (e.g., Agent Teams in Claude Code, multi-agent workflows in Codex).
-
-**Agent teams are typically experimental and require opt-in.** Do not attempt to use agent teams unless the user explicitly requests swarm mode or agent teams, and the platform supports it.
-
-### When to Use Agent Teams vs Subagents
-
-| Agent Teams | Subagents (standard mode) |
-|-------------|---------------------------|
-| Agents need to discuss and challenge each other's approaches | Each task is independent — only the result matters |
-| Persistent specialized roles (e.g., dedicated tester running continuously) | Workers report back and finish |
-| 10+ tasks with complex cross-cutting coordination | 3-8 tasks with clear dependency chains |
-| User explicitly requests "swarm mode" or "agent teams" | Default for most plans |
-
-Most plans should use subagent dispatch from standard mode. Agent teams add significant token cost and coordination overhead — use them when the inter-agent communication genuinely improves the outcome.
-
-### Agent Teams Workflow
-
-1. **Create team** — use your available team creation mechanism
-2. **Create task list** — parse Implementation Units into tasks with dependency relationships
-3. **Spawn teammates** — assign specialized roles (implementer, tester, reviewer) based on the plan's needs. Give each teammate the plan file path and their specific task assignments
-4. **Coordinate** — the lead monitors task completion, reassigns work if someone gets stuck, and spawns additional workers as phases unblock
-5. **Cleanup** — shut down all teammates, then clean up the team resources
-
----
+When all Phase 2 tasks are complete and execution transitions to quality check, read `references/shipping-workflow.md` for the full shipping workflow: quality checks, code review, final validation, PR creation, and notification.
 
 ## Key Principles
 
@@ -431,34 +331,6 @@ Most plans should use subagent dispatch from standard mode. Agent teams add sign
 - Mark all tasks completed before moving on
 - Don't leave features 80% done
 - A finished feature that ships beats a perfect feature that doesn't
-
-## Quality Checklist
-
-Before creating PR, verify:
-
-- [ ] All clarifying questions asked and answered
-- [ ] All tasks marked completed
-- [ ] Testing addressed -- tests pass AND new/changed behavior has corresponding test coverage (or an explicit justification for why tests are not needed)
-- [ ] Linting passes (use linting-agent)
-- [ ] Code follows existing patterns
-- [ ] Figma designs match implementation (if applicable)
-- [ ] Before/after screenshots captured and uploaded (for UI changes)
-- [ ] Commit messages follow conventional format
-- [ ] PR description includes Post-Deploy Monitoring & Validation section (or explicit no-impact rationale)
-- [ ] Code review completed (inline self-review or full `ce:review`)
-- [ ] PR description includes summary, testing notes, and screenshots
-
-## Code Review Tiers
-
-Every change gets reviewed. The tier determines depth, not whether review happens.
-
-**Tier 2 (full review)** — REQUIRED default. Invoke `ce:review mode:autofix` with `plan:<path>` when available. Safe fixes are applied automatically; residual work surfaces as todos. Always use this tier unless all four Tier 1 criteria are explicitly confirmed.
-
-**Tier 1 (inline self-review)** — permitted only when all four are true (state each explicitly before choosing):
-- Purely additive (new files only, no existing behavior modified)
-- Single concern (one skill, one component — not cross-cutting)
-- Pattern-following (mirrors an existing example, no novel logic)
-- Plan-faithful (no scope growth, no surprising deferred-question resolutions)
 
 ## Common Pitfalls to Avoid
 

@@ -32,9 +32,30 @@ When spawning subagents, pass the relevant file contents into the task prompt so
 
 ## Execution Strategy
 
-**Always run full mode by default.** Proceed directly to Phase 1 unless the user explicitly requests compact-safe mode (e.g., `/ce:compound --compact` or "use compact mode").
+Present the user with two options before proceeding, using the platform's blocking question tool (`AskUserQuestion` in Claude Code, `request_user_input` in Codex, `ask_user` in Gemini). If no question tool is available, present the options and wait for the user's reply.
 
-Compact-safe mode exists as a lightweight alternative — see the **Compact-Safe Mode** section below. It's there if the user wants it, not something to push.
+```
+1. Full (recommended) — the complete compound workflow. Researches,
+   cross-references, and reviews your solution to produce documentation
+   that compounds your team's knowledge.
+
+2. Lightweight — same documentation, single pass. Faster and uses
+   fewer tokens, but won't detect duplicates or cross-reference
+   existing docs. Best for simple fixes or long sessions nearing
+   context limits.
+```
+
+Do NOT pre-select a mode. Do NOT skip this prompt. Wait for the user's choice before proceeding.
+
+**If the user chooses Full**, ask one follow-up question before proceeding. Detect which harness is running (Claude Code, Codex, or Cursor) and ask:
+
+```
+Would you also like to search your [harness name] session history
+for relevant knowledge to help the Compound process? This adds
+time and token usage.
+```
+
+If the user says yes, dispatch the Session Historian in Phase 1. If no, skip it. Do not ask this in lightweight mode.
 
 ---
 
@@ -48,10 +69,10 @@ Phase 1 subagents return TEXT DATA to the orchestrator. They must NOT use Write,
 
 ### Phase 0.5: Auto Memory Scan
 
-Before launching Phase 1 subagents, check the auto memory directory for notes relevant to the problem being documented.
+Before launching Phase 1 subagents, check the auto-memory block injected into your system prompt for notes relevant to the problem being documented.
 
-1. Read MEMORY.md from the auto memory directory (the path is known from the system prompt context)
-2. If the directory or MEMORY.md does not exist, is empty, or is unreadable, skip this step and proceed to Phase 1 unchanged
+1. Look for a block labeled "user's auto-memory" (Claude Code only) already present in your system prompt context — MEMORY.md's entries are inlined there
+2. If the block is absent, empty, or this is a non-Claude-Code platform, skip this step and proceed to Phase 1 unchanged
 3. Scan the entries for anything related to the problem being documented -- use semantic judgment, not keyword matching
 4. If relevant entries are found, prepare a labeled excerpt block:
 
@@ -67,11 +88,16 @@ and codebase findings take priority over these notes.
 
 If no relevant entries are found, proceed to Phase 1 without passing memory context.
 
-### Phase 1: Parallel Research
+### Phase 1: Research
+
+Launch research subagents. Each returns text data to the orchestrator.
+
+**Dispatch order:**
+- Launch `Context Analyzer`, `Solution Extractor`, and `Related Docs Finder` in parallel (background)
+- Then dispatch `session-historian` in foreground — it reads session files outside the working directory that background agents may not have access to
+- The foreground dispatch runs while the background agents work, adding no wall-clock time
 
 <parallel_tasks>
-
-Launch these subagents IN PARALLEL. Each returns text data to the orchestrator.
 
 #### 1. **Context Analyzer**
    - Extracts conversation history
@@ -140,6 +166,29 @@ Launch these subagents IN PARALLEL. Each returns text data to the orchestrator.
 
 </parallel_tasks>
 
+#### 4. **Session Historian** (foreground, after launching the above — only if the user opted in)
+   - **Skip entirely** if the user declined session history in the follow-up question
+   - Dispatched as `session-historian`
+   - Dispatch in **foreground** — this agent reads session files outside the working directory (`~/.claude/projects/`, `~/.codex/sessions/`, `~/.cursor/projects/`) which background agents may not have access to
+   - Searches prior Claude Code, Codex, and Cursor sessions for the same project to find related investigation context
+   - Correlates sessions by repo name across all platforms (matches sessions from main checkouts, worktrees, and Conductor workspaces)
+   - In the dispatch prompt, pass:
+     - A specific description of the problem being documented — not a generic topic, but the concrete issue (error messages, module names, what broke and how it was fixed). This is what the agent filters its findings against.
+     - The current git branch and working directory
+     - The instruction: "Only surface findings from prior sessions that are directly relevant to this specific problem. Ignore unrelated work from the same sessions or branches."
+     - The output format:
+
+       ```
+       Structure your response with these sections (omit any with no findings):
+       - What was tried before: prior approaches to this specific problem
+       - What didn't work: failed attempts at this problem from prior sessions
+       - Key decisions: choices made about this problem and their rationale
+       - Related context: anything else from prior sessions that directly informs this problem's documentation
+       ```
+   - Omit the `mode` parameter so the user's configured permission settings apply
+   - Dispatch on the mid-tier model (e.g., `model: "sonnet"` in Claude Code) — the synthesis feeds into compound assembly and doesn't need frontier reasoning
+   - Returns: structured digest of findings from prior sessions, or "no relevant prior sessions" if none found
+
 ### Phase 2: Assembly & Write
 
 <sequential_tasks>
@@ -161,10 +210,15 @@ The orchestrating agent (main conversation) performs these steps:
 
    When updating an existing doc, preserve its file path and frontmatter structure. Update the solution, code examples, prevention tips, and any stale references. Add a `last_updated: YYYY-MM-DD` field to the frontmatter. Do not change the title unless the problem framing has materially shifted.
 
-3. Assemble complete markdown file from the collected pieces, reading `assets/resolution-template.md` for the section structure of new docs
-4. Validate YAML frontmatter against `references/schema.yaml`
-5. Create directory if needed: `mkdir -p .ai/solutions/[category]/`
-6. Write the file: either the updated existing doc or the new `.ai/solutions/[category]/[filename].md`
+3. **Incorporate session history findings** (if available). When the Session History Researcher returned relevant prior-session context:
+   - Fold investigation dead ends and failed approaches into the **What Didn't Work** section (bug track) or **Context** section (knowledge track)
+   - Use cross-session patterns to enrich the **Prevention** or **Why This Matters** sections
+   - Tag session-sourced content with "(session history)" so its origin is clear to future readers
+   - If findings are thin or "no relevant prior sessions," proceed without session context
+4. Assemble complete markdown file from the collected pieces, reading `assets/resolution-template.md` for the section structure of new docs
+5. Validate YAML frontmatter against `references/schema.yaml`
+6. Create directory if needed: `mkdir -p .ai/solutions/[category]/`
+7. Write the file: either the updated existing doc or the new `.ai/solutions/[category]/[filename].md`
 
 When creating a new doc, preserve the section order from `assets/resolution-template.md` unless the user explicitly asks for a different structure.
 
@@ -196,7 +250,7 @@ Use these rules:
 
 - If there is **one obvious stale candidate**, invoke `ce:compound-refresh` with a narrow scope hint after the new learning is written
 - If there are **multiple candidates in the same area**, ask the user whether to run a targeted refresh for that module, category, or pattern set
-- If context is already tight or you are in compact-safe mode, do not expand into a broad refresh automatically; instead recommend `ce:compound-refresh` as the next step with a scope hint
+- If context is already tight or you are in lightweight mode, do not expand into a broad refresh automatically; instead recommend `ce:compound-refresh` as the next step with a scope hint
 
 When invoking or recommending `ce:compound-refresh`, be explicit about the argument to pass. Prefer the narrowest useful scope:
 
@@ -250,7 +304,7 @@ After the learning is written and the refresh decision is made, check whether th
 
       `.ai/solutions/` — documented solutions to past problems (bugs, best practices, workflow patterns), organized by category with YAML frontmatter (`module`, `tags`, `problem_type`). Relevant when implementing or debugging in documented areas.
       ```
-   c. In full mode, explain to the user why this matters — agents working in this repo (including fresh sessions, other tools, or collaborators without the plugin) won't know to check `.ai/solutions/` unless the instruction file surfaces it. Show the proposed change and where it would go, then use the platform's blocking question tool (`AskUserQuestion` in Claude Code, `request_user_input` in Codex, `ask_user` in Gemini) to get consent before making the edit. If no question tool is available, present the proposal and wait for the user's reply. In compact-safe mode, output a one-liner note and move on
+   c. In full mode, explain to the user why this matters — agents working in this repo (including fresh sessions, other tools, or collaborators without the plugin) won't know to check `.ai/solutions/` unless the instruction file surfaces it. Show the proposed change and where it would go, then use the platform's blocking question tool (`AskUserQuestion` in Claude Code, `request_user_input` in Codex, `ask_user` in Gemini) to get consent before making the edit. If no question tool is available, present the proposal and wait for the user's reply. In lightweight mode, output a one-liner note and move on
 
 ### Phase 3: Optional Enhancement
 
@@ -263,24 +317,27 @@ Based on problem type, optionally invoke specialized agents to review the docume
 - **performance_issue** → `performance-oracle`
 - **security_issue** → `security-sentinel`
 - **database_issue** → `data-integrity-guardian`
-- **test_failure** → `testing-reviewer`
-- Any code-heavy issue → `kieran-typescript-reviewer` + `code-simplicity-reviewer`
+- Any code-heavy issue → always run `code-simplicity-reviewer`, and additionally run the kieran reviewer that matches the repo's primary stack:
+  - Ruby/Rails → also run `kieran-rails-reviewer`
+  - Python → also run `kieran-python-reviewer`
+  - TypeScript/JavaScript → also run `kieran-typescript-reviewer`
+  - Other stacks → no kieran reviewer needed
 
 </parallel_tasks>
 
 ---
 
-### Compact-Safe Mode
+### Lightweight Mode
 
 <critical_requirement>
-**Single-pass alternative for context-constrained sessions.**
+**Single-pass alternative — same documentation, fewer tokens.**
 
-When context budget is tight, this mode skips parallel subagents entirely. The orchestrator performs all work in a single pass, producing a minimal but complete solution document.
+This mode skips parallel subagents entirely. The orchestrator performs all work in a single pass, producing the same solution document without cross-referencing or duplicate detection.
 </critical_requirement>
 
 The orchestrator (main conversation) performs ALL of the following in one sequential pass:
 
-1. **Extract from conversation**: Identify the problem and solution from conversation history. Also read MEMORY.md from the auto memory directory if it exists -- use any relevant notes as supplementary context alongside conversation history. Tag any memory-sourced content incorporated into the final doc with "(auto memory [claude])"
+1. **Extract from conversation**: Identify the problem and solution from conversation history. Also scan the "user's auto-memory" block injected into your system prompt, if present (Claude Code only) -- use any relevant notes as supplementary context alongside conversation history. Tag any memory-sourced content incorporated into the final doc with "(auto memory [claude])"
 2. **Classify**: Read `references/schema.yaml` and `references/yaml-schema.md`, then determine track (bug vs knowledge), category, and filename
 3. **Write minimal doc**: Create `.ai/solutions/[category]/[filename].md` using the appropriate track template from `assets/resolution-template.md`, with:
    - YAML frontmatter with track-appropriate fields
@@ -288,9 +345,9 @@ The orchestrator (main conversation) performs ALL of the following in one sequen
    - Knowledge track: Context, guidance with key examples, one applicability note
 4. **Skip specialized agent reviews** (Phase 3) to conserve context
 
-**Compact-safe output:**
+**Lightweight output:**
 ```
-✓ Documentation complete (compact-safe mode)
+✓ Documentation complete (lightweight mode)
 
 File created:
 - .ai/solutions/[category]/[filename].md
@@ -299,14 +356,14 @@ File created:
 Tip: Your AGENTS.md/CLAUDE.md doesn't surface .ai/solutions/ to agents —
 a brief mention helps all agents discover these learnings.
 
-Note: This was created in compact-safe mode. For richer documentation
+Note: This was created in lightweight mode. For richer documentation
 (cross-references, detailed prevention strategies, specialized reviews),
 re-run /compound in a fresh session.
 ```
 
 **No subagents are launched. No parallel tasks. One file written.**
 
-In compact-safe mode, the overlap check is skipped (no Related Docs Finder subagent). This means compact-safe mode may create a doc that overlaps with an existing one. That is acceptable — `ce:compound-refresh` will catch it later. Only suggest `ce:compound-refresh` if there is an obvious narrow refresh target. Do not broaden into a large refresh sweep from a compact-safe session.
+In lightweight mode, the overlap check is skipped (no Related Docs Finder subagent). This means lightweight mode may create a doc that overlaps with an existing one. That is acceptable — `ce:compound-refresh` will catch it later. Only suggest `ce:compound-refresh` if there is an obvious narrow refresh target. Do not broaden into a large refresh sweep from a lightweight session.
 
 ---
 
@@ -341,6 +398,7 @@ In compact-safe mode, the overlap check is skipped (no Related Docs Finder subag
 
 **Categories auto-detected from problem:**
 
+Bug track:
 - build-errors/
 - test-failures/
 - runtime-errors/
@@ -350,6 +408,12 @@ In compact-safe mode, the overlap check is skipped (no Related Docs Finder subag
 - ui-bugs/
 - integration-issues/
 - logic-errors/
+
+Knowledge track:
+- best-practices/
+- workflow-issues/
+- developer-experience/
+- documentation-gaps/
 
 ## Common Mistakes to Avoid
 
@@ -371,12 +435,12 @@ Subagent Results:
   ✓ Context Analyzer: Identified performance_issue in brief_system, category: performance-issues/
   ✓ Solution Extractor: 3 code fixes, prevention strategies
   ✓ Related Docs Finder: 2 related issues
+  ✓ Session History: 3 prior sessions on same branch, 2 failed approaches surfaced
 
 Specialized Agent Reviews (Auto-Triggered):
   ✓ performance-oracle: Validated query optimization approach
-  ✓ kieran-typescript-reviewer: Code examples meet TypeScript standards
+  ✓ kieran-rails-reviewer: Code examples meet Rails conventions
   ✓ code-simplicity-reviewer: Solution is appropriately minimal
-  ✓ documentation-specialist: Documentation style verified
 
 File created:
 - .ai/solutions/performance-issues/n-plus-one-brief-generation.md
@@ -441,20 +505,20 @@ Writes the final learning directly into `.ai/solutions/`.
 Based on problem type, these agents can enhance documentation:
 
 ### Code Quality & Review
-- **kieran-typescript-reviewer**: Reviews TypeScript and JavaScript code examples
+- **kieran-rails-reviewer**: Reviews code examples for Rails best practices
+- **kieran-python-reviewer**: Reviews code examples for Python best practices
+- **kieran-typescript-reviewer**: Reviews code examples for TypeScript best practices
 - **code-simplicity-reviewer**: Ensures solution code is minimal and clear
 - **pattern-recognition-specialist**: Identifies anti-patterns or repeating issues
 
 ### Specific Domain Experts
 - **performance-oracle**: Analyzes performance_issue category solutions
 - **security-sentinel**: Reviews security_issue solutions for vulnerabilities
-- **testing-reviewer**: Reviews prevention strategies for missing or weak tests
 - **data-integrity-guardian**: Reviews database_issue migrations and queries
 
-### Enhancement & Documentation
+### Enhancement & Research
 - **best-practices-researcher**: Enriches solution with industry best practices
-- **documentation-specialist**: Reviews documentation style and clarity
-- **framework-docs-researcher**: Links to relevant framework and library documentation references
+- **framework-docs-researcher**: Links to framework/library documentation references
 
 ### When to Invoke
 - **Auto-triggered** (optional): Agents can run post-documentation for enhancement

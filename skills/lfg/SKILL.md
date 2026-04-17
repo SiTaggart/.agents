@@ -11,7 +11,7 @@ CRITICAL: You MUST execute every step below IN ORDER. Do NOT skip any required s
 
 2. `/ce:plan $ARGUMENTS`
 
-   GATE: STOP. Verify that the `ce:plan` workflow produced a plan file in `.ai/plans/`. If no plan file was created, run `/ce:plan $ARGUMENTS` again. Do NOT proceed to step 3 until a written plan exists. **Record the plan file path** — it will be passed to ce:review in step 4.
+   GATE: STOP. If ce:plan reported the task is non-software and cannot be processed in pipeline mode, stop the pipeline and inform the user that LFG requires software tasks. Otherwise, verify that the `ce:plan` workflow produced a plan file in `.ai/plans/`. If no plan file was created, run `/ce:plan $ARGUMENTS` again. Do NOT proceed to step 3 until a written plan exists. **Record the plan file path** — it will be passed to ce:review in step 4.
 
 3. `/ce:work`
 
@@ -21,12 +21,10 @@ CRITICAL: You MUST execute every step below IN ORDER. Do NOT skip any required s
 
    Pass the plan file path from step 2 so ce:review can verify requirements completeness.
 
-5. `todo-resolve`
+5. `/compound-engineering:todo-resolve`
 
-6. `test-browser`
+6. `/compound-engineering:test-browser`
 
-7. `feature-video`
-
-8. Output `<promise>DONE</promise>` when video is in PR
+7. Output `<promise>DONE</promise>` when complete
 
 Start with step 2 now (or step 1 if ralph-loop is available). Remember: plan FIRST, then work. Never skip the plan.

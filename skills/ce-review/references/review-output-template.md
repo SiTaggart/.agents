@@ -128,6 +128,7 @@ This fails because: no pipe-delimited tables, no severity-grouped `###` headers,
 - **Pre-existing section** -- separate table, no confidence column (these are informational)
 - **Learnings & Past Solutions section** -- results from learnings-researcher, with links to .ai/solutions/ files
 - **Agent-Native Gaps section** -- results from agent-native-reviewer. Omit if no gaps found.
+- **Schema Drift Check section** -- results from schema-drift-detector. Omit if the agent did not run.
 - **Deployment Notes section** -- key checklist items from deployment-verification-agent. Omit if the agent did not run.
 - **Coverage section** -- suppressed count, residual risks, testing gaps, failed reviewers
 - **Summary uses blockquotes** for verdict, reasoning, and fix order
