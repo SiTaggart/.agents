@@ -244,8 +244,9 @@ fi
 if should_probe "$PROJ_TYPE" "docker-compose"; then
   compose_file="$PROJECT_ROOT/docker-compose.yml"
   if [ -f "$compose_file" ]; then
-    # Simple line-anchored grep for port mappings: - "NNNN:NNNN" or - NNNN:NNNN
-    compose_port=$(grep -Eo '"[0-9]+:[0-9]+"' "$compose_file" 2>/dev/null | head -1 | grep -Eo '[0-9]+' | head -1)
+    # Match port mappings as YAML list items: - "NNNN:NNNN" or - NNNN:NNNN
+    # First number after the optional opening quote is the host port.
+    compose_port=$(grep -Eo '^[[:space:]]*-[[:space:]]*"?[0-9]+:[0-9]+"?' "$compose_file" 2>/dev/null | head -1 | grep -Eo '[0-9]+' | head -1)
     if [ -n "$compose_port" ]; then
       echo "$compose_port"
       exit 0

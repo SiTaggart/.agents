@@ -32,12 +32,16 @@ fi
 #   cross_invocation - cross-invocation awareness envelope:
 #     signal: true when both resolved and unresolved threads exist (multi-round review)
 #     resolved_threads: last N resolved threads by recency, for cluster analysis input
-gh api graphql -f owner="$OWNER" -f repo="$REPO" -F pr="$PR_NUMBER" -f query='
-query FetchPRFeedback($owner: String!, $repo: String!, $pr: Int!) {
+#
+# Paginate reviewThreads so PRs with >100 threads do not drop feedback. Other
+# connections use a single page since 100 already exceeds realistic PR volume.
+QUERY='
+query FetchPRFeedback($owner: String!, $repo: String!, $pr: Int!, $cursor: String) {
   repository(owner: $owner, name: $repo) {
     pullRequest(number: $pr) {
       author { login }
-      reviewThreads(first: 50) {
+      reviewThreads(first: 100, after: $cursor) {
+        pageInfo { hasNextPage endCursor }
         edges {
           node {
             id
@@ -66,7 +70,7 @@ query FetchPRFeedback($owner: String!, $repo: String!, $pr: Int!) {
           url
         }
       }
-      reviews(first: 50) {
+      reviews(first: 100) {
         nodes {
           id
           author { login }
@@ -78,7 +82,32 @@ query FetchPRFeedback($owner: String!, $repo: String!, $pr: Int!) {
       }
     }
   }
-}' | jq '.data.repository.pullRequest as $pr |
+}'
+
+combined_pages='[]'
+cursor=""
+while :; do
+  if [ -z "$cursor" ]; then
+    # First page: omit cursor entirely so GraphQL defaults it to null.
+    page=$(gh api graphql -f owner="$OWNER" -f repo="$REPO" -F pr="$PR_NUMBER" -f query="$QUERY")
+  else
+    page=$(gh api graphql -f owner="$OWNER" -f repo="$REPO" -F pr="$PR_NUMBER" -f cursor="$cursor" -f query="$QUERY")
+  fi
+  combined_pages=$(jq --argjson acc "$combined_pages" --argjson page "$page" -n '$acc + [$page]')
+  has_next=$(printf '%s' "$page" | jq -r '.data.repository.pullRequest.reviewThreads.pageInfo.hasNextPage')
+  [ "$has_next" = "true" ] || break
+  cursor=$(printf '%s' "$page" | jq -r '.data.repository.pullRequest.reviewThreads.pageInfo.endCursor')
+done
+
+# Combine: reviewThreads edges merged across pages; other fields taken from first page.
+printf '%s' "$combined_pages" | jq '
+  . as $pages |
+  ($pages[0].data.repository.pullRequest) as $base |
+  { data: { repository: { pullRequest: (
+      $base
+      | .reviewThreads.edges = ([$pages[].data.repository.pullRequest.reviewThreads.edges] | add)
+    ) } } }
+' | jq '.data.repository.pullRequest as $pr |
   # Unresolved threads (existing behavior, unchanged)
   [$pr.reviewThreads.edges[]
     | select(.node.isResolved == false and .node.isOutdated == false)] as $unresolved |
