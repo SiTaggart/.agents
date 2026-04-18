@@ -604,7 +604,7 @@ async function findDocs() {
 
   // Common doc directories — only top-level entries; subdirs are discovered
   // via the nested scan below, so no need to list nested paths like
-  // "docs/solutions" here (which caused duplicates).
+  // ".ai/solutions" here (which caused duplicates).
   const docDirs = ["docs", "doc", "documentation", "wiki", ".github"];
   for (const dir of docDirs) {
     const dirPath = join(root, dir);
