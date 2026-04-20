@@ -10,7 +10,6 @@ Shared AI agent configuration synced across projects. Contains agents, commands,
 | Commands   | 4     |
 | Skills     | 77    |
 | Rules      | 2     |
-| Hooks      | 1     |
 
 ## Agents
 
@@ -261,12 +260,6 @@ Shared AI agent configuration synced across projects. Contains agents, commands,
 | ------------------------- | --------------------------------- |
 | `agent-orchestration.md`  | Rules for multi-agent coordination|
 | `git-commits.md`          | Git commit conventions            |
-
-## Hooks
-
-| Hook                       | Description                                              |
-| -------------------------- | -------------------------------------------------------- |
-| `trauma_guard.py`          | Guard against traumatic agent behaviors                  |
 
 ## Key Files
 
