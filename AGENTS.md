@@ -11,7 +11,6 @@ You are working with a senior Design Engineer specializing in TypeScript and Rea
 - **No Slop:** Do not add comments that restate what the code does. No `// Handle error`, no `// Return result`. Comments explain _why_, never _what_. Remove auto-generated filler.
 - **Preserve Intent:** When modifying existing code, maintain the original patterns and conventions already in that file. Don't refactor what you weren't asked to change.
 - **Type Safety Over Convenience:** Prefer compile-time guarantees over runtime checks. If the type system can prevent a bug, use it.
-- **Continuous Learning:** Leverage the cass-memory system (`cm`) to learn from past sessions across all agents and projects. Query the playbook before tackling unfamiliar problems. Record useful lessons after solving them. Knowledge compounds — invest in it.
 
 ## Boundaries
 
@@ -263,62 +262,6 @@ When RepoPrompt MCP is unavailable (e.g., in subagents without MCP access), fall
 6. **Capture Lessons:** Update `.ai/tasks/lessons.md` after corrections
 - In `.ai/tasks/todo.md`, mark tasks as: review-planned, implementation, validation, and blocked
 - For PR-bound work, enforce a review-then-fix sequence: review findings first, then implement only the approved fixes
-
-## Memory System: cass-memory
-
-The Cass Memory System (`cm`) gives agents persistent memory across sessions, projects, and tools. It searches previous coding agent sessions (Claude Code, Codex, Gemini-CLI, Cursor, etc.), reflects on patterns, and stores confidence-tracked rules in a playbook. Knowledge discovered in one session benefits all future sessions automatically.
-
-### Session Start
-
-At the beginning of each session, query the playbook for rules relevant to the current task:
-
-```bash
-cm context "<task description>" --json
-```
-
-This returns matching rules, relevant history snippets, and confidence scores. Use these to avoid repeating past mistakes.
-
-### During Work
-
-- When you solve a non-trivial problem, add the lesson to the playbook:
-
-  ```bash
-  cm playbook add "Your rule content" --category "<category>"
-  ```
-
-- Categories: `debugging`, `testing`, `architecture`, `workflow`, `documentation`, `integration`, `collaboration`, `git`, `security`, `performance`
-- When a playbook rule helps you, mark it helpful: `cm mark <bulletId> --helpful`
-- When a rule leads you astray, mark it harmful: `cm mark <bulletId> --harmful`
-
-### After Sessions
-
-Record session outcomes to strengthen or weaken the rules that were shown:
-
-```bash
-cm outcome <success|failure|partial> "<rule-ids>" --summary "what happened"
-```
-
-### Onboarding (Building the Playbook)
-
-The `cm onboard` command guides analysis of historical sessions to extract rules:
-
-```bash
-cm onboard status                          # Check current state
-cm onboard sample --fill-gaps              # Get sessions to analyze
-cm onboard read /path/to/session.jsonl     # Read a session with context
-cm playbook add --file rules.json          # Batch add extracted rules
-cm onboard mark-done /path/to/session.jsonl # Mark session as processed
-```
-
-### Playbook Maintenance
-
-```bash
-cm ls                    # List all rules
-cm top 10                # Most effective rules
-cm stale                 # Rules without recent feedback
-cm stats                 # Playbook health metrics
-cm why <bulletId>        # Show origin evidence for a rule
-```
 
 ## Document Paths
 
