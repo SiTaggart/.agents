@@ -1,4 +1,6 @@
 backup/
+.generated/
+node_modules/
 **/.system
 .claude/sync-report.md
 .cass/
