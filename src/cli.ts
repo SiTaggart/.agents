@@ -17,6 +17,7 @@ interface CliOptions {
 }
 
 const COMMANDS: readonly CliCommand[] = ["render", "format", "link", "sync", "help"];
+const VALUE_FLAGS: ReadonlySet<string> = new Set(["--target", "--root", "--scope", "--home", "--project"]);
 
 async function main(): Promise<void> {
   const options = parseCliArgs(process.argv.slice(2));
@@ -50,17 +51,16 @@ async function main(): Promise<void> {
 
 export function parseCliArgs(args: readonly string[]): CliOptions {
   const command = parseCommand(args[0]);
-  const positionalTarget = args[1]?.startsWith("--") ? undefined : args[1];
-  const flagArgs = positionalTarget ? args.slice(2) : args.slice(1);
-  const target = parseTarget(getFlagValue(flagArgs, "--target") ?? positionalTarget ?? "all");
+  const tail = args.slice(1);
+  const target = parseTarget(getFlagValue(tail, "--target") ?? findPositionalTarget(tail) ?? "all");
 
   return {
     command,
     target,
-    root: path.resolve(getFlagValue(flagArgs, "--root") ?? process.cwd()),
-    scope: parseScope(getFlagValue(flagArgs, "--scope") ?? "global"),
-    homeDir: getFlagValue(flagArgs, "--home"),
-    projectRoot: getFlagValue(flagArgs, "--project"),
+    root: path.resolve(getFlagValue(tail, "--root") ?? process.cwd()),
+    scope: parseScope(getFlagValue(tail, "--scope") ?? "global"),
+    homeDir: getFlagValue(tail, "--home"),
+    projectRoot: getFlagValue(tail, "--project"),
   };
 }
 
@@ -93,6 +93,24 @@ function expandTargets(target: TargetSelection): readonly Target[] {
 function getFlagValue(args: readonly string[], flag: string): string | undefined {
   const index = args.indexOf(flag);
   return index >= 0 ? args[index + 1] : undefined;
+}
+
+function findPositionalTarget(args: readonly string[]): string | undefined {
+  return args.reduce<{ skip: boolean; target?: string }>(
+    (state, arg) => {
+      if (state.skip) {
+        return { ...state, skip: false };
+      }
+      if (state.target) {
+        return state;
+      }
+      if (VALUE_FLAGS.has(arg)) {
+        return { skip: true };
+      }
+      return arg.startsWith("--") ? state : { skip: false, target: arg };
+    },
+    { skip: false },
+  ).target;
 }
 
 function isTarget(value: string): value is Target {
