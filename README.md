@@ -2,6 +2,33 @@
 
 Shared AI agent configuration synced across projects. Contains agents, commands, skills, rules, and hooks that extend AI coding assistants.
 
+## Local CLI
+
+Use the local Bun CLI to render target-specific files and link tool configs to
+those generated outputs:
+
+```bash
+bun run sync opencode
+bun run sync codex
+```
+
+Generated target trees live under `.generated/` and are intentionally ignored by
+git. Canonical source remains in `agents/`, `skills/`, `commands/`, `rules/`, and
+`hooks/`.
+
+Render without linking:
+
+```bash
+bun run render opencode
+bun run render codex
+```
+
+Link previously rendered outputs:
+
+```bash
+bun run link opencode
+```
+
 ## Components
 
 | Component  | Count |

@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "allowImportingTsExtensions": false,
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitOverride": true,
+    "noUncheckedIndexedAccess": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "strict": true,
+    "target": "ES2022",
+    "types": ["bun-types"]
+  },
+  "include": ["src/**/*.ts", "tests/**/*.ts"]
+}
