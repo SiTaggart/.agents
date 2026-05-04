@@ -114,7 +114,7 @@ function findPositionalTarget(args: readonly string[]): string | undefined {
 }
 
 function isTarget(value: string): value is Target {
-  return value === "opencode" || value === "codex";
+  return value === "opencode" || value === "codex" || value === "claude";
 }
 
 function isCommand(value: string): value is CliCommand {
@@ -123,7 +123,7 @@ function isCommand(value: string): value is CliCommand {
 
 function printHelp(): void {
   console.log([
-    "Usage: bun src/cli.ts <render|format|link|sync> [opencode|codex|all] [options]",
+    "Usage: bun src/cli.ts <render|format|link|sync> [opencode|codex|claude|all] [options]",
     "",
     "Options:",
     "  --target <target>   Alternative to positional target",

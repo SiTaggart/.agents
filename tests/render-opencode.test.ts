@@ -79,6 +79,66 @@ test("renders Claude-shaped agents into OpenCode-compatible generated files", as
   expect(skill).toContain("Use ce-correctness-reviewer from ~/.config/opencode/agents.");
 });
 
+test("renders Claude agents, commands, and skills in a generated target tree", async () => {
+  const root = await makeTempRoot("agents-render-claude-");
+  tempRoots.push(root);
+
+  await writeText(
+    path.join(root, "agents", "careful-reviewer.md"),
+    [
+      "---",
+      "name: careful-reviewer",
+      "description: Finds logic bugs",
+      "model: inherit",
+      "tools: Read, Grep",
+      "color: blue",
+      "---",
+      "",
+      "Use ~/.claude/agents and the review-skill skill.",
+    ].join("\n"),
+  );
+  await writeText(
+    path.join(root, "commands", "ship.md"),
+    [
+      "---",
+      "name: ship",
+      "description: Ship the branch",
+      "allowed-tools: Bash, Read, Write",
+      "---",
+      "",
+      "Run the ship checklist.",
+    ].join("\n"),
+  );
+  await writeText(
+    path.join(root, "skills", "review-skill", "SKILL.md"),
+    [
+      "---",
+      "name: review-skill",
+      "description: Review via a helper agent",
+      "---",
+      "",
+      "Use the careful reviewer.",
+    ].join("\n"),
+  );
+
+  await renderTarget({ root, target: "claude" });
+
+  const agent = await readText(path.join(root, ".generated", "claude", "agents", "careful-reviewer.md"));
+  expect(agent).toContain("name: careful-reviewer");
+  expect(agent).toContain("description: Finds logic bugs");
+  expect(agent).toContain("tools: Read, Grep");
+  expect(agent).toContain("Use ~/.claude/agents and the review-skill skill.");
+
+  const command = await readText(path.join(root, ".generated", "claude", "commands", "ship.md"));
+  expect(command).toContain("description: Ship the branch");
+  expect(command).toContain("allowed-tools: Bash, Read, Write");
+  expect(command).toContain("Run the ship checklist.");
+
+  const skill = await readText(path.join(root, ".generated", "claude", "skills", "review-skill", "SKILL.md"));
+  expect(skill).toContain("description: Review via a helper agent");
+  expect(skill).toContain("Use the careful reviewer.");
+});
+
 test("renders Codex agents as TOML in a generated target tree", async () => {
   const root = await makeTempRoot("agents-render-codex-");
   tempRoots.push(root);
@@ -135,6 +195,7 @@ test("creates empty generated directories for linkable target sections", async (
 
   await renderTarget({ root, target: "opencode" });
   await renderTarget({ root, target: "codex" });
+  await renderTarget({ root, target: "claude" });
 
   expect(await isDirectory(path.join(root, ".generated", "opencode", "agents"))).toBe(true);
   expect(await isDirectory(path.join(root, ".generated", "opencode", "commands"))).toBe(true);
@@ -142,6 +203,9 @@ test("creates empty generated directories for linkable target sections", async (
   expect(await isDirectory(path.join(root, ".generated", "codex", "agents"))).toBe(true);
   expect(await isDirectory(path.join(root, ".generated", "codex", "prompts"))).toBe(true);
   expect(await isDirectory(path.join(root, ".generated", "codex", "skills"))).toBe(true);
+  expect(await isDirectory(path.join(root, ".generated", "claude", "agents"))).toBe(true);
+  expect(await isDirectory(path.join(root, ".generated", "claude", "commands"))).toBe(true);
+  expect(await isDirectory(path.join(root, ".generated", "claude", "skills"))).toBe(true);
 });
 
 async function isDirectory(dir: string): Promise<boolean> {

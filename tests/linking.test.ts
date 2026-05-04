@@ -37,6 +37,32 @@ test("links OpenCode to generated directories instead of canonical source direct
   );
 });
 
+test("links Claude to generated directories and CLAUDE.md", async () => {
+  const root = await makeTempRoot("agents-link-claude-source-");
+  const homeDir = await makeTempRoot("agents-link-claude-home-");
+  tempRoots.push(root, homeDir);
+
+  await writeText(path.join(root, "AGENTS.md"), "# Shared instructions");
+  await writeText(path.join(root, ".generated", "claude", "agents", "reviewer.md"), "generated");
+  await writeText(path.join(root, ".generated", "claude", "commands", "ship.md"), "generated");
+  await writeText(path.join(root, ".generated", "claude", "skills", "review-skill", "SKILL.md"), "generated");
+
+  await linkTarget({ root, target: "claude", scope: "global", homeDir });
+
+  expect(await readSymlinkTarget(path.join(homeDir, ".claude", "agents"))).toBe(
+    path.join(root, ".generated", "claude", "agents"),
+  );
+  expect(await readSymlinkTarget(path.join(homeDir, ".claude", "commands"))).toBe(
+    path.join(root, ".generated", "claude", "commands"),
+  );
+  expect(await readSymlinkTarget(path.join(homeDir, ".claude", "skills"))).toBe(
+    path.join(root, ".generated", "claude", "skills"),
+  );
+  expect(await readSymlinkTarget(path.join(homeDir, ".claude", "CLAUDE.md"))).toBe(
+    path.join(root, "AGENTS.md"),
+  );
+});
+
 test("rejects generated source kind mismatches before linking", async () => {
   const root = await makeTempRoot("agents-link-kind-source-");
   const homeDir = await makeTempRoot("agents-link-kind-home-");

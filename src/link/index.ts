@@ -10,9 +10,15 @@ export async function linkTarget(options: LinkTargetOptions): Promise<void> {
 }
 
 export function resolveLinkMappings(options: LinkTargetOptions): readonly LinkMapping[] {
-  return options.target === "opencode"
-    ? resolveOpenCodeMappings(options)
-    : resolveCodexMappings(options);
+  if (options.target === "opencode") {
+    return resolveOpenCodeMappings(options);
+  }
+
+  if (options.target === "codex") {
+    return resolveCodexMappings(options);
+  }
+
+  return resolveClaudeMappings(options);
 }
 
 function resolveOpenCodeMappings(options: LinkTargetOptions): readonly LinkMapping[] {
@@ -44,6 +50,22 @@ function resolveCodexMappings(options: LinkTargetOptions): readonly LinkMapping[
     { name: "codex-prompts", source: path.join(generated, "prompts"), target: path.join(targetRoot, "prompts"), kind: "dir" },
     { name: "codex-skills", source: path.join(generated, "skills"), target: path.join(targetRoot, "skills", "dotagents"), kind: "dir" },
     { name: "codex-agents-md", source: path.join(root, "AGENTS.md"), target: path.join(targetRoot, "AGENTS.md"), kind: "file" },
+  ];
+}
+
+function resolveClaudeMappings(options: LinkTargetOptions): readonly LinkMapping[] {
+  const scope = options.scope ?? "global";
+  const root = path.resolve(options.root);
+  const generated = path.join(root, ".generated", "claude");
+  const targetRoot = scope === "global"
+    ? path.join(resolveHome(options.homeDir), ".claude")
+    : path.join(resolveProjectRoot(options), ".claude");
+
+  return [
+    { name: "claude-agents", source: path.join(generated, "agents"), target: path.join(targetRoot, "agents"), kind: "dir" },
+    { name: "claude-commands", source: path.join(generated, "commands"), target: path.join(targetRoot, "commands"), kind: "dir" },
+    { name: "claude-skills", source: path.join(generated, "skills"), target: path.join(targetRoot, "skills"), kind: "dir" },
+    { name: "claude-md", source: path.join(root, "AGENTS.md"), target: path.join(targetRoot, "CLAUDE.md"), kind: "file" },
   ];
 }
 

@@ -10,6 +10,7 @@ those generated outputs:
 ```bash
 bun run sync opencode
 bun run sync codex
+bun run sync claude
 ```
 
 Generated target trees live under `.generated/` and are intentionally ignored by
@@ -21,6 +22,7 @@ Render without linking:
 ```bash
 bun run render opencode
 bun run render codex
+bun run render claude
 ```
 
 Link previously rendered outputs:
