@@ -11,3 +11,9 @@ test("honors positional target after options", () => {
   expect(parsed.target).toBe("opencode");
   expect(parsed.root).toBe("/tmp/agents");
 });
+
+test("accepts Claude as a sync target", () => {
+  const parsed = parseCliArgs(["sync", "claude"]);
+
+  expect(parsed.target).toBe("claude");
+});

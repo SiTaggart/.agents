@@ -1,8 +1,9 @@
+import { renderClaude } from "./claude";
 import { renderCodex } from "./codex";
 import { renderOpenCode } from "./opencode";
 import type { RenderTargetOptions, Target } from "../types";
 
-export const RENDER_TARGETS: readonly Target[] = ["opencode", "codex"];
+export const RENDER_TARGETS: readonly Target[] = ["opencode", "codex", "claude"];
 
 export async function renderTarget(options: RenderTargetOptions): Promise<void> {
   if (options.target === "opencode") {
@@ -10,7 +11,12 @@ export async function renderTarget(options: RenderTargetOptions): Promise<void> 
     return;
   }
 
-  await renderCodex(options.root);
+  if (options.target === "codex") {
+    await renderCodex(options.root);
+    return;
+  }
+
+  await renderClaude(options.root);
 }
 
 export async function renderTargets(root: string, targets: readonly Target[]): Promise<void> {

@@ -1,4 +1,4 @@
-export type Target = "opencode" | "codex";
+export type Target = "opencode" | "codex" | "claude";
 
 export type Scope = "global" | "project";
 
