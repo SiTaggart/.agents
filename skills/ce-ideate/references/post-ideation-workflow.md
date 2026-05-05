@@ -18,8 +18,11 @@ Rejection criteria:
 - too expensive relative to likely value
 - already covered by existing workflows or docs
 - interesting but better handled as a brainstorm variant, not a product improvement
+- **unjustified — no articulated warrant** (sub-agent failed to provide `direct:`, `external:`, or `reasoned:` justification, or the stated warrant does not actually support the claimed move)
+- **below ambition floor** (fails the meeting-test: would not warrant team discussion — except when Phase 0.5 detected tactical focus signals, in which case this criterion is waived)
+- **subject-replacement** (abandons or replaces the subject of ideation rather than operating on it — e.g., "pivot to an unrelated domain," "become a different organization")
 
-Score survivors using a consistent rubric weighing: groundedness in stated context, expected value, novelty, pragmatism, leverage on future work, implementation burden, and overlap with stronger ideas.
+Score survivors using a consistent rubric weighing: groundedness in stated context, **warrant strength** (`direct:` > `external:` > `reasoned:`; none excluded, but direct-evidence ideas score higher all else equal), expected value, novelty, pragmatism, leverage on future work, implementation burden, and overlap with stronger ideas.
 
 Target output:
 - keep 5-7 survivors by default
@@ -36,7 +39,8 @@ Present only the surviving ideas in structured form:
 
 - title
 - description
-- rationale
+- **warrant** (tagged `direct:` / `external:` / `reasoned:`, with the quoted evidence, cited source, or written-out argument)
+- rationale (how the warrant connects to the move's significance)
 - downsides
 - confidence score
 - estimated complexity
@@ -57,7 +61,7 @@ When the user picks an option in Phase 6 that requires a durable record (Open an
 |---|---|---|
 | Save | `.ai/ideation/YYYY-MM-DD-<topic>-ideation.md` | Proof |
 | Share | Proof (additional) | Proof (primary) |
-| Brainstorm handoff | `ce:brainstorm` | `ce:brainstorm` (universal-brainstorming) |
+| Brainstorm handoff | `ce-brainstorm` | `ce-brainstorm` (universal-brainstorming) |
 | End | Conversation only is fine | Conversation only is fine |
 
 Either mode can also use the other destination on explicit request ("save to Proof even though this is repo mode", "save to a local file even though this is elsewhere"). Honor such overrides directly.
@@ -89,7 +93,8 @@ mode: <repo-grounded | elsewhere-software | elsewhere-non-software>
 
 ### 1. <Idea Title>
 **Description:** [Concrete explanation]
-**Rationale:** [Why this idea is strong in the stated context]
+**Warrant:** [`direct:` / `external:` / `reasoned:` — the actual basis, quoted or cited]
+**Rationale:** [How the warrant connects to the move's significance]
 **Downsides:** [Tradeoffs or costs]
 **Confidence:** [0-100%]
 **Complexity:** [Low / Medium / High]
@@ -114,8 +119,8 @@ Load the `proof` skill in HITL-review mode with:
 
 - **source content:** the survivors and rejection summary from Phase 4 (in repo mode, this is the file written in 5.1; in elsewhere mode, render to a temp file as the source for upload)
 - **doc title:** `Ideation: <topic>` or the H1 of the ideation doc
-- **identity:** `ai:compound-engineering` / `Compound Engineering`
-- **recommended next step:** `/ce:brainstorm` (shown in the proof skill's final terminal output)
+- **identity:** `ai:compound-engineering` / `structured agent workflow`
+- **recommended next step:** `/ce-brainstorm` (shown in the proof skill's final terminal output)
 
 The Proof failure ladder in Phase 6.5 governs what happens when this hand-off fails.
 
@@ -124,27 +129,27 @@ The Proof failure ladder in Phase 6.5 governs what happens when this hand-off fa
 - **§6.2 Open and iterate in Proof.** Behavior is mode-aware:
     - *Repo mode:* return to the Phase 6 menu on every status. The Proof-reviewed content is now synced locally, and the user typically has a follow-up action in the repo (brainstorm toward a plan, save and end, or keep refining).
     - *Elsewhere mode:* on a successful Proof return (`proceeded` or `done_for_now`), exit cleanly — narrate that the artifact lives at `docUrl` (including any stale-local note if applicable) and stop. Proof iteration is often the terminal act in elsewhere mode; forcing another menu choice after the user already got what they came for produces decision fatigue. Only the `aborted` branch returns to the Phase 6 menu so the user can retry or pick another path.
-- **§6.3 Brainstorm a selected idea.** On a successful Proof return (`proceeded` or `done_for_now`), do **not** stop at the Phase 6 menu — after applying the per-status handling below (including any stale-local pull offer), continue into §6.3's remaining bullets (mark the chosen idea as `Explored`, then load `ce:brainstorm`). Only the `aborted` branch returns to the Phase 6 menu, since no durable record was written.
+- **§6.3 Brainstorm a selected idea.** On a successful Proof return (`proceeded` or `done_for_now`), do **not** stop at the Phase 6 menu — after applying the per-status handling below (including any stale-local pull offer), continue into §6.3's remaining bullets (mark the chosen idea as `Explored`, then load `ce-brainstorm`). Only the `aborted` branch returns to the Phase 6 menu, since no durable record was written.
 - **§6.4 Save and end.** On a successful Proof return (`proceeded` or `done_for_now`), exit cleanly: narrate that the ideation was saved, surface the `docUrl` (and the local-path note if applicable), and stop. Do **not** re-ask the Phase 6 question — the user already chose to end. Only the `aborted` branch returns to the Phase 6 menu so the user can retry or pick a different path.
 
 When the proof skill returns control:
 
 - `status: proceeded` with `localSynced: true` → the ideation doc on disk now reflects the review. Apply the caller-aware return rule above for the invoking branch.
-- `status: proceeded` with `localSynced: false` → the reviewed version lives in Proof at `docUrl` but the local copy is stale. Offer to pull the Proof doc to `localPath` using the proof skill's Pull workflow. Apply the caller-aware return rule above; if the pull was declined, include a one-line note that `<localPath>` is stale vs. Proof so the next handoff (or final exit narration) doesn't read the old content silently. Placement: above the Phase 6 menu when the caller-aware rule returns to it, in the handoff preamble to `ce:brainstorm` for §6.3, or alongside the final save/exit narration for §6.2 elsewhere / §6.4.
+- `status: proceeded` with `localSynced: false` → the reviewed version lives in Proof at `docUrl` but the local copy is stale. Offer to pull the Proof doc to `localPath` using the proof skill's Pull workflow. Apply the caller-aware return rule above; if the pull was declined, include a one-line note that `<localPath>` is stale vs. Proof so the next handoff (or final exit narration) doesn't read the old content silently. Placement: above the Phase 6 menu when the caller-aware rule returns to it, in the handoff preamble to `ce-brainstorm` for §6.3, or alongside the final save/exit narration for §6.2 elsewhere / §6.4.
 - `status: done_for_now` → the doc on disk may be stale if the user edited in Proof before leaving. Offer to pull the Proof doc to `localPath` so the local ideation artifact stays in sync, then apply the caller-aware return rule above. `done_for_now` means the user stopped the HITL loop — it does not mean they ended the whole ideation session unless the caller-aware rule exits (§6.2 elsewhere mode or §6.4). If the pull was declined, include the stale-local note at the placement described in the previous bullet.
 - `status: aborted` → fall back to the Phase 6 menu without changes, regardless of caller. No durable record was written, so §6.3 must not proceed with the brainstorm handoff and §6.4 must not end — the menu lets the user retry or pick another path.
 
 ## Phase 6: Refine or Hand Off
 
-Ask what should happen next using the platform's blocking question tool (`AskUserQuestion` in Claude Code, `request_user_input` in Codex, `ask_user` in Gemini). If no question tool is available, present numbered options in chat and wait for the user's reply.
+Ask what should happen next using the platform's blocking question tool: `AskUserQuestion` in Claude Code (call `ToolSearch` with `select:AskUserQuestion` first if its schema isn't loaded), `request_user_input` in Codex, `ask_user` in Gemini, `ask_user` in Pi (requires the `pi-ask-user` extension). Fall back to numbered options in chat only when no blocking tool exists in the harness or the call errors (e.g., Codex edit modes) — not because a schema load is required. Never silently skip the question.
 
 **Question:** "What should the agent do next?"
 
-Offer these four options (each label is self-contained per the Interactive Question Tool Design rules in the plugin AGENTS.md — the distinguishing word is front-loaded so options stay distinct when truncated):
+Offer these four options (labels are self-contained with the distinguishing word front-loaded so options stay distinct when truncated):
 
 1. **Refine the ideation in conversation (or stop here — no save)** — add ideas, re-evaluate, or deepen analysis. No file or network side effects; ending the conversation at any point after this pick is a valid no-save exit.
 2. **Open and iterate in Proof** — save the ideation to Proof and enter the proof skill's HITL review loop: iterate via comments in the Proof editor; reviewed edits sync back to `.ai/ideation/` in repo mode.
-3. **Brainstorm a selected idea** — load `ce:brainstorm` with the chosen idea as the seed. The orchestrator first writes a durable record using the mode default in Phase 5.
+3. **Brainstorm a selected idea** — load `ce-brainstorm` with the chosen idea as the seed. The orchestrator first writes a durable record using the mode default in Phase 5.
 4. **Save and end** — persist the ideation using the mode default (file in repo mode, Proof in elsewhere mode), then end.
 
 No-save exit is supported without a dedicated menu option. Pick option 1 and stop the conversation, or use the question tool's free-text escape to say so directly — persistence is opt-in and the terminal review loop is already a complete ideation cycle.
@@ -175,9 +180,9 @@ If the Proof handoff fails, the §6.5 Proof Failure Ladder governs recovery.
 
 - Write or update the durable record per the mode default in Phase 5 (file in repo mode, Proof in elsewhere mode). When this routes through §5.2 Proof Save, apply §5.2's caller-aware return rule: continue into the next bullet on a successful Proof return instead of bouncing back to the Phase 6 menu. If Proof returned `aborted` (no durable record written), go back to the Phase 6 menu and do **not** proceed with the brainstorm handoff.
 - Mark the chosen idea as `Explored` in the saved record
-- Load the `ce:brainstorm` skill with the chosen idea as the seed
+- Load the `ce-brainstorm` skill with the chosen idea as the seed
 
-**Repo mode only:** do **not** skip brainstorming and go straight to `ce:plan` from ideation output — `ce:plan` wants brainstorm-grounded requirements. In elsewhere modes, ideation (or ideation + Proof iteration) is a legitimate terminal state; brainstorming is optional deeper development of one idea, not a required next rung on an implementation ladder that does not exist in these modes.
+**Repo mode only:** do **not** skip brainstorming and go straight to `ce-plan` from ideation output — `ce-plan` wants brainstorm-grounded requirements. In elsewhere modes, ideation (or ideation + Proof iteration) is a legitimate terminal state; brainstorming is optional deeper development of one idea, not a required next rung on an implementation ladder that does not exist in these modes.
 
 ### 6.4 Save and End
 
@@ -221,7 +226,10 @@ After the fallback completes (any path), continue back to the Phase 6 menu so th
 
 Before finishing, check:
 
-- the idea set is grounded in the stated context (codebase in repo mode; user-supplied topic in elsewhere mode)
+- the idea set is grounded in the stated context (codebase in repo mode; user-supplied context in elsewhere mode)
+- **every surviving idea has articulated warrant** (`direct:`, `external:`, or `reasoned:`) that actually supports the claimed move — speculation dressed as ambition was rejected, with reasons
+- **every surviving idea passes the meeting-test** unless Phase 0.5 detected tactical focus signals that waived the floor
+- **no surviving idea replaces the subject** rather than operating on it
 - the candidate list was generated before filtering
 - the original many-ideas -> critique -> survivors mechanism was preserved
 - if sub-agents were used, they improved diversity without replacing the core workflow
@@ -229,4 +237,4 @@ Before finishing, check:
 - survivors are materially better than a naive "give me ideas" list
 - persistence followed user choice — terminal-only sessions did not write a file or call Proof
 - when persistence did trigger, the mode default was respected unless the user explicitly overrode it
-- acting on an idea routes to `ce:brainstorm`, not directly to implementation
+- acting on an idea routes to `ce-brainstorm`, not directly to implementation

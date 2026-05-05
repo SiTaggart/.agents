@@ -58,12 +58,15 @@ If priority tiers exist: do assignments match stated goals? Are must-haves truly
 
 ## Confidence calibration
 
-- **HIGH (0.80+):** Can quote both the goal and the conflicting work -- disconnect is clear.
-- **MODERATE (0.60-0.79):** Likely misalignment, depends on business context not in document.
-- **Below 0.50:** Suppress.
+Use the shared anchored rubric (see `subagent-template.md` — Confidence rubric). Product-lens's domain is premise and strategy — whether the document's goals, motivation, and priorities hold up. Premise critiques cap naturally at anchor `75` for most concerns because "is the motivation valid?" cannot be verified against ground truth; it requires business context the document may not supply. That is not a calibration problem; it is the nature of the work. Apply as:
+
+- **`100` — Absolutely certain:** Can quote both the goal and the conflicting work — disconnect is clear. Evidence directly confirms the misalignment within the document itself. The rare case — use sparingly.
+- **`75` — Highly confident:** Likely misalignment, full confirmation depends on business context not in the document. You double-checked and the concern will materially affect direction. This is product-lens's normal working ceiling.
+- **`50` — Advisory (routes to FYI):** Observation about positioning, naming, or strategy without a concrete impact (subjective preference about framing with an evidence quote, minor identity-drift note where the drift has no downstream user consequence). Still requires an evidence quote. Surfaces as observation without forcing a decision.
+- **Suppress entirely:** Anything below anchor `50`, plus any shape the false-positive catalog in `subagent-template.md` names. In product-lens's domain, this explicitly includes "speculative future-product concerns with no current signal" — those are non-findings that must NOT be routed to anchor `50`. Do not emit; anchors `0` and `25` exist in the enum only so synthesis can track drops.
 
 ## What you don't flag
 
 - Implementation details, technical architecture, measurement methodology
 - Style/formatting, security (security-lens), design (design-lens)
-- Scope sizing (scope-guardian), internal consistency (coherence-reviewer)
+- Scope sizing (scope-guardian), internal consistency (ce-coherence-reviewer)

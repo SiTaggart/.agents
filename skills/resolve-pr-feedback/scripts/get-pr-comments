@@ -27,21 +27,30 @@ fi
 # Fetch review threads, regular PR comments, and review bodies in one query.
 # Output is a JSON object with four keys:
 #   review_threads   - unresolved, non-outdated inline code review threads
-#   pr_comments      - top-level PR conversation comments (excludes PR author)
-#   review_bodies    - review submissions with non-empty body text (excludes PR author)
+#   pr_comments      - top-level PR conversation comments (excludes PR author and known review bots)
+#   review_bodies    - review submissions with non-empty body text (excludes PR author and known review bots)
 #   cross_invocation - cross-invocation awareness envelope:
 #     signal: true when both resolved and unresolved threads exist (multi-round review)
 #     resolved_threads: last N resolved threads by recency, for cluster analysis input
 #
-# Paginate reviewThreads so PRs with >100 threads do not drop feedback. Other
-# connections use a single page since 100 already exceeds realistic PR volume.
-QUERY='
-query FetchPRFeedback($owner: String!, $repo: String!, $pr: Int!, $cursor: String) {
+# Bot filtering: only CI/status bots (codecov, etc.) are filtered at the source.
+# Their output is structurally never actionable -- coverage numbers, build
+# summaries, deploy status -- and that holds regardless of format changes.
+# AI review bots (coderabbitai, codex, gemini, copilot) are NOT filtered here.
+# Historically their top-level comments were assumed to always be wrappers, but
+# that turned out to be wrong: Codex sometimes posts actionable findings as
+# top-level PR comments with no inline thread counterpart. Any source-level
+# heuristic to separate wrapper from actionable for these bots is brittle (one
+# bot format change away from silently dropping feedback). SKILL.md step 2
+# has a content-aware actionability check and Silent Drop rule that handles
+# wrappers correctly, so we trust that layer instead. Add new logins to the CI
+# list only if their output is structurally non-actionable like codecov's.
+gh api graphql -f owner="$OWNER" -f repo="$REPO" -F pr="$PR_NUMBER" -f query='
+query FetchPRFeedback($owner: String!, $repo: String!, $pr: Int!) {
   repository(owner: $owner, name: $repo) {
     pullRequest(number: $pr) {
       author { login }
-      reviewThreads(first: 100, after: $cursor) {
-        pageInfo { hasNextPage endCursor }
+      reviewThreads(first: 50) {
         edges {
           node {
             id
@@ -49,6 +58,9 @@ query FetchPRFeedback($owner: String!, $repo: String!, $pr: Int!, $cursor: Strin
             isOutdated
             path
             line
+            originalLine
+            startLine
+            originalStartLine
             comments(first: 10) {
               nodes {
                 id
@@ -66,51 +78,28 @@ query FetchPRFeedback($owner: String!, $repo: String!, $pr: Int!, $cursor: Strin
           id
           author { login }
           body
-          createdAt
-          url
         }
       }
-      reviews(first: 100) {
+      reviews(first: 50) {
         nodes {
           id
           author { login }
           body
           state
-          createdAt
-          url
         }
       }
     }
   }
-}'
-
-combined_pages='[]'
-cursor=""
-while :; do
-  if [ -z "$cursor" ]; then
-    # First page: omit cursor entirely so GraphQL defaults it to null.
-    page=$(gh api graphql -f owner="$OWNER" -f repo="$REPO" -F pr="$PR_NUMBER" -f query="$QUERY")
-  else
-    page=$(gh api graphql -f owner="$OWNER" -f repo="$REPO" -F pr="$PR_NUMBER" -f cursor="$cursor" -f query="$QUERY")
-  fi
-  combined_pages=$(jq --argjson acc "$combined_pages" --argjson page "$page" -n '$acc + [$page]')
-  has_next=$(printf '%s' "$page" | jq -r '.data.repository.pullRequest.reviewThreads.pageInfo.hasNextPage')
-  [ "$has_next" = "true" ] || break
-  cursor=$(printf '%s' "$page" | jq -r '.data.repository.pullRequest.reviewThreads.pageInfo.endCursor')
-done
-
-# Combine: reviewThreads edges merged across pages; other fields taken from first page.
-printf '%s' "$combined_pages" | jq '
-  . as $pages |
-  ($pages[0].data.repository.pullRequest) as $base |
-  { data: { repository: { pullRequest: (
-      $base
-      | .reviewThreads.edges = ([$pages[].data.repository.pullRequest.reviewThreads.edges] | add)
-    ) } } }
-' | jq '.data.repository.pullRequest as $pr |
-  # Unresolved threads (existing behavior, unchanged)
+}' | jq '.data.repository.pullRequest as $pr |
+  # Structurally non-actionable bot output; always dropped.
+  ["codecov"] as $ci_bot_logins |
+  # Unresolved threads. `isOutdated` means the diff hunk around the comment
+  # has shifted since the thread was opened -- not that the reviewer concern
+  # was addressed. Resolution state is the only authoritative signal; outdated
+  # threads are still surfaced (with their isOutdated flag intact) so the
+  # resolver can factor in that the referenced line may have moved.
   [$pr.reviewThreads.edges[]
-    | select(.node.isResolved == false and .node.isOutdated == false)] as $unresolved |
+    | select(.node.isResolved == false)] as $unresolved |
   # Resolved threads for cross-invocation awareness (last 10 by most recent comment)
   [$pr.reviewThreads.edges[]
     | select(.node.isResolved == true)
@@ -122,10 +111,16 @@ printf '%s' "$combined_pages" | jq '
   review_threads: $unresolved,
   pr_comments: [$pr.comments.nodes[]
     | select(.author.login != $pr.author.login)
+    | select(
+        .author.login as $l | $ci_bot_logins | index($l) | not
+      )
     | select(.body | test("^\\s*$") | not)],
   review_bodies: [$pr.reviews.nodes[]
     | select(.body != null and .body != "")
-    | select(.author.login != $pr.author.login)],
+    | select(.author.login != $pr.author.login)
+    | select(
+        .author.login as $l | $ci_bot_logins | index($l) | not
+      )],
   cross_invocation: {
     signal: (($resolved | length) > 0 and ($unresolved | length) > 0),
     resolved_threads: $resolved

@@ -2,6 +2,7 @@
 name: git-history-analyzer
 description: "Performs archaeological analysis of git history to trace code evolution, identify contributors, and understand why code patterns exist. Use when you need historical context for code changes."
 model: inherit
+tools: Read, Grep, Glob, Bash
 ---
 
 **Note: The current year is 2026.** Use this when interpreting commit dates and recent changes.
@@ -43,4 +44,4 @@ When analyzing, consider:
 
 Your insights should help developers understand not just what the code does, but why it evolved to its current state, informing better decisions for future changes.
 
-Note that files in `.ai/plans/` and `.ai/solutions/` are compound-engineering pipeline artifacts created by `/ce:plan`. They are intentional, permanent living documents — do not recommend their removal or characterize them as unnecessary.
+Note that files in `.ai/plans/` and `.ai/solutions/` are compound-engineering pipeline artifacts created by `/ce-plan`. They are intentional, permanent living documents — do not recommend their removal or characterize them as unnecessary.

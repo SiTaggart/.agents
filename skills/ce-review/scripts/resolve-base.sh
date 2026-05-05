@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# Resolve the review base branch and compute the merge-base for ce:review.
+# Resolve the review base branch and compute the merge-base for ce-review.
 # Handles fork-safe remote resolution, PR metadata, and multi-fallback detection.
 #
-# Usage: bash references/resolve-base.sh
+# Usage: bash scripts/resolve-base.sh
 # Output: BASE:<sha> on success, ERROR:<message> on failure.
 #
 # Detects the base branch from (in priority order):
@@ -52,19 +52,22 @@ if [ -n "$REVIEW_BASE_BRANCH" ]; then
   if [ -n "$PR_BASE_REPO" ]; then
     PR_BASE_REMOTE=$(git remote -v | awk "index(\$2, \"github.com:$PR_BASE_REPO\") || index(\$2, \"github.com/$PR_BASE_REPO\") {print \$1; exit}")
     if [ -n "$PR_BASE_REMOTE" ]; then
-      # Always fetch — a locally cached ref may be stale, producing a
-      # merge-base that predates squash-merged work and inflating the diff.
-      git fetch --no-tags "$PR_BASE_REMOTE" "$REVIEW_BASE_BRANCH:refs/remotes/$PR_BASE_REMOTE/$REVIEW_BASE_BRANCH" 2>/dev/null || git fetch --no-tags "$PR_BASE_REMOTE" "$REVIEW_BASE_BRANCH" 2>/dev/null || true
       BASE_REF=$(git rev-parse --verify "$PR_BASE_REMOTE/$REVIEW_BASE_BRANCH" 2>/dev/null || true)
+      if [ -z "$BASE_REF" ]; then
+        git fetch --no-tags "$PR_BASE_REMOTE" "$REVIEW_BASE_BRANCH:refs/remotes/$PR_BASE_REMOTE/$REVIEW_BASE_BRANCH" 2>/dev/null || git fetch --no-tags "$PR_BASE_REMOTE" "$REVIEW_BASE_BRANCH" 2>/dev/null || true
+        BASE_REF=$(git rev-parse --verify "$PR_BASE_REMOTE/$REVIEW_BASE_BRANCH" 2>/dev/null || true)
+      fi
     fi
   fi
   if [ -z "$BASE_REF" ]; then
     # Only try origin if it exists as a remote; otherwise skip to avoid
     # confusing errors in fork setups where origin points at the user's fork.
     if git remote get-url origin >/dev/null 2>&1; then
-      # Always fetch — same rationale as the fork-safe path above.
-      git fetch --no-tags origin "$REVIEW_BASE_BRANCH:refs/remotes/origin/$REVIEW_BASE_BRANCH" 2>/dev/null || git fetch --no-tags origin "$REVIEW_BASE_BRANCH" 2>/dev/null || true
       BASE_REF=$(git rev-parse --verify "origin/$REVIEW_BASE_BRANCH" 2>/dev/null || true)
+      if [ -z "$BASE_REF" ]; then
+        git fetch --no-tags origin "$REVIEW_BASE_BRANCH:refs/remotes/origin/$REVIEW_BASE_BRANCH" 2>/dev/null || git fetch --no-tags origin "$REVIEW_BASE_BRANCH" 2>/dev/null || true
+        BASE_REF=$(git rev-parse --verify "origin/$REVIEW_BASE_BRANCH" 2>/dev/null || true)
+      fi
     fi
     # Fall back to a bare local ref only if remote resolution failed
     if [ -z "$BASE_REF" ]; then
