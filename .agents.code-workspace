@@ -1,17 +1,20 @@
 {
-  "folders": [
-	{
-		"path": "."
-	},
-	{
-		"path": "../.codex"
-	},
-	{
-		"path": "../.claude"
-	},
-	{
-		"path": "../.config/opencode"
-	}
-],
-  "settings": {}
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../.codex"
+		},
+		{
+			"path": "../.claude"
+		},
+		{
+			"path": "../.config/opencode"
+		},
+		{
+			"path": "../.hermes"
+		}
+	],
+	"settings": {}
 }
