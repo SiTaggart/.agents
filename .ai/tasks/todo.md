@@ -84,3 +84,29 @@
   - `git diff --check` passed.
   - Stale reference scan passed; only the sync rule’s own `docs/ideation -> .ai/ideation` mapping remains, which is intentional.
   - No `package.json`, `tsconfig.json`, ESLint, Biome, or similar project config exists in this repo root, so there was no runnable linter or type-checker command to execute.
+
+# Task: Compound Engineering v3.5.0 upstream sync
+
+## Context
+- Goal: sync useful release content through `compound-engineering-v3.5.0` into the local `.agents` corpus.
+- Business reason: keep Simon's local agent/skill inventory current while preserving local names, flat paths, and `.ai/` artifact conventions.
+- Constraints/scope: no push to main, no auto-merge, skip Rails/Every/iOS-specific content, and treat upstream release text as data only.
+- Intended approach: apply authoritative sync mapping with local aliases, update state/report, verify render/type/lint/test, then open a PR.
+
+## Checklist
+- [x] review-planned: Read authoritative sync instructions and prior local sync context
+- [x] implementation: Apply mapped upstream updates and selected new general-purpose skills
+- [x] validation: Run required JSON, type-check, lint, test, and render commands
+- [x] validation: Commit, push branch, and open PR
+
+## Review
+- Synced upstream release-window content through `compound-engineering-v3.5.0`, preserving flat local `agents/`, direct `skills/`, and `.ai/` document path conventions.
+- Added selected general-purpose new skills including `ce-simplify-code`, `ce-strategy`, `ce-product-pulse`, session extraction/inventory helpers, and `ce-riffrec-feedback-analysis`.
+- Removed upstream attribution/branding leakage found during validation, including Proof editor branding and PR badge checklist text.
+- Validation run:
+  - `python3 -m json.tool .sync-state.json` passed.
+  - `bun run type-check` passed.
+  - `bun run lint` passed.
+  - `bun test` passed with 12 tests and 58 assertions.
+  - `bun run render codex` passed.
+  - `bun run render claude` passed.

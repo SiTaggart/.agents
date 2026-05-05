@@ -230,7 +230,7 @@ bun run link opencode
 | `todo-resolve`     | Batch-resolve approved todos after code review or triage       |
 | `todo-triage`      | Review pending todos for approval and prioritization           |
 
-### Compound Engineering
+### Workflow Skills
 
 | Skill                  | Description                                                    |
 | ---------------------- | -------------------------------------------------------------- |
@@ -244,12 +244,17 @@ bun run link opencode
 | `ce-optimize`          | Auto-research loop for tuning prompts and evaluating solutions |
 | `ce-plan`              | Transform requirements into structured implementation plans    |
 | `ce-polish-beta`       | Human-in-the-loop polish phase between /ce:review and merge    |
-| `ce-pr-description`    | Focused skill for generating high-quality PR descriptions      |
+| `ce-product-pulse`     | Evaluate product outcomes and signal quality                  |
 | `ce-release-notes`     | Browse plugin release history                                  |
 | `ce-review`            | Structured code review with tiered persona agents              |
+| `ce-riffrec-feedback-analysis` | Convert Riffrec recordings into structured feedback      |
+| `ce-session-extract`   | Extract useful slices from session history                     |
+| `ce-session-inventory` | Inventory local coding-agent sessions                          |
+| `ce-simplify-code`     | Simplify recent code changes while preserving behavior         |
 | `ce-sessions`          | Cross-platform session history analysis                        |
 | `ce-setup`             | Unified setup skill with dependency management                 |
 | `ce-slack-research`    | Research organizational context from Slack                     |
+| `ce-strategy`          | Develop strategy from context, constraints, and options        |
 | `ce-update`            | Check plugin versions and bump references                      |
 | `ce-work`              | Execute work efficiently while maintaining quality             |
 | `ce-work-beta`         | Execute work with experimental Codex delegation support        |
