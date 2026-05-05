@@ -37,7 +37,7 @@ bun run link opencode
 | ---------- | ----- |
 | Agents     | 56    |
 | Commands   | 4     |
-| Skills     | 77    |
+| Skills     | 82    |
 | Rules      | 2     |
 
 ## Agents
