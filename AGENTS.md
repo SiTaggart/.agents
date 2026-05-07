@@ -42,12 +42,12 @@ For any non-trivial task, search QMD before planning or writing code:
 - If prior art exists, reference it in your context block and build on it — don't reinvent
 - For subagents without MCP: `qmd search "keywords" -c ai` or `qmd query "question"` via Bash
 
-| Situation | What to search | Collection |
-|-----------|---------------|------------|
-| Starting a feature | Prior designs, specs, related plans | both |
-| Debugging | Prior investigations in the same module | ai |
-| Architecture decision | Prior decisions, meeting notes with rationale | both |
-| Writing docs | Existing docs on the topic to extend or reference | docs |
+| Situation             | What to search                                    | Collection |
+| --------------------- | ------------------------------------------------- | ---------- |
+| Starting a feature    | Prior designs, specs, related plans               | both       |
+| Debugging             | Prior investigations in the same module           | ai         |
+| Architecture decision | Prior decisions, meeting notes with rationale     | both       |
+| Writing docs          | Existing docs on the topic to extend or reference | docs       |
 
 ### 1. Plan Mode Default
 
@@ -108,7 +108,7 @@ For any non-trivial task, search QMD before planning or writing code:
 - Run tests, check logs, demonstrate correctness
 - For UI changes: take a screenshot or describe the visual result
 - Split execution into two explicit phases unless the task is purely mechanical:
-  1) review and confirm an approach, 2) implement and validate
+  1. review and confirm an approach, 2) implement and validate
 
 ### 7. Demand Elegance (Balanced)
 
@@ -198,29 +198,29 @@ for (const user of users) {
 
 ### Exploration & Search
 
-| Instead of | Use | Why |
-|------------|-----|-----|
-| Grep / Glob | `file_search` (MCP) | Combines path + content + regex in one call |
-| `ls` / `find` / Bash | `get_file_tree` (MCP) | Structured tree with depth control |
-| Read (full file) | `read_file` (MCP) | Line slicing built-in, avoids dumping |
-| Reading files for API shape | `get_code_structure` (MCP) | Function/type signatures only — 10x fewer tokens |
-| Spawning explore subagents | `context_builder` (MCP) | Two-stage AI: research model + analysis model in one call |
+| Instead of                  | Use                        | Why                                                       |
+| --------------------------- | -------------------------- | --------------------------------------------------------- |
+| Grep / Glob                 | `file_search` (MCP)        | Combines path + content + regex in one call               |
+| `ls` / `find` / Bash        | `get_file_tree` (MCP)      | Structured tree with depth control                        |
+| Read (full file)            | `read_file` (MCP)          | Line slicing built-in, avoids dumping                     |
+| Reading files for API shape | `get_code_structure` (MCP) | Function/type signatures only — 10x fewer tokens          |
+| Spawning explore subagents  | `context_builder` (MCP)    | Two-stage AI: research model + analysis model in one call |
 
 ### Editing & File Operations
 
-| Instead of | Use | Why |
-|------------|-----|-----|
-| Edit tool | `apply_edits` (MCP) | Multi-edit transactions, whole-file rewrites, better whitespace handling |
-| Write tool / Bash file creation | `file_actions` (MCP) | Create/delete/move with auto-selection |
-| Multiple sequential Edit calls | `apply_edits` with `edits` array | Atomic batch, fewer round-trips |
+| Instead of                      | Use                              | Why                                                                      |
+| ------------------------------- | -------------------------------- | ------------------------------------------------------------------------ |
+| Edit tool                       | `apply_edits` (MCP)              | Multi-edit transactions, whole-file rewrites, better whitespace handling |
+| Write tool / Bash file creation | `file_actions` (MCP)             | Create/delete/move with auto-selection                                   |
+| Multiple sequential Edit calls  | `apply_edits` with `edits` array | Atomic batch, fewer round-trips                                          |
 
 ### Git & Review
 
-| Instead of | Use | Why |
-|------------|-----|-----|
-| Bash `git status/diff/log` | `git` (MCP) | Safe read-only, structured output, artifact publishing |
-| Manual diff reading for review | `context_builder` with `response_type="review"` | Full code review with git diff context |
-| Ad-hoc file exploration for planning | `context_builder` with `response_type="plan"` | Architectural plan grounded in real code |
+| Instead of                           | Use                                             | Why                                                    |
+| ------------------------------------ | ----------------------------------------------- | ------------------------------------------------------ |
+| Bash `git status/diff/log`           | `git` (MCP)                                     | Safe read-only, structured output, artifact publishing |
+| Manual diff reading for review       | `context_builder` with `response_type="review"` | Full code review with git diff context                 |
+| Ad-hoc file exploration for planning | `context_builder` with `response_type="plan"`   | Architectural plan grounded in real code               |
 
 ### Key Workflows
 
@@ -240,6 +240,7 @@ for (const user of users) {
 ### Fallback
 
 When RepoPrompt MCP is unavailable (e.g., in subagents without MCP access), fall back to:
+
 - `rp-cli -e '<command>'` via Bash for the same operations
 - Built-in Read/Edit/Grep/Glob as last resort
 
@@ -252,6 +253,17 @@ When RepoPrompt MCP is unavailable (e.g., in subagents without MCP access), fall
 - Break multi-service tasks into separate sessions when possible
 - Add explicit fallback for tool failures: log the failure mode and switch to `RepoPrompt_*` equivalents only when compatible, otherwise use `rp-cli` or direct commands only as last resort
 
+## Tool Prefernences: Browser Automation
+
+Use `agent-browser` for web automation. Run `agent-browser --help` for all commands.
+
+Core workflow:
+
+1. `agent-browser open <url>` - Navigate to page
+2. `agent-browser snapshot -i` - Get interactive elements with refs (@e1, @e2)
+3. `agent-browser click @e1` / `fill @e2 "text"` - Interact using refs
+4. Re-snapshot after page changes
+
 ## Task Management
 
 1. **Plan First:** Write plan to `.ai/tasks/todo.md` with checkable items
@@ -260,6 +272,7 @@ When RepoPrompt MCP is unavailable (e.g., in subagents without MCP access), fall
 4. **Explain Changes:** High-level summary at each step
 5. **Document Results:** Add review section to `.ai/tasks/todo.md`
 6. **Capture Lessons:** Update `.ai/tasks/lessons.md` after corrections
+
 - In `.ai/tasks/todo.md`, mark tasks as: review-planned, implementation, validation, and blocked
 - For PR-bound work, enforce a review-then-fix sequence: review findings first, then implement only the approved fixes
 
@@ -267,13 +280,13 @@ When RepoPrompt MCP is unavailable (e.g., in subagents without MCP access), fall
 
 All generated documents live under the `.ai/` directory. This keeps agent artifacts hidden in one folder per project. When upstream content (compound-engineering-plugin) uses bare `docs/` paths, always prefix them with `.ai/`.
 
-| Purpose | Path |
-|---------|------|
-| Plans | `.ai/plans/` |
-| Brainstorms | `.ai/brainstorms/` |
-| Ideation | `.ai/ideation/` |
-| Solutions | `.ai/solutions/` |
-| Todos | `.ai/todos/` |
-| Tasks | `.ai/tasks/` |
-| Handoffs | `.ai/handoffs/` |
+| Purpose         | Path                       |
+| --------------- | -------------------------- |
+| Plans           | `.ai/plans/`               |
+| Brainstorms     | `.ai/brainstorms/`         |
+| Ideation        | `.ai/ideation/`            |
+| Solutions       | `.ai/solutions/`           |
+| Todos           | `.ai/todos/`               |
+| Tasks           | `.ai/tasks/`               |
+| Handoffs        | `.ai/handoffs/`            |
 | PR descriptions | `.ai/thoughts/shared/prs/` |
