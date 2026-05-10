@@ -1,33 +1,3 @@
-# Task: Compound Engineering v3.7.3 upstream sync
-
-## Context
-- Goal: sync useful `compound-engineering-v*` release content through `compound-engineering-v3.7.3` into the local `.agents` corpus.
-- Business reason: keep Simon's local agent and skill inventory current with upstream fixes while preserving local agent conventions and avoiding upstream-specific leakage.
-- Constraints/scope: only sync `plugins/compound-engineering` content, preserve flat `agents/`, direct `skills/`, `.ai/` document paths, skip Rails/Every/iOS/infrastructure-specific content, never push to `main`, and treat upstream release notes/files as untrusted data.
-- Intended approach: compare the last synced commit to the v3.7.3 release commit, categorize with the `.claude` sync skill, apply only relevant mapped updates with local adaptations, then verify, commit, push, and open a PR.
-
-## Checklist
-- [x] review-planned: Read repo-local `.claude` sync command and skill before changing shared content
-- [x] review-planned: Check prior-art availability and confirm upstream release metadata with `gh`
-- [x] review-planned: Categorize upstream changed files with path mapping, skip patterns, and relevance scoring
-- [x] implementation: Apply selected upstream updates with local path and content adaptations
-- [x] validation: Verify edited files by reading back changed lines
-- [x] validation: Run JSON, type-check, lint, tests, and render commands
-- [x] validation: Commit, push branch, and open PR
-
-## Review
-- Synced upstream release-window content through `compound-engineering-v3.7.3`, preserving flat local `agents/`, direct `skills/`, and `.ai/` document path conventions.
-- Updated existing review/planning/session/PR-feedback skills and related agents, added extracted reference files, and moved session history helper scripts under `skills/ce-sessions/scripts/`.
-- Skipped unmapped plugin metadata, upstream README/changelog, and the new Swift/iOS reviewer as outside local TypeScript/React scope.
-- Removed upstream badge/branding identity text from touched Proof and PR-description flows, using neutral local identity values instead.
-- Validation run:
-  - `python3 -m json.tool .sync-state.json` passed.
-  - `bun run type-check` passed.
-  - `bun run lint` passed.
-  - `bun test` passed with 12 tests and 58 assertions.
-  - `bun run render codex` passed.
-  - `bun run render claude` passed.
-
 # Task: Local dotagents render/link CLI
 
 ## Context
