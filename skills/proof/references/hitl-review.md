@@ -16,7 +16,7 @@ Inputs:
 - **Doc title** (required): display title for the Proof doc. Upstream callers pass this explicitly; on direct-user invocation, default to the file's H1 heading, falling back to the filename (minus extension) if no H1 exists.
 - **Recommended next step** (optional, caller-specific): short string the caller wants echoed in the final terminal output (e.g., "Recommended next: `/ce-plan`"). Not used on direct-user invocation — the terminal report simply summarizes the iteration and asks what's next.
 
-Agent identity is fixed, not a parameter: every API call uses agent ID `ai:compound-engineering` and display name `structured agent workflow`. Callers do not override this.
+Agent identity is fixed, not a parameter: every API call uses agent ID `ai:agent` and display name `structured agent workflow`. Callers do not override this.
 
 Return shape (used by upstream callers to resume their handoff; also shown to the user in the terminal when invoked directly):
 
@@ -33,7 +33,7 @@ Return shape (used by upstream callers to resume their handoff; also shown to th
 
 1. Read the local markdown file into memory. Remember this content as `uploadedMarkdown` — Phase 5 compares against it to detect whether anything changed during the session.
 2. `POST https://www.proofeditor.ai/share/markdown` with `{title, markdown}` → capture `slug`, `accessToken`, `tokenUrl`
-3. `POST /api/agent/{slug}/presence` with `X-Agent-Id: ai:compound-engineering`, `x-share-token: <token>`, body `{"name":"structured agent workflow","status":"reading","summary":"Uploaded doc for review"}`
+3. `POST /api/agent/{slug}/presence` with `X-Agent-Id: ai:agent`, `x-share-token: <token>`, body `{"name":"structured agent workflow","status":"reading","summary":"Uploaded doc for review"}`
 4. Display prominently in the terminal:
 
    ```
@@ -110,7 +110,7 @@ The user is collaborating in the doc, not waiting on approval. Every mutation wo
 **Default: `suggestion.add` with `status: "accepted"`** for content changes anchored on a quote (reword, rename, clarify, correct, add a sentence inline). One call creates a tracked suggestion mark *and* commits the change. The user sees committed text (no pending approval needed), and the mark persists as audit trail with per-edit attribution and a one-click reject-to-revert. This is the right primitive for HITL auto-applied edits — it gives the user a reversible trail without asking them to re-review anything.
 
 ```json
-{"type":"suggestion.add","kind":"replace","quote":"<anchor>","content":"<new>","by":"ai:compound-engineering","status":"accepted","baseToken":"<token>"}
+{"type":"suggestion.add","kind":"replace","quote":"<anchor>","content":"<new>","by":"ai:agent","status":"accepted","baseToken":"<token>"}
 ```
 
 Use `kind: "insert" | "delete" | "replace"` as appropriate; all three support `status: "accepted"`.
@@ -128,8 +128,8 @@ curl -s "https://www.proofeditor.ai/api/agent/{slug}/snapshot" -H "x-share-token
 # Apply
 curl -X POST "https://www.proofeditor.ai/api/agent/{slug}/edit/v2" \
   -H "Content-Type: application/json" -H "x-share-token: <token>" \
-  -H "X-Agent-Id: ai:compound-engineering" -H "Idempotency-Key: <uuid>" \
-  -d '{"by":"ai:compound-engineering","baseToken":"<token>","operations":[...]}'
+  -H "X-Agent-Id: ai:agent" -H "Idempotency-Key: <uuid>" \
+  -d '{"by":"ai:agent","baseToken":"<token>","operations":[...]}'
 ```
 
 Per-op body shape (singular `block` for `replace_block`; plural `blocks:[{markdown},...]` for anything that can add content; the server returns 422 on the wrong shape):
@@ -155,9 +155,9 @@ Block `ref` values drift across revisions — re-fetch `/snapshot` for fresh ref
 
 - Top-level field is `type` on `/ops`; `operations[].op` on `/edit/v2`. Do not mix.
 - Include `baseToken` from `/state.mutationBase.token` (or `/snapshot.mutationBase.token` for `/edit/v2`).
-- Set `by: "ai:compound-engineering"` and header `X-Agent-Id: ai:compound-engineering`.
+- Set `by: "ai:agent"` and header `X-Agent-Id: ai:agent`.
 - Include an `Idempotency-Key` header (fresh UUID per logical write). Reuse the same key on a proven retry of the same payload; use a new key for a new logical write.
-- Reply: `{"type":"comment.reply","markId":"<id>","by":"ai:compound-engineering","text":"..."}`. Resolve: `{"type":"comment.resolve","markId":"<id>","by":"ai:compound-engineering"}`. Reopen if needed: `{"type":"comment.unresolve", ...}`.
+- Reply: `{"type":"comment.reply","markId":"<id>","by":"ai:agent","text":"..."}`. Resolve: `{"type":"comment.resolve","markId":"<id>","by":"ai:agent"}`. Reopen if needed: `{"type":"comment.unresolve", ...}`.
 
 **Retry after any error is verify-first, not retry-first.** The Proof API can commit canonically and still return a non-2xx or a 202 with `collab.status: "pending"`; network timeouts can hit after the server has already written. Retrying without verifying is the most common cause of duplicate marks (same comment twice, same suggestion twice) that then need a manual cleanup pass.
 
@@ -294,7 +294,7 @@ Two retry classes, and they behave differently. The helper below only covers the
 ```bash
 SLUG=<slug>
 TOKEN=<accessToken>
-AGENT_ID=ai:compound-engineering
+AGENT_ID=ai:agent
 BASE=<cached from most recent /state or /snapshot read>
 
 mutate() {
@@ -344,7 +344,7 @@ The `Idempotency-Key` is minted fresh at the top of each call (one key per logic
 STATE=$(curl -s "https://www.proofeditor.ai/api/agent/$SLUG/state" \
   -H "x-share-token: $TOKEN")
 LANDED=$(printf '%s' "$STATE" | jq --arg q "X" --arg t "Y" \
-  '[.marks[]? | select(.by == "ai:compound-engineering" and .quote == $q and (.thread[0].text // .text) == $t)] | length')
+  '[.marks[]? | select(.by == "ai:agent" and .quote == $q and (.thread[0].text // .text) == $t)] | length')
 if [ "$LANDED" -gt 0 ]; then
   echo "Already applied — skipping retry."
 else
@@ -362,7 +362,7 @@ When extracting fields from API responses with jq's `//` alternative operator, p
 ### Identity
 
 All ops must include:
-- `by: "ai:compound-engineering"` in the request body
-- `X-Agent-Id: ai:compound-engineering` in headers (required for presence; recommended for ops for consistent attribution)
+- `by: "ai:agent"` in the request body
+- `X-Agent-Id: ai:agent` in headers (required for presence; recommended for ops for consistent attribution)
 
 Display name `structured agent workflow` is bound via `POST /presence` with `{"name":"structured agent workflow", ...}`. Set this once after upload; it carries across subsequent ops.

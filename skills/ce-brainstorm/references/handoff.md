@@ -78,7 +78,7 @@ Load the `proof` skill in HITL-review mode with:
 
 - **source file:** `.ai/brainstorms/YYYY-MM-DD-<topic>-requirements.md`
 - **doc title:** `Requirements: <topic title>`
-- **identity:** `ai:compound-engineering` / `structured agent workflow`
+- **identity:** `ai:agent` / `structured agent workflow`
 - **recommended next step:** `ce-plan` (shown in the proof skill's final terminal output)
 
 Follow `references/hitl-review.md` in the proof skill. It uploads the doc, prompts the user for review in Proof's web UI, ingests each thread by reading it fresh and replying in-thread, applies agreed edits as tracked suggestions, and syncs the final markdown back to the source file atomically on proceed.
