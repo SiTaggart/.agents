@@ -1,6 +1,6 @@
 ---
-name: ce:plan
-description: "Create structured plans for any multi-step task -- software features, research workflows, events, study plans, or any goal that benefits from structured breakdown. Also deepen existing plans with interactive review of sub-agent findings. Use for plan creation when the user says 'plan this', 'create a plan', 'write a tech plan', 'plan the implementation', 'how should we build', 'what's the approach for', 'break this down', 'plan a trip', 'create a study plan', or when a brainstorm/requirements document is ready for planning. Use for plan deepening when the user says 'deepen the plan', 'deepen my plan', 'deepening pass', or uses 'deepen' in reference to a plan. For exploratory or ambiguous requests where the user is unsure what to do, prefer ce-brainstorm first."
+name: ce-plan
+description: "Create structured plans for multi-step tasks -- software features, research workflows, events, study plans, or any goal that benefits from breakdown. Also deepens existing plans with interactive sub-agent review. Use when the user says 'plan this', 'create a plan', 'how should we build', 'break this down', or when a brainstorm doc is ready for planning. Use 'deepen the plan' or 'deepening pass' for the deepening flow. For exploratory requests, prefer ce-brainstorm first."
 argument-hint: "[optional: feature description, requirements doc path, plan path to deepen, or any task to plan]"
 ---
 
@@ -43,7 +43,7 @@ If the input is present but unclear or underspecified, do not abandon — ask on
 
 ## Plan Quality Bar
 
-Every plan should contain:
+plan should contain:
 - A clear problem frame and scope boundary
 - Concrete requirements traceability back to the request or origin document
 - Repo-relative file paths for the work being proposed (never absolute paths — see Planning Rules)
@@ -198,8 +198,8 @@ Prepare a concise planning context summary (a paragraph or two) to pass as input
 
 Run these agents in parallel:
 
-- Task ce-repo-research-analyst(Scope: technology, architecture, patterns. {planning context summary})
-- Task ce-learnings-researcher(planning context summary)
+- Task repo-research-analyst(Scope: technology, architecture, patterns. {planning context summary})
+- Task learnings-researcher(planning context summary)
 Collect:
 - Technology stack and versions (used in section 1.2 to make sharper external research decisions)
 - Architectural patterns and conventions to follow
@@ -210,7 +210,7 @@ Collect:
 
 **Slack context** (opt-in) — never auto-dispatch. Route by condition:
 
-- **Tools available + user asked**: Dispatch `ce-slack-researcher` with the planning context summary in parallel with other Phase 1.1 agents. If the origin document has a Slack context section, pass it verbatim so the researcher focuses on gaps. Include findings in consolidation.
+- **Tools available + user asked**: Dispatch `slack-researcher` with the planning context summary in parallel with other Phase 1.1 agents. If the origin document has a Slack context section, pass it verbatim so the researcher focuses on gaps. Include findings in consolidation.
 - **Tools available + user didn't ask**: Note in output: "Slack tools detected. Ask me to search Slack for organizational context at any point, or include it in your next prompt."
 - **No tools + user asked**: Note in output: "Slack context was requested but no Slack tools are available. Install and authenticate the Slack plugin to enable organizational context search."
 
@@ -237,11 +237,11 @@ Based on the origin document, user signals, and local findings, decide whether e
 - **Topic risk** — Security, payments, external APIs warrant more caution regardless of user signals.
 - **Uncertainty level** — Is the approach clear or still open-ended?
 
-**Leverage ce-repo-research-analyst's technology context:**
+**Leverage repo-research-analyst's technology context:**
 
-The ce-repo-research-analyst output includes a structured Technology & Infrastructure summary. Use it to make sharper external research decisions:
+The repo-research-analyst output includes a structured Technology & Infrastructure summary. Use it to make sharper external research decisions:
 
-- If specific frameworks and versions were detected (e.g., Rails 7.2, Next.js 14, Go 1.22), pass those exact identifiers to ce-framework-docs-researcher so it fetches version-specific documentation
+- If specific frameworks and versions were detected (e.g., Rails 7.2, Next.js 14, Go 1.22), pass those exact identifiers to framework-docs-researcher so it fetches version-specific documentation
 - If the feature touches a technology layer the scan found well-established in the repo (e.g., existing Sidekiq jobs when planning a new background job), lean toward skipping external research -- local patterns are likely sufficient
 - If the feature touches a technology layer the scan found absent or thin (e.g., no existing proto files when planning a new gRPC service), lean toward external research -- there are no local patterns to follow
 - If the scan detected deployment infrastructure (Docker, K8s, serverless), note it in the planning context passed to downstream agents so they can account for deployment constraints
@@ -268,8 +268,8 @@ Announce the decision briefly before continuing. Examples:
 
 If Step 1.2 indicates external research is useful, run these agents in parallel:
 
-- Task ce-best-practices-researcher(planning context summary)
-- Task ce-framework-docs-researcher(planning context summary)
+- Task best-practices-researcher(planning context summary)
+- Task framework-docs-researcher(planning context summary)
 
 #### 1.4 Consolidate Research
 
@@ -297,7 +297,7 @@ This ensures flow analysis (Phase 1.5) runs and the confidence check (Phase 5.3)
 
 For **Standard** or **Deep** plans, or when user flow completeness is still unclear, run:
 
-- Task ce-spec-flow-analyzer(planning context summary, research findings)
+- Task spec-flow-analyzer(planning context summary, research findings)
 
 Use the output to:
 - Identify missing edge cases, state transitions, or handoff gaps
@@ -396,7 +396,7 @@ The tree is a scope declaration showing the expected output shape. It is not a c
 
 #### 3.5 Define Each Implementation Unit
 
-Each unit's heading carries a stable U-ID prefix matching the format used for R/A/F/AE in requirements docs: `- U1. **[Name]**`. The prefix is plain text, not bolded — the bold is reserved for the unit name. Number sequentially within the plan starting at U1. Do not prefix units with `- [ ]` / `- [x]` checkbox markers; the plan is a decision artifact, and execution progress is derived from git by `ce-work` rather than stored in the plan body.
+Each unit is a level-3 heading carrying a stable U-ID prefix matching the format used for R/A/F/AE in requirements docs: `### U1. [Name]`. Number sequentially within the plan starting at U1. Do not render units as bulleted list items or prefix them with `- [ ]` / `- [x]` checkbox markers. List-based unit titles fragment in every standard renderer because the per-unit fields (`**Goal:**`, `**Files:**`, `**Approach:**`, etc.) are written flush-left, which terminates CommonMark list continuation and detaches the fields from the unit they describe. Headings render correctly everywhere, are the right semantic match for sections containing multi-block content, and give each unit an anchor link. The plan is a decision artifact; execution progress is derived from git by `ce-work` rather than stored in the plan body.
 
 **Stability rule.** Once assigned, a U-ID is never renumbered. Reordering units leaves their IDs in place (e.g., U1, U3, U5 in their new order is correct; renumbering to U1, U2, U3 is not). Splitting a unit keeps the original U-ID on the original concept and assigns the next unused number to the new unit. Deletion leaves a gap; gaps are fine. This rule matters most during deepening (Phase 5.3), which is the most likely accidental-renumber vector.
 
@@ -416,7 +416,7 @@ For each unit, include:
   - **Integration scenarios** (when the unit crosses layers) - behaviors that mocks alone will not prove, e.g., "creating X triggers callback Y which persists Z". Include these for any unit touching callbacks, middleware, or multi-layer interactions
 - **Verification** - how an implementer should know the unit is complete, expressed as outcomes rather than shell command scripts
 
-Every feature-bearing unit should include the test file path in `**Files:**`.
+feature-bearing unit should include the test file path in `**Files:**`.
 
 Use `Execution note` sparingly. Good uses include:
 - `Execution note: Start with a failing integration test for the request/response contract.`
@@ -483,287 +483,7 @@ Do not add these as boilerplate. Include them only when they improve execution q
 
 #### 4.2 Core Plan Template
 
-Omit clearly inapplicable optional sections, especially for Lightweight plans.
-
-```markdown
----
-title: [Plan Title]
-type: [feat|fix|refactor]
-status: active
-date: YYYY-MM-DD
-origin: .ai/brainstorms/YYYY-MM-DD-<topic>-requirements.md  # include when planning from a requirements doc
-deepened: YYYY-MM-DD  # optional, set when the confidence check substantively strengthens the plan
----
-
-# [Plan Title]
-
-## Summary
-
-[1-3 line prose summary — what the plan is proposing, in plain language. Forward-looking. With an origin requirements doc, focus on HOW the implementation approaches the work (the WHAT is in origin); without one, carry both WHAT scope and HOW execution. Required for all tiers; skip only for truly-trivial plans (≤ 2 Requirements bullets that echo the prompt).]
-
----
-
-## Problem Frame
-
-[Backward-looking / situational: the user/business problem and context that motivates this plan. Establishes the pain — does NOT restate the proposal (that lives in Summary). With an origin requirements doc, keep this brief (1-2 sentences plus any plan-specific framing) and link to origin via Sources & References. Without one, carry the full pain narrative. **Omit entirely at Lightweight tier when Summary already carries the situational context** — a focused bug fix or one-line change rarely needs both sections.]
-
----
-
-<!-- Include ONLY in non-interactive (headless) mode when the agent had Inferred bets that
-     were not user-confirmed. Lists the un-validated agent inferences explicitly so downstream
-     review (document-review, ce-work, human PR review) can scrutinize them as bets, not as
-     authoritative decisions. Omit entirely in interactive mode — Inferred bets get user-
-     corrected in chat and become Key Technical Decisions or are revised away. -->
-## Assumptions
-
-*This plan was authored without synchronous user confirmation. The items below are agent inferences that fill gaps in the input — un-validated bets that should be reviewed before implementation proceeds.*
-
-- [Inferred item the agent chose without user confirmation]
-
----
-
-## Requirements
-
-- R1. [Requirement or success criterion this plan must satisfy]
-- R2. [Requirement or success criterion this plan must satisfy]
-
-<!-- With an origin requirements doc, R-IDs trace to origin's; without one, R-IDs are derived
-     during planning. The optional origin trace sub-blocks below carry forward what's relevant
-     when origin actors/flows/acceptance examples exist. -->
-
-**Origin actors:** [A1 (role/name), A2 (role/name), …]
-**Origin flows:** [F1 (flow name), F2 (flow name), …]
-**Origin acceptance examples:** [AE1 (covers R1, R4), AE2 (covers R3), …]
-
----
-
-## Scope Boundaries
-
-<!-- Default structure (no origin doc, or origin was Lightweight / Standard / Deep-feature):
-     a single bulleted list of explicit non-goals. The optional `### Deferred to Follow-Up Work`
-     subsection below may still be included when this plan's implementation is intentionally
-     split across other PRs/issues/repos. -->
-
-- [Explicit non-goal or exclusion]
-
-<!-- Optional plan-local subsection — include when this plan's implementation is intentionally
-     split across other PRs, issues, or repos. Distinct from origin-carried "Deferred for later"
-     (product sequencing) and "Outside this product's identity" (positioning). -->
-### Deferred to Follow-Up Work
-
-- [Work that will be done separately]: [Where or when -- e.g., "separate PR in repo-x", "future iteration"]
-
-<!-- Triggered structure: replace the single list above with the three subsections below ONLY
-     when the origin doc is Deep-product (detectable by presence of an "Outside this product's
-     identity" subsection in the origin's Scope Boundaries). At all other tiers and when no
-     origin exists, use the single-list structure above. -->
-
-<!--
-### Deferred for later
-
-[Carried from origin — product/version sequencing. Work that will be done eventually but not in v1.]
-
-- [Item]
-
-### Outside this product's identity
-
-[Carried from origin — positioning rejection. Adjacent product the plan must not accidentally build.]
-
-- [Item]
-
-### Deferred to Follow-Up Work
-
-[Plan-local — implementation work intentionally split across other PRs/issues/repos. Distinct from origin's "Deferred for later" (product) and "Outside this product's identity" (positioning).]
-
-- [Item]
--->
-
----
-
-## Context & Research
-
-### Relevant Code and Patterns
-
-- [Existing file, class, component, or pattern to follow]
-
-### Institutional Learnings
-
-- [Relevant `.ai/solutions/` insight]
-
-### External References
-
-- [Relevant external docs or best-practice source, if used]
-
----
-
-## Key Technical Decisions
-
-- [Decision]: [Rationale]
-
-<!-- With an origin requirements doc, scope this section to plan-time architectural choices —
-     product-level decisions are in origin's Key Decisions. Without an origin, both belong here. -->
-
----
-
-## Open Questions
-
-<!-- With an origin requirements doc, scope this section to plan-time questions; product-level
-     open questions stay in origin's Outstanding Questions. -->
-
-### Resolved During Planning
-
-- [Question]: [Resolution]
-
-### Deferred to Implementation
-
-- [Question or unknown]: [Why it is intentionally deferred]
-
----
-
-<!-- Optional: Include when the plan creates a new directory structure (greenfield plugin,
-     new service, new package). Shows the expected output shape at a glance. Omit for plans
-     that only modify existing files. This is a scope declaration, not a constraint --
-     the implementer may adjust the structure if implementation reveals a better layout. -->
-## Output Structure
-
-    [directory tree showing new directories and files]
-
----
-
-<!-- Optional: Include this section only when the work involves DSL design, multi-component
-     integration, complex data flow, state-heavy lifecycle, or other cases where prose alone
-     would leave the approach shape ambiguous. Omit it entirely for well-patterned or
-     straightforward work. -->
-## High-Level Technical Design
-
-> *This illustrates the intended approach and is directional guidance for review, not implementation specification. The implementing agent should treat it as context, not code to reproduce.*
-
-[Pseudo-code grammar, mermaid diagram, data flow sketch, or state diagram — choose the medium that best communicates the solution shape for this work.]
-
----
-
-## Implementation Units
-
-<!-- Each unit carries a stable plan-local U-ID (U1, U2, …) assigned sequentially.
-     U-IDs are never renumbered: reordering preserves them in place, splitting keeps the
-     original U-ID and assigns the next unused number to the new unit, deletion leaves
-     a gap. This anchor is what ce-work references in blockers and verification, so
-     stability across plan edits is load-bearing. -->
-
-- U1. **[Name]**
-
-**Goal:** [What this unit accomplishes]
-
-**Requirements:** [R1, R2]
-
-**Dependencies:** [None / U1 / external prerequisite]
-
-**Files:**
-- Create: `path/to/new_file`
-- Modify: `path/to/existing_file`
-- Test: `path/to/test_file`
-
-**Approach:**
-- [Key design or sequencing decision]
-
-**Execution note:** [Optional test-first, characterization-first, or other execution posture signal]
-
-**Technical design:** *(optional -- pseudo-code or diagram when the unit's approach is non-obvious. Directional guidance, not implementation specification.)*
-
-**Patterns to follow:**
-- [Existing file, class, or pattern]
-
-**Test scenarios:**
-<!-- Include only categories that apply to this unit. Omit categories that don't. For units with no behavioral change, use "Test expectation: none -- [reason]" instead of leaving this section blank. -->
-- [Scenario: specific input/action -> expected outcome. Prefix with category — Happy path, Edge case, Error path, or Integration — to signal intent]
-
-**Verification:**
-- [Outcome that should hold when this unit is complete]
-
----
-
-## System-Wide Impact
-
-- **Interaction graph:** [What callbacks, middleware, observers, or entry points may be affected]
-- **Error propagation:** [How failures should travel across layers]
-- **State lifecycle risks:** [Partial-write, cache, duplicate, or cleanup concerns]
-- **API surface parity:** [Other interfaces that may require the same change]
-- **Integration coverage:** [Cross-layer scenarios unit tests alone will not prove]
-- **Unchanged invariants:** [Existing APIs, interfaces, or behaviors that this plan explicitly does not change — and how the new work relates to them. Include when the change touches shared surfaces and reviewers need blast-radius assurance]
-
----
-
-## Risks & Dependencies
-
-| Risk | Mitigation |
-|------|------------|
-| [Meaningful risk] | [How it is addressed or accepted] |
-
----
-
-## Documentation / Operational Notes
-
-- [Docs, rollout, monitoring, or support impacts when relevant]
-
----
-
-## Sources & References
-
-- **Origin document:** [.ai/brainstorms/YYYY-MM-DD-<topic>-requirements.md](path)
-- Related code: [path or symbol]
-- Related PRs/issues: #[number]
-- External docs: [url]
-```
-
-For larger `Deep` plans, extend the core template only when useful with sections such as:
-
-```markdown
-## Alternative Approaches Considered
-
-- [Approach]: [Why rejected or not chosen]
-
----
-
-## Success Metrics
-
-- [How we will know this solved the intended problem]
-
----
-
-## Dependencies / Prerequisites
-
-- [Technical, organizational, or rollout dependency]
-
----
-
-## Risk Analysis & Mitigation
-
-| Risk | Likelihood | Impact | Mitigation |
-|------|-----------|--------|------------|
-| [Risk] | [Low/Med/High] | [Low/Med/High] | [How addressed] |
-
----
-
-## Phased Delivery
-
-### Phase 1
-- [What lands first and why]
-
-### Phase 2
-- [What follows and why]
-
----
-
-## Documentation Plan
-
-- [Docs or runbooks to update]
-
----
-
-## Operational / Rollout Notes
-
-- [Monitoring, migration, feature flag, or rollout considerations]
-```
+Read `references/plan-template.md` for the core plan template (frontmatter, all standard sections, fill-in placeholders) and the optional Deep extensions template (Alternative Approaches Considered, Success Metrics, Dependencies, Risk Analysis, Phased Delivery, Documentation Plan, Operational Notes). Omit clearly inapplicable optional sections — especially for Lightweight plans.
 
 #### 4.3 Planning Rules
 
@@ -788,7 +508,7 @@ When the plan contains 4+ implementation units with non-linear dependencies, 3+ 
 Before finalizing, check:
 - The plan does not invent product behavior that should have been defined in `ce-brainstorm`
 - If there was no origin document, the bounded planning bootstrap established enough product clarity to plan responsibly
-- Every major decision is grounded in the origin document or research
+- major decision is grounded in the origin document or research
 - Each implementation unit is concrete, dependency-ordered, and implementation-ready
 - If test-first or characterization-first posture was explicit or strongly implied, the relevant units carry it forward with a lightweight `Execution note`
 - Each feature-bearing unit has test scenarios from every applicable category (happy path, edge cases, error paths, integration) — right-sized to the unit's complexity, not padded or skimped
@@ -806,7 +526,7 @@ If the plan originated from a requirements document, re-read that document and v
 - The chosen approach still matches the product intent
 - Scope boundaries and success criteria are preserved
 - Blocking questions were either resolved, explicitly assumed, or sent back to `ce-brainstorm`
-- Every section of the origin document is addressed in the plan — scan each section to confirm nothing was silently dropped
+- section of the origin document is addressed in the plan — scan each section to confirm nothing was silently dropped
 - If origin supplies A/F/AE IDs: every origin R/F/AE that *affects implementation* is referenced in Requirements, a U-ID unit, test scenarios, verification, scope boundaries, or explicitly deferred. Actors are carried forward when they affect behavior, permissions, UX, orchestration, handoff, or verification. The standard is preservation of product intent, not mandatory ID spam — irrelevant origin IDs may be omitted
 - If origin was Deep-product (origin contains an `Outside this product's identity` subsection): the plan's Scope Boundaries preserves the three-way split — `Deferred for later` and `Outside this product's identity` carried verbatim from origin, `Deferred to Follow-Up Work` reserved for plan-local implementation sequencing
 
@@ -886,26 +606,28 @@ When deepening is warranted, read `references/deepening-workflow.md` for confide
 
 ##### 5.3.8–5.4 Document Review, Final Checks, and Post-Generation Options
 
-**STOP. Load `references/plan-handoff.md` now before continuing.** It carries the full instructions for 5.3.8 (document review), 5.3.9 (final checks and cleanup), and 5.4 (post-generation handoff, including the Proof HITL flow, post-HITL re-review, and Issue Creation branching). **This load is non-optional** — without it, the agent renders the post-generation menu, captures the user's selection, and stops without firing the routed action. Document review at 5.3.8 is also mandatory regardless of whether the confidence check already ran.
+**STOP. Load `references/plan-handoff.md` now before continuing.** It carries the full instructions for 5.3.8 (document review), 5.3.9 (final checks and cleanup), and 5.4 (post-generation handoff, including the Proof HITL flow, post-HITL re-review, and Issue Creation branching). **This load is non-optional** — without it, the agent renders the post-generation menu, captures the user's selection, and stops without firing the routed action. Document review at 5.3.8 is also mandatory regardless of whether the confidence check already ran. The default mode is headless (`mode:headless`) — `safe_auto` fixes apply silently, remaining findings surface contextually above the menu, and a deeper interactive review is opt-in via free-form prompt.
 
-After document review and final checks, present this menu using the platform's blocking question tool: `AskUserQuestion` in Claude Code (call `ToolSearch` with `select:AskUserQuestion` first if its schema isn't loaded), `request_user_input` in Codex, `ask_user` in Gemini, `ask_user` in Pi (requires the `pi-ask-user` extension). Fall back to numbered options in chat only when no blocking tool exists in the harness or the call errors (e.g., Codex edit modes) — not because a schema load is required. Never silently skip the question.
+After document review and final checks, print a one-line summary of the headless review state above the menu (e.g., `Doc review applied 3 fixes. 2 decisions, 1 proposed fix, 4 FYI observations remain (1 at P1).`), then present the menu. The menu has 5 options when actionable findings remain (`proposed_fixes_count + decisions_count > 0`) and 4 options otherwise — including the FYI-only case, which hides option 2 because document-review's walkthrough is gated to actionable findings and would have nothing to walk through. See `references/plan-handoff.md` for the full rule. Render the 5-option menu as a numbered list in chat per the AGENTS.md narrow exception for legitimate option overflow, with the hint "Pick a number or describe what you want." On platforms whose blocking question tool has no option cap (Codex `request_user_input`, Pi `ask_user`), use the platform's blocking tool; when that tool is unavailable or errors (e.g., Codex edit modes where `request_user_input` is not exposed), fall back to the same numbered-list-in-chat rendering with the "Pick a number or describe what you want." hint. The 4-option case routes through the platform's blocking tool normally (`AskUserQuestion` in Claude Code — call `ToolSearch` with `select:AskUserQuestion` first if its schema isn't loaded), with the same numbered-list-in-chat fallback when no blocking tool is available or the call errors. Never silently skip the question.
 
 **Question:** "Plan ready at `<absolute path to plan>`. What would you like to do next?" (use absolute path so the reference is clickable in modern terminals)
 
-**Options:**
+**Options (5 when actionable findings remain; option 2 dropped and remaining options renumbered otherwise — including FYI-only state):**
 1. **Start `/ce-work`** (recommended) - Begin implementing this plan in the current session
-2. **Create Issue** - Create a tracked issue from this plan in your configured issue tracker (GitHub or Linear)
-3. **Open in Proof (web app) — review and comment to iterate with the agent** - Open the doc in Proof, iterate with the agent via comments, or copy a link to share with others
-4. **Done for now** - Pause; the plan file is saved and can be resumed later
+2. **Run deeper doc review** - Walk through the remaining findings interactively (full document-review walkthrough)
+3. **Create Issue** - Create a tracked issue from this plan in your configured issue tracker (GitHub or Linear)
+4. **Open in Proof (web app) — review and comment to iterate with the agent** - Open the doc in Proof editor, iterate with the agent via comments, or copy a link to share with others
+5. **Done for now** - Pause; the plan file is saved and can be resumed later
 
 **Routing.** Act on the user's selection — do not just announce it. Elaborate sub-flows (Proof HITL state machine, Issue Creation tracker detection, post-HITL resync) live in `references/plan-handoff.md`.
 
 - **Start `/ce-work`** — Invoke the `ce-work` skill via the platform's skill-invocation primitive (`Skill` in Claude Code, `Skill` in Codex, the equivalent on Gemini/Pi), passing the plan path as the skill argument. Do not merely tell the user to type `/ce-work` — fire the invocation now so the plan executes in this session.
+- **Run deeper doc review** — Re-invoke the `document-review` skill on the plan path **without** `mode:headless` so the interactive routing question and walkthrough fire. After it returns, re-render this menu with refreshed counts so the user can pick a next-stage action.
 - **Create Issue** — Detect the project tracker (`gh` for GitHub, `linear` for Linear) and create the issue from the plan file as described under "Issue Creation" in `references/plan-handoff.md`. After creation, display the issue URL and ask whether to proceed to `/ce-work` via the platform's blocking question tool.
-- **Open in Proof (web app) — review and comment to iterate with the agent** — Load the `proof` skill in HITL-review mode with the plan file as `source file`, the plan title as `doc title`, identity `ai:compound-engineering` / `structured agent workflow`, and recommended next step `/ce-work`. Then follow the post-HITL resync logic in `references/plan-handoff.md`, which handles the four `proof` return statuses, re-runs `document-review` after material edits, and falls back gracefully on upload failure.
+- **Open in Proof (web app) — review and comment to iterate with the agent** — Load the `proof` skill in HITL-review mode with the plan file as `source file`, the plan title as `doc title`, identity `ai:agent` / `structured agent workflow`, and recommended next step `/ce-work`. Then follow the post-HITL resync logic in `references/plan-handoff.md`, which handles the four `proof` return statuses, re-runs `document-review` after material edits, and falls back gracefully on upload failure.
 - **Done for now** — Display a brief confirmation that the plan file is saved and end the turn. Do not start follow-up work without an explicit further user prompt.
 
-If the user asks for another document review (either from a contextual prompt about residual findings or via free-form request), load the `document-review` skill with the plan path for another pass and then return to this menu. For free-text revisions outside the four options, accept the input and loop back to this menu after applying the revision.
+If the user types free-form prompts targeting the findings (e.g., "review", "walk through", "deep review"), route as if they picked `Run deeper doc review` — fire the skill rather than looping back to the menu. For other free-text revisions, accept the input and loop back to this menu after applying the revision.
 
 **Completion check:** This skill is not complete until the post-generation menu above has been presented, the user has selected an action, and the inline routing for that selection has been executed. Presenting the menu and stopping at the user's selection is not completion — fire the routed action.
 
