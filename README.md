@@ -37,7 +37,7 @@ bun run link opencode
 | ---------- | ----- |
 | Agents     | 56    |
 | Commands   | 4     |
-| Skills     | 82    |
+| Skills     | 87    |
 | Rules      | 2     |
 
 ## Agents
@@ -240,6 +240,7 @@ bun run link opencode
 | `ce-debug`             | Systematic debugging with anti-patterns and investigation techniques |
 | `ce-demo-reel`         | Capture demo reels via terminal / screenshot / browser pipelines |
 | `ce-grill`             | Stress-test a plan or design through interview-style questions |
+| `ce-handoff`           | Compact current work into a continuation brief                 |
 | `ce-ideate`            | Generate and evaluate grounded improvement ideas for a project |
 | `ce-optimize`          | Auto-research loop for tuning prompts and evaluating solutions |
 | `ce-plan`              | Transform requirements into structured implementation plans    |
