@@ -1,0 +1,152 @@
+---
+name: ce-handoff
+description: "Compact the current conversation into a durable handoff document for another agent or future session. Use when the user asks to hand off, pause with context, summarize work for the next session, or prepare a continuation brief."
+argument-hint: "[what the next session will focus on]"
+---
+
+# Handoff
+
+Write a compact continuation brief so a fresh agent can pick up the work without
+reconstructing the session.
+
+## Input
+
+<handoff_focus> #$ARGUMENTS </handoff_focus>
+
+If `<handoff_focus>` is present, treat it as the next session's intended focus.
+If it is blank, infer the focus from the current conversation and current
+checkout state.
+
+## Contract
+
+The output is one markdown file that preserves decision context, current state,
+and the next useful move. It should reduce steering in the next session.
+
+Do not duplicate content already captured in canonical artifacts such as PRDs,
+requirements docs, plans, ADRs, issues, PRs, commits, review reports, or diffs.
+Reference those artifacts by path, URL, branch, commit, or command instead.
+
+Use the user's conventions:
+
+- Keep repo-local handoffs under `.ai/handoffs/`.
+- Keep the business reason and changed product contract visible.
+- Prefer exact paths, commands, issue URLs, branches, commits, and verification
+  evidence over prose memory.
+- Mark uncertainty explicitly instead of smoothing it over.
+- Suggest only the skills that should actually be used next.
+
+## Destination
+
+1. Detect the workspace root.
+   - If inside a git repo, use the repo root.
+   - If there is no repo root, use the current working directory.
+2. Prefer `.ai/handoffs/YYYY-MM-DD-<topic>-handoff.md`.
+   - Create `.ai/handoffs/` if needed.
+   - Use a short slug from the handoff focus or primary task.
+   - If the path already exists, read it first. Update it only when it is
+     clearly the same handoff; otherwise choose a unique suffix.
+3. Use an OS temp file only when there is no sensible workspace-local artifact
+   home. If you do, explain why the handoff is not under `.ai/handoffs/`.
+
+## Context Scan
+
+Before writing, gather only the context needed for a useful handoff:
+
+- Current repo, branch, and dirty state.
+- Recent relevant commits or PR metadata when they explain the state.
+- Referenced files, docs, plans, issues, review comments, or external artifacts.
+- Existing `.ai/brainstorms/`, `.ai/plans/`, `.ai/solutions/`, `.ai/reviews/`,
+  and `.ai/handoffs/` artifacts that match the topic.
+- The latest user correction or scope boundary that the next session must not
+  lose.
+
+Use exact-term search first. If vocabulary is uncertain, add semantic or
+broader searches only as needed.
+
+## Document Shape
+
+Use this structure unless the task clearly needs a smaller one:
+
+```markdown
+---
+created: YYYY-MM-DD
+status: ready|paused|blocked
+focus: <next-session focus>
+repo: <repo name or path>
+branch: <branch if known>
+---
+
+# Handoff: <topic>
+
+## Next Session Goal
+
+<The one outcome the next agent should drive toward.>
+
+## Business / Contract Frame
+
+- Business reason:
+- Contract being changed or protected:
+- Scope boundaries:
+
+## Current State
+
+- What is already done:
+- What is partially done:
+- What is not started:
+
+## Key Decisions
+
+- <Decision, rationale, and source path/URL if one exists.>
+
+## Files And Artifacts To Read
+
+- `<path or URL>` - why it matters
+
+## Remaining Work
+
+1. <Concrete next step.>
+2. <Concrete next step.>
+
+## Verification
+
+- Passed:
+- Not run:
+- Blocked:
+
+## Risks / Open Questions
+
+- <Only real blockers, uncertainties, or traps.>
+
+## Suggested Skills
+
+- `<skill-name>` - why this is the right next tool
+
+## Starter Prompt
+
+<A short prompt the next session can use verbatim.>
+```
+
+For a tiny handoff, keep only `Next Session Goal`, `Current State`,
+`Remaining Work`, `Verification`, `Suggested Skills`, and `Starter Prompt`.
+
+## Quality Bar
+
+Before finalizing:
+
+- Read the written file back.
+- Confirm the next session can start without asking "what happened?"
+- Confirm paths are actionable from the repo or are absolute when outside it.
+- Confirm canonical artifacts are linked instead of copied.
+- Confirm the latest user correction or scope boundary is present.
+- Confirm verification distinguishes proved, unproved, and blocked work.
+- Confirm suggested skills are specific and not a generic list.
+
+## Final Response
+
+Keep the user-facing response brief:
+
+```text
+Handoff written: <absolute path>
+Status: <ready|paused|blocked>
+Best next skill: <skill or "none">
+```
