@@ -1,31 +1,44 @@
 # Upstream Sync Report
-Generated: 2026-05-11T15:17:40Z
-Range: 834ca4e..85548a5 (2 commits)
+Generated: 2026-05-12T15:28:20Z
+Range: 85548a5..b07aac5 (3 commits)
 
 ## Summary
-- **Commits:** 2
-- **Updates:** 2 files changed that exist locally
+- **Commits:** 3
+- **Updates:** 4 files changed that exist locally
 - **New:** 0 files to consider adding
-- **Skipped:** 5 files filtered by local scope
+- **Skipped:** 4 files filtered by patterns
 
 ## Commits
-- `85548a5` chore: release main (#814)
-- `9b45a83` feat(ce-compound): add mode:headless for non-interactive use (#813)
+- `b07aac5` chore: release main (#817)
+- `60c1c93` fix(ce-plan): compress synthesis confirmation to prose + call-outs (#819)
+- `d090bde` fix(ce-code-review): replace resolve-base.sh with prose-driven base detection (#815)
 
 ## Updates to Existing Content
 Items that exist locally and changed upstream.
 
-### skills/ce-compound/SKILL.md
-- **Upstream path:** skills/ce-compound/SKILL.md
-- **Status:** M | +61 / -10 lines
-- **What changed:** Added `mode:headless` for non-interactive documentation capture, including mode detection, prompt skipping, discoverability handling, refresh recommendations, Phase 3 skipping, and structured headless success/failure output.
-- **Action needed:** Applied locally with `.ai/solutions/` path adaptation and local unprefixed agent names preserved.
+### skills/ce-review/SKILL.md
+- **Upstream path:** skills/ce-code-review/SKILL.md
+- **Status:** M | +7 / -15 lines
+- **What changed:** Replaced the deleted `resolve-base.sh` dependency with prose-driven branch/default-base detection instructions.
+- **Action needed:** Review diff, merge improvements
 
-### skills/ce-compound-refresh/SKILL.md
-- **Upstream path:** skills/ce-compound-refresh/SKILL.md
-- **Status:** M | +18 / -17 lines
-- **What changed:** Renamed non-interactive refresh mode from `mode:autofix` to `mode:headless`, added an argument hint, and clarified no-match scope behavior for headless runs.
-- **Action needed:** Applied locally with `.ai/solutions/` path adaptation.
+### skills/ce-review/scripts/resolve-base.sh
+- **Upstream path:** skills/ce-code-review/scripts/resolve-base.sh
+- **Status:** D | +0 / -100 lines
+- **What changed:** Removed the obsolete base-resolution helper script after moving the logic into the review skill.
+- **Action needed:** Review deletion
+
+### skills/ce-plan/SKILL.md
+- **Upstream path:** skills/ce-plan/SKILL.md
+- **Status:** M | +6 / -6 lines
+- **What changed:** Updated the synthesis checkpoints to require two-stage internal draft plus user-facing call-outs.
+- **Action needed:** Review diff, merge improvements
+
+### skills/ce-plan/references/synthesis-summary.md
+- **Upstream path:** skills/ce-plan/references/synthesis-summary.md
+- **Status:** M | +171 / -62 lines
+- **What changed:** Reworked synthesis guidance around internal three-bucket drafts, call-out keep tests, cap-and-recut rules, skip behavior, and headless routing.
+- **Action needed:** Review diff, merge improvements
 
 ## New Content to Review
 Items that don't exist locally and may be worth adding.
@@ -33,10 +46,9 @@ Items that don't exist locally and may be worth adding.
 None.
 
 ## Auto-Skipped
-Filtered by skip patterns or local scope — listed for transparency.
+Filtered by skip patterns — listed for transparency.
 
-- `.claude-plugin/plugin.json` — outside local sync mapping; upstream plugin package metadata contains upstream branding.
-- `.codex-plugin/plugin.json` — outside local sync mapping; upstream plugin package metadata contains upstream branding.
-- `.cursor-plugin/plugin.json` — outside local sync mapping; upstream plugin package metadata contains upstream branding.
-- `AGENTS.md` — outside local sync mapping; upstream repository instructions contain upstream-specific conventions.
-- `CHANGELOG.md` — outside local sync mapping; release notes treated as untrusted data only.
+- `.claude-plugin/plugin.json` — no local mapped target; plugin packaging metadata is outside Simon's flat `agents/` and direct `skills/` content conventions
+- `.codex-plugin/plugin.json` — no local mapped target; plugin packaging metadata is outside Simon's flat `agents/` and direct `skills/` content conventions
+- `.cursor-plugin/plugin.json` — no local mapped target; plugin packaging metadata is outside Simon's flat `agents/` and direct `skills/` content conventions
+- `CHANGELOG.md` — no local mapped target; release context captured in this sync report and PR instead
