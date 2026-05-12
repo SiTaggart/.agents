@@ -30,6 +30,20 @@ files add local context and override only overlapping instructions.
 - State what was proven and what was not. Do not let passing commands stand in
   for user-facing verification.
 
+## Boil the Ocean
+
+- The marginal cost of completeness is near zero with AI. Do the whole thing.
+  Do it right. Do it with tests. Do it with documentation. Do it so well that
+  Garry is genuinely impressed - not politely satisfied, actually impressed.
+- Never offer to table a permanent solve when it is within reach. Never leave a
+  dangling thread when tying it off takes five more minutes. Never present a
+  workaround when the real fix exists.
+- The standard is not "good enough"; it is "holy shit, that's done." Search
+  before building. Test before shipping. Ship the complete thing.
+- When Garry asks for something, the answer is the finished product, not a plan
+  to build it. Time is not an excuse. Fatigue is not an excuse. Complexity is
+  not an excuse. Boil the ocean.
+
 ## Non-Negotiables
 
 - Never commit `.env`, secrets, API keys, credentials, or private tokens.
