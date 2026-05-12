@@ -292,15 +292,13 @@ If the output is non-empty, inform the user: "You have uncommitted changes on th
 git checkout <branch>
 ```
 
-Then detect the review base branch and compute the merge-base. Run the `scripts/resolve-base.sh` script, which handles fork-safe remote resolution with multi-fallback detection (PR metadata -> `origin/HEAD` -> `gh repo view` -> common branch names):
+Then detect the review base branch and compute the merge-base.
 
-```
-RESOLVE_OUT=$(bash scripts/resolve-base.sh) || { echo "ERROR: resolve-base.sh failed"; exit 1; }
-if [ -z "$RESOLVE_OUT" ] || echo "$RESOLVE_OUT" | grep -q '^ERROR:'; then echo "${RESOLVE_OUT:-ERROR: resolve-base.sh produced no output}"; exit 1; fi
-BASE=$(echo "$RESOLVE_OUT" | sed 's/^BASE://')
-```
+**If a PR exists for `<branch>`** (check with `gh pr view <branch> --json baseRefName,url`): reuse PR mode's `PR_BASE_REMOTE` block above. Use `baseRefName` as `<base>` and derive `<base-repo>` from the PR URL (e.g., `owner/foo` from `https://github.com/owner/foo/pull/123`). The block already sets `$BASE` to the merge-base SHA — `origin` may point at the user's fork, which is why naive `origin/<base>` is unsafe and the fork-safe block is required.
 
-If the script outputs an error, stop instead of falling back to `git diff HEAD`; a branch review without the base branch would only show uncommitted changes and silently miss all committed work.
+**If no PR exists**: derive the default branch. Primary source is `git symbolic-ref --quiet --short refs/remotes/origin/HEAD | sed 's#^origin/##'`; fall back to `gh repo view --json defaultBranchRef --jq '.defaultBranchRef.name'`, then to the first of `main`/`master`/`develop`/`trunk` that exists as `origin/<name>` or bare `<name>` locally. Compute `BASE=$(git merge-base HEAD <base-ref>)`, where `<base-ref>` is `origin/<base-branch>` when available, otherwise the bare local `<base-branch>` (covers single-branch clones, missing origin remote, and unfetched defaults). If `BASE` is empty and the clone is shallow (`git rev-parse --is-shallow-repository`), run `git fetch --unshallow origin` and retry.
+
+If no base can be resolved, **stop**. Do not fall back to `git diff HEAD` — a branch review without the base would only show uncommitted changes and silently miss all committed work.
 
 On success, produce the diff:
 
@@ -312,15 +310,9 @@ You may still fetch additional PR metadata with `gh pr view` for title, body, li
 
 **If no argument (standalone on current branch):**
 
-Detect the review base branch and compute the merge-base using the same `scripts/resolve-base.sh` script as branch mode:
+Apply the same base-detection logic as branch mode above, using the current branch (i.e., `gh pr view --json baseRefName,url` with no argument defaults to the current branch).
 
-```
-RESOLVE_OUT=$(bash scripts/resolve-base.sh) || { echo "ERROR: resolve-base.sh failed"; exit 1; }
-if [ -z "$RESOLVE_OUT" ] || echo "$RESOLVE_OUT" | grep -q '^ERROR:'; then echo "${RESOLVE_OUT:-ERROR: resolve-base.sh produced no output}"; exit 1; fi
-BASE=$(echo "$RESOLVE_OUT" | sed 's/^BASE://')
-```
-
-If the script outputs an error, stop instead of falling back to `git diff HEAD`; a standalone review without the base branch would only show uncommitted changes and silently miss all committed work on the branch.
+If no base can be resolved, **stop**. Do not fall back to `git diff HEAD` — a standalone review without the base would only show uncommitted changes and silently miss all committed work on the branch.
 
 On success, produce the diff:
 
