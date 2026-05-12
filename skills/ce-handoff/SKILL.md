@@ -1,5 +1,5 @@
 ---
-name: ce:handoff
+name: ce-handoff
 description: "Compact the current conversation into a durable handoff document for another agent or future session. Use when the user asks to hand off, pause with context, summarize work for the next session, or prepare a continuation brief."
 argument-hint: "[what the next session will focus on]"
 ---
