@@ -1,43 +1,49 @@
 # Upstream Sync Report
-Generated: 2026-05-12T15:28:20Z
-Range: 85548a5..b07aac5 (3 commits)
+Generated: 2026-05-15T15:17:19Z
+Range: b07aac5..705f28a (3 commits)
 
 ## Summary
 - **Commits:** 3
-- **Updates:** 4 files changed that exist locally
+- **Updates:** 5 files changed that exist locally
 - **New:** 0 files to consider adding
 - **Skipped:** 4 files filtered by patterns
 
 ## Commits
-- `b07aac5` chore: release main (#817)
-- `60c1c93` fix(ce-plan): compress synthesis confirmation to prose + call-outs (#819)
-- `d090bde` fix(ce-code-review): replace resolve-base.sh with prose-driven base detection (#815)
+- `705f28a` chore: release main (#831)
+- `a0a08a1` fix(codex): respect CODEX_HOME for profile installs (#830)
+- `6df3f96` fix(ce-brainstorm): scoping synthesis and Q&A interaction cleanup (#829)
 
 ## Updates to Existing Content
 Items that exist locally and changed upstream.
 
-### skills/ce-review/SKILL.md
-- **Upstream path:** skills/ce-code-review/SKILL.md
-- **Status:** M | +7 / -15 lines
-- **What changed:** Replaced the deleted `resolve-base.sh` dependency with prose-driven branch/default-base detection instructions.
+### skills/ce-brainstorm/SKILL.md
+- **Upstream path:** skills/ce-brainstorm/SKILL.md
+- **Status:** M | +13 / -7 lines
+- **What changed:** Tightened open-ended question rules, added an integration check before leaving dialogue, and routed Phase 2.5 through Path A / Path B scoping synthesis behavior.
 - **Action needed:** Review diff, merge improvements
 
-### skills/ce-review/scripts/resolve-base.sh
-- **Upstream path:** skills/ce-code-review/scripts/resolve-base.sh
-- **Status:** D | +0 / -100 lines
-- **What changed:** Removed the obsolete base-resolution helper script after moving the logic into the review skill.
-- **Action needed:** Review deletion
+### skills/ce-brainstorm/references/requirements-capture.md
+- **Upstream path:** skills/ce-brainstorm/references/requirements-capture.md
+- **Status:** M | +0 / -14 lines
+- **What changed:** Removed the non-interactive Assumptions section from brainstorm requirement documents because brainstorm is now treated as interactive-only.
+- **Action needed:** Review diff, merge improvements
 
-### skills/ce-plan/SKILL.md
-- **Upstream path:** skills/ce-plan/SKILL.md
-- **Status:** M | +6 / -6 lines
-- **What changed:** Updated the synthesis checkpoints to require two-stage internal draft plus user-facing call-outs.
+### skills/ce-brainstorm/references/synthesis-summary.md
+- **Upstream path:** skills/ce-brainstorm/references/synthesis-summary.md
+- **Status:** M | +187 / -89 lines
+- **What changed:** Reworked brainstorm synthesis around an internal three-bucket draft, user-facing scoping synthesis, Path A / Path B gating, keep tests, bullet budgets, and revised confirmation behavior.
+- **Action needed:** Review diff, merge improvements
+
+### skills/ce-brainstorm/references/universal-brainstorming.md
+- **Upstream path:** skills/ce-brainstorm/references/universal-brainstorming.md
+- **Status:** M | +1 / -1 lines
+- **What changed:** Aligned universal brainstorming with the updated open-ended question guidance.
 - **Action needed:** Review diff, merge improvements
 
 ### skills/ce-plan/references/synthesis-summary.md
 - **Upstream path:** skills/ce-plan/references/synthesis-summary.md
-- **Status:** M | +171 / -62 lines
-- **What changed:** Reworked synthesis guidance around internal three-bucket drafts, call-out keep tests, cap-and-recut rules, skip behavior, and headless routing.
+- **Status:** M | +2 / -2 lines
+- **What changed:** Updated soft-cut option labels for clearer user choices; local adaptation keeps `document-review` references aligned with this repo's skill name.
 - **Action needed:** Review diff, merge improvements
 
 ## New Content to Review
