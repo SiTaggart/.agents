@@ -1,8 +1,8 @@
 {
   "upstream_repo": "https://github.com/EveryInc/compound-engineering-plugin",
   "content_root": "plugins/compound-engineering",
-  "last_synced_commit": "705f28a7a9b67c16b6b4836edaaeb010fede79d8",
-  "last_synced_date": "2026-05-15T15:24:06Z",
+  "last_synced_commit": "f61d1b33eaba7be6e75902e31e49e022abdca3a0",
+  "last_synced_date": "2026-05-19T15:23:29Z",
   "skip_patterns": {
     "filenames": [
       "dhh-rails-*",
@@ -42,6 +42,6 @@
     "agents/document-review/": "agents/",
     "skills/": "skills/"
   },
-  "last_synced_release": "compound-engineering-v3.8.2",
-  "last_checked_release": "compound-engineering-v3.8.2"
+  "last_synced_release": "compound-engineering-v3.8.3",
+  "last_checked_release": "compound-engineering-v3.8.3"
 }
