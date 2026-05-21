@@ -1,8 +1,8 @@
 {
   "upstream_repo": "https://github.com/EveryInc/compound-engineering-plugin",
   "content_root": "plugins/compound-engineering",
-  "last_synced_commit": "f61d1b33eaba7be6e75902e31e49e022abdca3a0",
-  "last_synced_date": "2026-05-19T15:23:29Z",
+  "last_synced_commit": "08bb5899036e9ca33585b38ce840e2b2bfaacac8",
+  "last_synced_date": "2026-05-21T15:24:11Z",
   "skip_patterns": {
     "filenames": [
       "dhh-rails-*",
@@ -17,9 +17,7 @@
       "deploy-docs",
       "release-docs",
       "xcode-test",
-      "feature-video",
-      "report-bug-ce",
-      "proof"
+      "feature-video"
     ],
     "content_markers": [
       "every.to",
@@ -40,8 +38,10 @@
     "agents/workflow/": "agents/",
     "agents/docs/": "agents/",
     "agents/document-review/": "agents/",
+    "commands/workflows/": "commands/",
+    "commands/": "commands/",
     "skills/": "skills/"
   },
-  "last_synced_release": "compound-engineering-v3.8.3",
-  "last_checked_release": "compound-engineering-v3.8.3"
+  "last_synced_release": "compound-engineering-v3.8.4",
+  "last_checked_release": "compound-engineering-v3.8.4"
 }

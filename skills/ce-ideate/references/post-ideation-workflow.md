@@ -124,7 +124,7 @@ If resuming:
 
 ### 5.2 Proof Save (default for elsewhere mode; on request for repo mode)
 
-Hand off the ideation content to the `proof` skill in HITL review mode. This uploads the doc, runs an iterative review loop (user annotates in Proof, agent ingests feedback and applies tracked edits), and (in repo mode) syncs the reviewed markdown back to `.ai/ideation/`.
+Hand off the ideation content to the `proof` skill in HITL review mode. This uploads the doc, runs an iterative review loop (user annotates in Proof, agent ingests feedback, applies agreed edits, and replies/resolves in-thread), and (in repo mode) syncs the reviewed markdown back to `.ai/ideation/`.
 
 Load the `proof` skill in HITL-review mode with:
 
