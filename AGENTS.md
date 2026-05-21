@@ -58,6 +58,14 @@ files add local context and override only overlapping instructions.
 ## Prior Art
 
 - For non-trivial work, search prior art before planning or writing code.
+- For broad explanatory questions, query the knowledge base before
+  reconstructing the answer from code. Use existing wiki, docs, notes, and
+  agent-artifact collections as the precomputed context layer, then inspect
+  source code only to verify drift-prone or implementation-level details.
+- Do not depend on fixed collection names. If the relevant QMD collections are
+  not obvious on the current machine, list or inspect the available collections
+  first, then choose the closest knowledge, docs, wiki, notes, and artifact
+  collections for the task.
 - Search `ai` for agent artifacts: plans, designs, reviews, investigations.
 - Search `docs` for project documentation: specs, meetings, research.
 - Use exact terms first, then semantic searches when vocabulary is uncertain.
@@ -169,6 +177,54 @@ Prefer **contract-oriented functional core with thin effect adapters**.
   state machine, hot path, or imperative-library boundary clearer.
 - When integrating imperative libraries, isolate the imperative engine behind a
   controller or adapter and keep the rest of the feature typed and composable.
+
+### Honest Function Boundaries
+
+- Prefer pure helpers, but keep their signatures honest. A helper should accept
+  the smallest meaningful values it directly reasons about.
+- Compose broad domain objects at the boundary that owns the workflow: public
+  actions, render resolvers, validators, hooks, components, and IO adapters.
+  Below that boundary, pass explicit values into lower helpers.
+- Avoid courier arguments. Do not pass broad objects like `chart`, `series`,
+  `trace`, `source`, `config`, `context`, or `state` through helper layers just
+  so a lower function can read one field or forward the object again.
+- Flag helpers when they read only one or two fields from a broad object, pass a
+  broad object onward without meaningful local use, accept both a broad object
+  and a value derived from it, recompute a derived value already known at the
+  caller, or use a wrapper object that obscures duplicated semantic inputs.
+- Prefer explicit dependencies such as `dateMode`, `seriesId`, `dateBinding`,
+  `windowKind`, `seriesDateSetup`, `chartDateSetup`, `seriesCount`, `colorHue`,
+  or `traceWindow` over passing the whole parent object.
+- Broad objects are fine when the function truly owns a broad transition or
+  invariant. The goal is explicit dependencies, not primitive obsession.
+
+### Good: Compose At Boundary, Pass Honest Values
+
+```ts
+const chartDateSetup = chartDefaultDateSetup(chart);
+
+return resolveTraceDateWindow({
+  chartDateSetup,
+  seriesDateSetup: series.dateSetup,
+  traceWindow: trace.window,
+});
+```
+
+### Bad: Courier Arguments Hide Dependencies
+
+```ts
+return resolveTraceDateWindow(chart, series, trace);
+
+function resolveTraceDateWindow(
+  chart: ChartSpec,
+  series: ChartSpecSeries,
+  trace: ChartSpecTrace
+): DateWindow | null {
+  return trace.window.kind === "chart-window"
+    ? chartDefaultDateSetup(chart).windows.find(...)
+    : series.dateSetup.windows.find(...);
+}
+```
 
 ### Good: Boundary Parse, Typed Core
 
@@ -283,10 +339,18 @@ function LayerToggle(): React.ReactElement {
 - Test the lowest meaningful seam that proves the behavior: schema parsing,
   hydrators, state transitions, selectors, validators, URL sync, mutation
   commands, cache invalidation, hooks, and adapter behavior.
+- Do not create React component, page, or render tests just because changed code
+  lives near React. First identify the lowest meaningful behavioral contract.
 - Avoid mock-heavy UI tests that only prove React wiring, browser behavior, or
   implementation details.
 - Use UI or component tests when the regression is genuinely interaction-level,
   visual-state-level, or a user journey would otherwise be unprotected.
+- Before adding a `.test.tsx` render test, state the user-visible behavior that
+  requires rendering and why a lower-level test would be insufficient. Existing
+  component tests nearby are not permission to add another one.
+- Avoid "wiring proof" tests that mount components only to observe props, mocked
+  hooks, or effect calls. Test the hook, state, command, parser, reducer,
+  selector, adapter, or schema contract directly instead.
 - For PR cleanup, derive the exact touched-file manifest from the diff and make
   that surface clean. Warnings count as failures when they will become errors.
 - Prefer the project's existing test shape over a new harness.
