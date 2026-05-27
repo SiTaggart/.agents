@@ -50,10 +50,10 @@ This file contains the shipping workflow (Phase 3-4). It is loaded when all Phas
    Options (four or fewer, self-contained labels):
    - `Apply/fix now` — loop back into review with focused fixes; the agent investigates each finding, applies changes where safe, and re-runs review.
    - `File tickets via project tracker` — load `references/tracker-defer.md` in Interactive mode; the agent files tickets in the project's detected tracker (or `gh` fallback, or leaves them in the report if no sink exists) and proceeds to Final Validation.
-   - `Accept and proceed` — record the residual findings verbatim in a durable "Known Residuals" sink before shipping. If a PR will be created or updated in Phase 4, include them in the PR description's "Known Residuals" section (the agent owns this when calling `git-commit-push-pr`). If the user later chooses the no-PR `git-commit` path, create `docs/residual-review-findings/<branch-or-head-sha>.md`, include the accepted findings and source review-run context, stage it with the implementation commit, and mention the file path in the final summary. The user has acknowledged the risk, but the findings must not live only in the transient session.
+   - `Accept and proceed` — record the residual findings verbatim in a durable "Known Residuals" sink before shipping. If a PR will be created or updated in Phase 4, include them in the PR description's "Known Residuals" section (the agent owns this when calling `git-commit-push-pr`). If the user later chooses the no-PR `commit` path, create `.ai/residual-review-findings/<branch-or-head-sha>.md`, include the accepted findings and source review-run context, stage it with the implementation commit, and mention the file path in the final summary. The user has acknowledged the risk, but the findings must not live only in the transient session.
    - `Stop — do not ship` — abort the shipping workflow. The user will handle findings manually before re-invoking.
 
-   Skip this gate entirely when the review reported `Residual actionable work: none.` or when only Tier 1 was used. Do not proceed past this gate on an `Accept and proceed` decision until the agent has recorded whether the durable sink is `PR Known Residuals` or `docs/residual-review-findings/<branch-or-head-sha>.md`.
+   Skip this gate entirely when the review reported `Residual actionable work: none.` or when only Tier 1 was used. Do not proceed past this gate on an `Accept and proceed` decision until the agent has recorded whether the durable sink is `PR Known Residuals` or `.ai/residual-review-findings/<branch-or-head-sha>.md`.
 
 5. **Final Validation**
    - All tasks marked completed
@@ -85,14 +85,26 @@ This file contains the shipping workflow (Phase 3-4). It is loaded when all Phas
 
 2. **Update Plan Status**
 
-   If the input document has YAML frontmatter with a `status` field, update it to `completed`:
-   ```
-   status: active  ->  status: completed
-   ```
+   Update the plan's `status` field from `active` to `completed`. The
+   mechanic depends on the plan's format:
+
+   - **Markdown plan (`.md`).** YAML frontmatter at the top of the file
+     carries the status. Edit the YAML directly:
+     ```
+     status: active  ->  status: completed
+     ```
+   - **HTML plan (`.html`).** Status lives as visible text in the rendered
+     header (typically `<span class="status">active</span>` or similar).
+     Edit the visible element's text content directly. There is no hidden
+     JSON-frontmatter copy to keep in sync — HTML metadata is a single
+     source of truth in visible text per the html-rendering invariants.
+
+   If no status field exists in either format, skip this step — some
+   plans omit frontmatter entirely.
 
 3. **Commit and Create Pull Request**
 
-   Load the `git-commit-push-pr` skill to handle committing, pushing, and PR creation. The skill handles convention detection, branch safety, logical commit splitting, adaptive PR descriptions, and PR metadata.
+   Load the `git-commit-push-pr` skill to handle committing, pushing, and PR creation. The skill handles convention detection, branch safety, logical commit splitting, adaptive PR descriptions, and attribution badges.
 
    When providing context for the PR description, include:
    - The plan's summary and key decisions
@@ -102,7 +114,7 @@ This file contains the shipping workflow (Phase 3-4). It is loaded when all Phas
    - The Post-Deploy Monitoring & Validation section (see Phase 3 Step 6)
    - Any "Known Residuals" accepted in the Phase 3 Residual Work Gate, rendered as a dedicated section in the PR body with severity, file:line, and title per finding
 
-   If the user prefers to commit without creating a PR, load the `git-commit` skill instead.
+   If the user prefers to commit without creating a PR, load the `commit` skill instead.
 
 4. **Notify User**
    - Summarize what was completed
@@ -125,7 +137,7 @@ Before creating PR, verify:
 - [ ] PR description includes Post-Deploy Monitoring & Validation section (or explicit no-impact rationale)
 - [ ] Code review completed (Tier 1 harness-native or Tier 2 `ce-review`)
 - [ ] PR description includes summary, testing notes, and evidence when captured
-- [ ] PR description includes summary, validation notes, and rollout considerations
+- [ ] PR description includes Compound Engineered badge with accurate model and harness
 
 ## Code Review Tiers
 
