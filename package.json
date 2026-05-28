@@ -13,10 +13,12 @@
     "sync": "bun src/cli.ts sync",
     "lint": "bunx oxlint src tests",
     "test": "bun test",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "doctor": "npx react-doctor@latest"
   },
   "devDependencies": {
     "@types/bun": "^1.3.5",
+    "react-doctor": "^0.2.8",
     "typescript": "^5.9.3"
   }
 }

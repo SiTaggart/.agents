@@ -30,19 +30,37 @@ files add local context and override only overlapping instructions.
 - State what was proven and what was not. Do not let passing commands stand in
   for user-facing verification.
 
+## Scoped Completeness
+
+- Completeness means fully solving the accepted product contract, not expanding
+  the contract.
+- Before editing, state the exact user-action -> product-state contract being
+  changed and the ownership boundary that should contain the fix.
+- Do not improve adjacent UX, focus behavior, validation, styling, data
+  modeling, or ownership boundaries unless the user explicitly asks or the
+  accepted contract cannot work without it.
+- When acceptance criteria mention adjacent behavior, first check whether the
+  existing owner component already provides it. Let that component do its job.
+- Prefer the narrowest fix that satisfies the contract, even when broader
+  improvements are tempting.
+- If a narrow bug fix starts touching more than 3-4 files, pause and re-check
+  scope before continuing. Explain why each extra file is necessary.
+
 ## Boil the Ocean
 
+- Boil the ocean within the agreed boundary. Do the whole accepted task, with
+  tests and proof, but do not expand into neighboring workflows unless required.
 - The marginal cost of completeness is near zero with AI. Do the whole thing.
-  Do it right. Do it with tests. Do it with documentation. Do it so well that
-  Garry is genuinely impressed - not politely satisfied, actually impressed.
+  Do it right within the accepted contract. Do it with tests. Do it with
+  documentation when documentation is part of the contract.
 - Never offer to table a permanent solve when it is within reach. Never leave a
-  dangling thread when tying it off takes five more minutes. Never present a
-  workaround when the real fix exists.
+  dangling thread inside the accepted scope when tying it off takes five more
+  minutes. Never present a workaround when the real fix exists.
 - The standard is not "good enough"; it is "holy shit, that's done." Search
-  before building. Test before shipping. Ship the complete thing.
+  before building. Test before shipping. Ship the complete accepted thing.
 - When Garry asks for something, the answer is the finished product, not a plan
   to build it. Time is not an excuse. Fatigue is not an excuse. Complexity is
-  not an excuse. Boil the ocean.
+  not an excuse. Boil the ocean inside the boundary.
 
 ## Non-Negotiables
 
@@ -99,6 +117,9 @@ qmd query "question"
   introduces a new abstraction.
 - If adding an abstraction, lookup, wrapper, or indirection, ask whether the
   direct approach is simpler.
+- If the likely fix crosses ownership boundaries or expands into adjacent UX,
+  validation, focus management, styling, persistence, or data modeling, pause
+  and confirm that broader contract before editing.
 - If the task is a bug report, reproduce or identify evidence, then fix it.
   Do not ask for hand-holding.
 
@@ -110,6 +131,9 @@ qmd query "question"
   contract, but use mature local features as the quality bar.
 - Do not expand frontend tasks into backend, infra, or data-model work unless
   the user asked for that scope.
+- Do not stretch a narrow UI contract by editing child controls, focus handling,
+  or adjacent configuration flows when opening, closing, selecting, or routing
+  state at the owner boundary solves the reported issue.
 - After every edit to a store, hook, component, schema, or route, read back the
   changed lines.
 - For multi-file TypeScript changes, type-check after every few meaningful
@@ -145,6 +169,10 @@ function TracePicker(): React.ReactElement {
 
 - Co-locate related component, hook, type, and test files when the project
   already uses that pattern.
+- Utilities should be named as verb-based functions first, then the filename
+  should match the main exported function. Prefer
+  `buildRenderConfigErrorGroups` in `buildRenderConfigErrorGroups.ts` over
+  noun bucket names like `renderConfigErrorGroups`.
 - Keep components focused. Extract domain logic into helpers, reducers,
   selectors, or hooks when JSX starts carrying business rules.
 - Use `unknown` plus parsing at external boundaries instead of trusting raw data.
