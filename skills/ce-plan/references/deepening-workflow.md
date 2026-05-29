@@ -106,6 +106,7 @@ Use fully-qualified agent names inside Task calls.
 - `ce-learnings-researcher` for institutional knowledge and past solved problems
 - `ce-framework-docs-researcher` for official framework or library behavior
 - `ce-best-practices-researcher` for current external patterns and industry guidance
+- `web-researcher` for landscape/prior-art gaps — competitor patterns, market signals, or an unsettled external option set (which library/provider/approach) that recommendations depend on
 - Add `ce-git-history-analyzer` only when historical rationale or prior art is materially missing
 
 **Key Technical Decisions**
