@@ -109,7 +109,9 @@ If the plan already has a `deepened: YYYY-MM-DD` frontmatter field and there is 
 
 #### 0.1b Classify Task Domain
 
-If the task involves building, modifying, or architecting software (references code, repos, APIs, databases, or asks to build/modify/deploy), continue to Phase 0.2.
+If the task asks to build, modify, refactor, deploy, or architect software (code, schemas, infrastructure), continue to Phase 0.2.
+
+Classify by task-type, not topic. A request that merely *references* code, a repo, an API, or a database is not automatically software work: building or modifying code is software; investigating or analyzing it is an answer-seeking question. "How often does X star repos — is it a big deal?" or "how does our approach compare to Y?" route to `references/universal-planning.md` (answer-seeking), not the implementation-plan path.
 
 If the domain is genuinely ambiguous (e.g., "plan a migration" with no other context), ask the user before routing.
 
