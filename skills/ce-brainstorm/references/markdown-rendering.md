@@ -99,10 +99,12 @@ How section types commonly render in markdown. These are patterns, not
 contracts — the agent picks the shape that fits the content.
 
 - **Summary / Problem Frame** — prose paragraphs.
-- **Requirements** — bullets with `R<N>.` prefix. Group with bold inline
-  headers when requirements span distinct concerns (group by capability,
-  not by discussion order). When requirements have status, traceability,
-  or severity that warrant additional columns, escalate to a table.
+- **Requirements** — bullets with `R<N>.` prefix. When requirements span
+  more than one concern, grouping under bold inline headers is the default
+  shape, not optional polish (group by capability, not by discussion order);
+  render a flat list only when every requirement is about the same thing.
+  When requirements have status, traceability, or severity that warrant
+  additional columns, escalate to a table.
 - **Implementation Units** — H3 heading per unit with `U<N>.` prefix.
   Fields (Goal, Files, Patterns, Test Scenarios, Verification) render as
   bullets with bold leader labels, or as sub-headings if the field has

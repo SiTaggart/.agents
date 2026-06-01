@@ -297,7 +297,16 @@ Ask the user only if the posture would materially change sequencing or risk and 
 
 #### 1.2 Decide on External Research
 
-Based on the origin document, user signals, and local findings, decide whether external research adds value.
+Based on the origin document, user signals, and local findings, decide **whether** external research adds value and, if so, **what kind**. Resolve this in three stages: explicit-request priority, intent classification, then the implicit signals below.
+
+**Stage 1 — An explicit request takes precedence.** If the user prompt **or** the origin requirements document explicitly asks for external input — a signal that the answer lives outside the repo, such as competitor/prior-art comparison, "what should we borrow", "from the web", "best practices", "official docs", "alternatives to", a market scan, or naming a specific external technology to consult — external research is **required**, regardless of how strong local patterns look. The list is illustrative; key on the signal, not the exact phrase — any wording that clearly points outside the repo qualifies. The skip conditions below do **not** apply to an explicit request. The only thing that overrides it is an explicit opt-out ("no web research", "skip external research"): honor that, skip, and note it. Improvement or quality verbs ("improve", "make better") carry no external signal on their own and never trigger research by themselves.
+
+**Stage 2 — Classify the research intent** (whenever external research will run, from Stage 1 or the implicit signals below) so Phase 1.3 routes correctly. Use this mechanical test, not a fixed phrase list:
+- **Implementation-guidance** — the approach or technology is already settled; the question is *how to build it well* (best practices, version-specific docs, API constraints, known pitfalls, deprecations).
+- **Landscape / option-discovery** — the question is *what options or prior art exist* (competitor scans, build-vs-buy, library/provider selection, prior art, market signals, cross-domain analogies).
+- **Mixed** — both: discover an unsettled external option set first, then research the shortlisted choice for implementation guidance.
+
+**Stage 3 — Implicit signals** decide the call when no explicit request fired.
 
 **Read between the lines.** Pay attention to signals from the conversation so far:
 - **User familiarity** — Are they pointing to specific files or patterns? They likely know the codebase well.
@@ -321,23 +330,32 @@ The ce-repo-research-analyst output includes a structured Technology & Infrastru
 - Local patterns exist for an adjacent domain but not the exact one -- e.g., the codebase has HTTP clients but not webhook receivers, or has background jobs but not event-driven pub/sub. Adjacent patterns suggest the team is comfortable with the technology layer but may not know domain-specific pitfalls. When this signal is present, frame the external research query around the domain gap specifically, not the general technology
 - The user is exploring unfamiliar territory
 - The technology scan found the relevant layer absent or thin in the codebase
+- The plan's recommendations depend on a genuinely external, **unsettled** option set — which library, provider, or approach to adopt, or what competitors and prior art do — **even when local implementation patterns are strong** (intent: landscape). Bound this implicit landscape trigger by three gates: (a) the option set genuinely lives outside the repo, (b) the decision materially shapes the plan (a KTD, dependency, or architecture choice — not an incidental detail), and (c) no settled local or team choice already exists. Improvement verbs alone never satisfy this.
 
-**Skip external research when:**
+**Skip external research when** (only when Stage 1 found no explicit request — an explicit request is never skipped):
 - The codebase already shows a strong local pattern -- multiple direct examples (not adjacent-domain), recently touched, following current conventions
 - The user already knows the intended shape
 - Additional external context would add little practical value
 - The technology scan found the relevant layer well-established with existing examples to follow
 
-Announce the decision briefly before continuing. Examples:
+When an explicit request *did* fire but a settled local or team choice already exists, **narrow the research rather than skipping it** — research the current pitfalls, docs, and practices for the chosen library/pattern instead of re-surveying the whole option set.
+
+Announce the decision and the intent briefly before continuing. Examples:
 - "Your codebase has solid patterns for this. Proceeding without external research."
-- "This involves payment processing, so I'll research current best practices first."
+- "This involves payment processing, so I'll research current best practices first (implementation-guidance)."
+- "You asked what to borrow from competitors, so I'll run a landscape scan first (landscape/option-discovery)."
 
 #### 1.3 External Research (Conditional)
 
-If Step 1.2 indicates external research is useful, run these agents in parallel:
+If Step 1.2 indicates external research is useful, dispatch by the **intent** classified in Stage 2, using the platform's subagent primitive (`Agent`/`Task` in Claude Code, `spawn_agent` in Codex, `subagent` in Pi). For `web-researcher`, pass a focus hint plus the planning context summary and do **not** pass codebase content — it operates externally.
 
-- Task ce-best-practices-researcher(planning context summary)
-- Task ce-framework-docs-researcher(planning context summary)
+- **Implementation-guidance** — run in parallel:
+  - Task ce-best-practices-researcher(planning context summary)
+  - Task ce-framework-docs-researcher(planning context summary, with exact frameworks/versions from Phase 1.1 where available)
+- **Landscape / option-discovery** — Task web-researcher(focus hint, planning context summary). When the request targets projects on a code host (e.g., "competitors on GitHub"), name the discovery dimensions in the focus hint: project names and URLs, release recency and activity, CLI/UX shape, install path, docs and examples, plugin/extension surfaces, recurring issue themes, and license — treating star counts as a weak signal only.
+- **Mixed** — **sequential, not parallel**: run `web-researcher` first to map the landscape and produce a shortlist; then run `ce-framework-docs-researcher` and/or `ce-best-practices-researcher` against the shortlisted technologies only when their details materially shape the plan.
+
+**Tool-unavailable handling.** `web-researcher` self-checks for web tools and stops if they are missing. Never block on this: if it reports research unavailable, or any researcher fails, warn and proceed, and carry the gap into Phase 1.4 so the plan records it honestly — especially when the user explicitly requested external research, where a silent skip would leave the plan looking evidence-based when it is not.
 
 #### 1.4 Consolidate Research
 
@@ -345,9 +363,15 @@ Summarize:
 - Relevant codebase patterns and file paths
 - Relevant institutional learnings
 - Organizational context from Slack conversations, if gathered (prior discussions, decisions, or domain knowledge relevant to the feature)
-- External references and best practices, if gathered
+- External references, prior art, competitor/landscape findings, and best practices, if gathered
 - Related issues, PRs, or prior art
 - Any constraints that should materially shape the plan
+
+**Land external findings in decisions, not an appendix.** Any external research that ran must surface where it changes a choice — Key Technical Decisions rationale, Alternatives, Risks, or Sources & Research — not as a detached list with no bearing on the plan. If a finding shaped nothing, it was not load-bearing; do not pad the plan with it.
+
+**Mark whether external research was load-bearing.** Record a single internal flag: did external findings materially shape a KTD, Alternative, Scope boundary, or Risk? This flag answers only that question — it does **not** gate whether research runs (Phase 1.2 owns that decision). Phase 5.3.2 reads it to decide whether to enter a confidence-scoring pass.
+
+**Record requested-but-unavailable.** If the user explicitly requested external research but it could not run (web tools unavailable, researcher failed), state that in the plan as an assumption or open question rather than presenting the plan as externally grounded.
 
 #### 1.4b Reclassify Depth When Research Reveals External Contract Surfaces
 
@@ -700,8 +724,9 @@ Build a risk profile. Treat these as high-risk signals:
 - **Standard** plans often benefit when one or more important sections still look thin
 - **Deep** or high-risk plans often benefit from a targeted second pass
 - **Thin local grounding override:** If Phase 1.2 triggered external research because local patterns were thin (fewer than 3 direct examples or adjacent-domain match), always proceed to scoring regardless of how grounded the plan appears. When the plan was built on unfamiliar territory, claims about system behavior are more likely to be assumptions than verified facts. The scoring pass is cheap — if the plan is genuinely solid, scoring finds nothing and exits quickly
+- **Load-bearing external research override:** If Phase 1.4 marked external research as load-bearing (it materially shaped a KTD, Alternative, Scope boundary, or Risk), always proceed to scoring — **even when local implementation patterns are strong**. A landscape or prior-art finding can shape recommendations the local codebase cannot verify, and the thin-grounding override above would miss it. This enters the scoring pass only; it does not force deepening
 
-If the plan already appears sufficiently grounded and the thin-grounding override does not apply, report "Confidence check passed — no sections need strengthening", then **load `references/plan-handoff.md` now and execute 5.3.8 → 5.3.9 → 5.4 in sequence**. Document review is mandatory for markdown plans — do not skip it because the confidence check passed. The two tools catch different classes of issues. For HTML plans (`OUTPUT_FORMAT=html`), the plan-handoff 5.3.8 format gate skips ce-doc-review since its mutation mechanics are markdown-only today; the menu summary surfaces that limitation explicitly.
+If the plan already appears sufficiently grounded and neither the thin-grounding nor the load-bearing-external-research override applies, report "Confidence check passed — no sections need strengthening", then **load `references/plan-handoff.md` now and execute 5.3.8 → 5.3.9 → 5.4 in sequence**. Document review is mandatory for markdown plans — do not skip it because the confidence check passed. The two tools catch different classes of issues. For HTML plans (`OUTPUT_FORMAT=html`), the plan-handoff 5.3.8 format gate skips ce-doc-review since its mutation mechanics are markdown-only today; the menu summary surfaces that limitation explicitly.
 
 ##### 5.3.3–5.3.7 Deepening Execution
 

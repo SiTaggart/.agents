@@ -20,9 +20,9 @@ Search session history across Claude Code, Codex, and Cursor and synthesize find
 
 If the line above resolved to a plain branch name (like `feat/my-branch`), use it for branch filtering and pass it to the synthesis subagent. If it still contains a backtick command string or is empty, derive the branch at runtime instead.
 
-**Repo name (pre-resolved):** !`basename "$(git rev-parse --show-toplevel 2>/dev/null)" 2>/dev/null || true`
+**Repo root (pre-resolved):** !`git rev-parse --show-toplevel 2>/dev/null || true`
 
-If the line above resolved to a plain repo folder name, use it for session discovery. Otherwise derive at runtime.
+If the line above resolved to a path, take its last path component as the repo folder name and use that for session discovery. If it is empty or still contains a backtick command string, derive the repo name at runtime instead.
 
 ## Note: 2026
 

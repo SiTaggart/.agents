@@ -157,6 +157,30 @@ defend against:
 These shape what "good" HTML looks like; the agent applies them per
 artifact based on content.
 
+### Readable measure, not full bleed
+
+Long-form text is unreadable at full viewport width — past ~80 characters
+per line the eye loses the return sweep and scanning slows. As a
+fallback-default (precedence tier 4, overridden by in-session direction or
+DESIGN.md), center the document in a content container and hold prose to a
+comfortable measure.
+
+- **Page container.** A centered column with a max-width in the ~820-960px
+  band (`margin-inline: auto`) keeps the doc off the far edges of wide
+  monitors while leaving room for the format's richer shapes.
+- **Prose measure.** Hold running paragraphs to roughly 65-80 characters
+  (`max-width: ~70ch` on text blocks). The named test: read a paragraph at
+  full window width on a wide display — if the return sweep to the next
+  line is effortful, the measure is too wide.
+- **Let wide content break out.** Tables, diagrams, and side-by-side
+  columns may use the full container width (or wider) when the content
+  needs it — the measure constraint is for prose, not for everything.
+
+Express the constraint in `ch`/`rem` rather than a single hardcoded pixel
+value so it survives font-size and DESIGN.md overrides. DESIGN.md or an
+in-session instruction overrides these values; this is the fallback when no
+layout preference exists.
+
 ### Markdown source is content, not design
 
 When markdown (or markdown-shaped chat context) is part of the input, use
@@ -248,7 +272,11 @@ contracts — the agent picks shapes that fit the content.
   paragraphs. Optionally precede with an eyebrow label (small-caps tag
   above the title) for editorial polish.
 - **Requirements** — `<table>` is the default at 5+ uniform items;
-  bullets at smaller counts. Each row has the R-ID as visible text in
+  bullets at smaller counts. Concern-grouping takes precedence over the
+  flat-table default: when requirements span distinct concerns, group them
+  under bold inline headers (or per-group sections) first, then apply the
+  5+ table default *within* each group rather than flattening the whole
+  section into one table. Each row has the R-ID as visible text in
   its own column. Consider adding a "covered by" column for reverse
   traceability when ID-anchored items have downstream references in
   the same doc.
@@ -263,7 +291,15 @@ contracts — the agent picks shapes that fit the content.
   primary always-visible surface; subsection labels (`<summary>`) are
   clickable affordances for readers to expand on demand. A single unit
   with no secondary content can skip `<details>` entirely; the rule
-  fires when content exists to hide.
+  fires when content exists to hide. The `<dl>` strip is for *descriptive*
+  fields (Goal, Files, Dependencies). A *directive* field — `Execution
+  note` is the canonical case, carrying a procedural instruction the
+  implementer must act on (e.g. "start with a failing integration test") —
+  does not belong in the strip, where it renders as a passive pair styled
+  like a date and gets skimmed past. Render it as an advisory callout (see
+  Tinted callout cards) so its visual weight matches its actionability. The
+  test: descriptive value -> metadata pair; something the reader must act
+  on -> callout.
 - **Key Technical Decisions** — repeating cards with the decision ID,
   bold decision title (often with inline code for technical
   identifiers), and prose rationale. Flat cards (not collapsibles) —
@@ -287,6 +323,23 @@ shape that conveys the content fastest — there is no fixed catalog of
 across categories, a bar chart is the right shape; if it's component
 relationships, a topology diagram; if it's process flow across
 participants, a swim lane; etc.
+
+**Conceptual diagrams are not wireframes.** The wireframe affordance below
+is scoped to brainstorm requirements docs about *visual products* and is
+excluded for non-visual systems. That exclusion is about wireframes only —
+a brainstorm about a data model, schema, agent workflow, or migration is
+still free to use a conceptual diagram (a before/after field map, a
+source-of-truth fan-out, a state diagram). Don't let the wireframe
+exclusion suppress a conceptual diagram the content warrants.
+
+**Diagrams complement prose; they never replace it.** A diagram is an
+accelerant placed next to the prose it illustrates, not a substitute. The
+IDed prose stays complete and standalone — a reader who ignores every
+diagram still gets the full content in text, and a text-reading downstream
+agent (which does not parse SVG geometry) is never left with a relationship
+that exists only in the picture. This extends the prose-is-authoritative
+rule above: prose governs not only on disagreement but on completeness, so
+adding a diagram is not license to thin the prose it depicts.
 
 ### Layout legibility for hand-authored SVG
 
@@ -406,8 +459,8 @@ fine when the content suggests them.
 - **Side-by-side columns** for parallel content (Request / Response,
   Before / After, Two alternatives).
 - **Tinted callout cards** for content that is "different in kind"
-  (Deferred, Open Questions, advisory notes) — color-coded left
-  borders communicate kind at a glance.
+  (Deferred, Open Questions, advisory notes, unit-level execution notes)
+  — color-coded left borders communicate kind at a glance.
 
 ## Agent-consumability rules
 
@@ -472,6 +525,9 @@ Before returning the artifact, scan it for common slips:
 - **`<details>`** inside repeating cards have no `open` attribute.
 - **Diagram labels** are legible — no arrow paths crossing text,
   halo width appropriate for font size.
+- **Diagrams complement prose, not replace it.** Every relationship a
+  diagram conveys is also present in the surrounding IDed prose; no
+  content lives only in an SVG.
 - **No JS framework runtimes** included. Small inline `<script>` for
   active-section TOC tracking or anchor-permalink behavior is the only
   acceptable JS.

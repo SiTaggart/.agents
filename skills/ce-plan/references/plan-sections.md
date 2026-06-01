@@ -217,11 +217,13 @@ These apply regardless of rendering format.
   metadata belongs in commit messages and tool output, not the artifact.
 - **Group Requirements by concern when they span distinct logical areas.**
   The trigger is distinct concerns, not item count — even four requirements
-  benefit from grouping if they cover three different topics. Group by
-  capability (e.g., "Packaging", "Migration and compatibility", "Contributor
-  workflow"), not by the order requirements were discussed. R-IDs stay
-  continuous across groups (R1, R2 in the first group; R3, R4 in the second;
-  never restart at R1 per group).
+  benefit from grouping if they cover three different topics. Skip grouping
+  only when all requirements are genuinely about the same thing; a long flat
+  list is a smell that subgroups were missed. Group by capability (e.g.,
+  "Packaging", "Migration and compatibility", "Contributor workflow"), not by
+  the order requirements were discussed. R-IDs stay continuous across groups
+  (R1, R2 in the first group; R3, R4 in the second; never restart at R1 per
+  group).
 
 ## Rendering
 
