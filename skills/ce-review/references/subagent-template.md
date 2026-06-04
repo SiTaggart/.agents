@@ -31,7 +31,7 @@ You produce up to two outputs depending on whether a run ID was provided:
    Do NOT include why_it_matters or evidence in the returned JSON.
    Include reviewer, residual_risks, and testing_gaps at the top level.
 
-The full file preserves detail for downstream consumers (headless output, debugging).
+The full file preserves detail for downstream consumers (agent-mode output, debugging).
 The compact return keeps the orchestrator's context lean for merge and synthesis.
 
 The schema below describes the **full artifact file format** (all fields required). For the compact return, follow the field list above -- omit why_it_matters and evidence even though the schema marks them as required.
@@ -41,8 +41,8 @@ The schema below describes the **full artifact file format** (all fields require
 **Schema conformance — hard constraints (use these exact values; validation rejects anything else):**
 
 - `severity`: one of `"P0"`, `"P1"`, `"P2"`, `"P3"` — use these exact strings. Do NOT use `"high"`, `"medium"`, `"low"`, `"critical"`, or any other vocabulary, even if your persona's prose discusses priorities in those terms conceptually.
-- `autofix_class`: one of `"safe_auto"`, `"gated_auto"`, `"manual"`, `"advisory"`.
-- `owner`: one of `"review-fixer"`, `"downstream-resolver"`, `"human"`, `"release"`.
+- `autofix_class`: one of `"gated_auto"`, `"manual"`, `"advisory"`.
+- `owner`: one of `"downstream-resolver"`, `"human"`, `"release"`.
 - `evidence`: an ARRAY of strings with at least one element. A single string value is a validation failure — wrap every quote in `["..."]` even when there is only one.
 - `pre_existing`: boolean, never null.
 - `requires_verification`: boolean, never null.
@@ -90,7 +90,7 @@ The `confidence: 100` is justified because the issue is verifiable from the code
 
 Writing `why_it_matters` (required field, every finding):
 
-The `why_it_matters` field is how the reader — a developer triaging findings, a ticket-body reader months later, or a downstream automated surface — understands the problem without re-reading the file. Treat it as the most important prose field in your output; every downstream surface (walk-through questions, bulk-action previews, ticket bodies, headless output) depends on it being good.
+The `why_it_matters` field is how the reader — a developer triaging findings, a ticket-body reader months later, or a caller workflow — understands the problem without re-reading the file. Treat it as the most important prose field in your output; every downstream surface (reports, agent envelopes, ticket bodies) depends on it being good.
 
 - **Lead with observable behavior.** Describe what the bug does from the outside — what a user, attacker, operator, or downstream caller experiences. Do not lead with code structure ("The function X does Y..."). Start with the effect ("Any signed-in user can read another user's orders..."). Function and variable names appear later, only when the reader needs them to locate the issue.
 - **Explain why the fix resolves the problem.** If you include a `suggested_fix`, the `why_it_matters` should make clear why that specific fix addresses the root cause. When a similar pattern exists elsewhere in the codebase (an existing guard, an established convention, a parallel handler), reference it so the recommendation is grounded in the project's own conventions rather than theoretical best practice.
@@ -114,7 +114,7 @@ STRONG (observable behavior first, grounded fix reasoning):
 
 False-positive categories to actively suppress. Do NOT emit a finding when any of these apply — not even at anchor `25` or `50`. These are not edge cases you should route to soft buckets; they are non-findings.
 
-- **Pre-existing issues unrelated to this diff.** Mark `pre_existing: true` only for unchanged code the diff does not interact with. If the diff makes a previously-dormant issue newly relevant (e.g., changes a caller in a way that exposes a bug downstream), it is a secondary finding, not pre-existing. PR-comment and headless externalization filter pre-existing entirely; interactive review surfaces them in a separate section.
+- **Pre-existing issues unrelated to this diff.** Mark `pre_existing: true` only for unchanged code the diff does not interact with. If the diff makes a previously-dormant issue newly relevant (e.g., changes a caller in a way that exposes a bug downstream), it is a secondary finding, not pre-existing. PR-comment and agent-mode externalization filter pre-existing entirely; interactive review surfaces them in a separate section.
 - **Pedantic style nitpicks that a linter or formatter would catch.** Missing semicolons, indentation, import ordering, unused-variable warnings the project's tooling already catches. Style belongs to the toolchain.
 - **Code that looks wrong but is intentional.** Check comments, commit messages, PR description, or surrounding code for evidence of intent before flagging. A persona-flagged "missing null check" guarded by an upstream `.present?` call is a false positive.
 - **Issues already handled elsewhere.** Check callers, guards, middleware, framework defaults, and parallel handlers before flagging. If a controller's input is already validated by a parent middleware, the controller-level check the persona wants to add is redundant.
@@ -134,21 +134,8 @@ Rules:
 - Every finding in the full artifact file MUST include at least one evidence item grounded in the actual code. The compact return omits evidence -- the evidence requirement applies to the disk artifact only.
 - Set `pre_existing` to true ONLY for issues in unchanged code that are unrelated to this diff. If the diff makes the issue newly relevant, it is NOT pre-existing.
 - You are operationally read-only. The one permitted exception is writing your full analysis to the `.context/` artifact path when a run ID is provided. You may also use non-mutating inspection commands, including read-oriented `git` / `gh` commands, to gather evidence. Do not edit project files, change branches, commit, push, create PRs, or otherwise mutate the checkout or repository state.
-- Set `autofix_class` accurately. The classification governs whether the fixer applies the change automatically (`safe_auto`) or surfaces it for explicit review (`gated_auto` / `manual` / `advisory`). **The wrong-side cost is symmetric:** classifying a contract-change as `safe_auto` produces an unwanted edit; classifying a mechanical fix as `gated_auto` makes the user manually triage findings the fixer could have applied. Bias toward `safe_auto` when the rubric permits it. Use this decision guide:
-  - `safe_auto`: The fix is local and deterministic — the fixer can apply it mechanically. **The test:** you can articulate the fix in one sentence with no "depends on" clauses, AND applying it doesn't change any of {function signature, public-API/response contract, error contract, security posture, permission model}. Examples: extracting a duplicated helper, adding a missing nil/null guard inside an internal function, fixing an off-by-one when the parallel pattern is in scope, adding a missing test for an existing public method, removing dead code, removing an unused import.
-
-    **Boundary cases that often feel risky but are still `safe_auto`:**
-    - A nil guard that turns a crash into a nil-return is `safe_auto` when the function is internal and no public-API/error contract is documented. The contract is the function body itself — adding a precondition check isn't a behavior change worth gating.
-    - An off-by-one fix is `safe_auto` when the corrected behavior is verifiable from a parallel pattern visible in the surrounding code or from explicit documentation. Matching an established pattern isn't a design decision.
-    - Dead-code removal is `safe_auto` when the code's deadness is signaled in scope: no callers reachable from the diff, in-file comment says "superseded" / "unused" / "no callers", or the surrounding refactor obviously displaces it. "Someone might want this someday" isn't a design call the reviewer is empowered to make.
-    - Helper extraction is `safe_auto` when the duplication is identical, all callers update in lockstep within the same diff, and the consolidation point is mechanical (a shared method on the same class, or a new helper named after the shared shape). Cross-file extraction qualifies when both files ship in the same diff and the shared shape dictates the name. The discriminator is whether **naming or placement requires a design conversation** ("service object vs concern? where does it live in the layering?"). If yes, gated_auto. If the name follows mechanically from the body, safe_auto.
-
-  - `gated_auto`: A concrete fix exists but applying it changes a contract, permission, or module boundary in a way the user should approve before it lands. Examples: adding authentication to an unprotected endpoint, changing a public API response shape (even by narrowing fields), switching from soft-delete to hard-delete, modifying error-handling in ways downstream callers can observe.
-  - `manual`: Actionable work that requires design decisions or cross-cutting changes. Examples: redesigning a data model, choosing between two equally-defensible architectural approaches, adding pagination to an unbounded query when no parallel pattern exists. **Pair `manual` with a concrete `suggested_fix` whenever you can defend one from the diff and surrounding code** — see the suggested_fix rule below. Omit `suggested_fix` only when the fix genuinely requires cross-team input, business context, or research outside this review.
-  - `advisory`: Report-only items that should not become code-fix work. Examples: noting a design asymmetry the PR improves but doesn't fully resolve, flagging a residual risk, deployment notes.
-
-  Do not default to `advisory` when uncertain — if a concrete fix is obvious, classify it as `safe_auto` or `gated_auto`. Do not default to `gated_auto` when the fix is mechanical but the change feels substantive — apply the safe_auto test above. The "feels risky" reflex is exactly the asymmetry this rubric is designed to neutralize.
-- Set `owner` to the default next actor for this finding: `review-fixer`, `downstream-resolver`, `human`, or `release`.
+- Set `autofix_class` and `owner` per `references/action-class-rubric.md`. This skill does not apply fixes — classify for caller routing only.
+- Default `owner` to `downstream-resolver` for actionable findings unless the item is genuinely human-only or release-owned.
 - Set `requires_verification` to true whenever the likely fix needs targeted tests, a focused re-review, or operational validation before it should be trusted.
 - **Propose a `suggested_fix` whenever any defensible code change is reachable from the diff and surrounding code.** This is the persona's commitment that "I, the reviewer with the diff and evidence in front of me, can articulate what the fix looks like." The suggested fix becomes the authoritative signal that downstream surfaces use to decide whether the agent can act on the finding. Three rules:
   - **Defensible from review context:** the fix should be reachable from the diff, the cited code, parallel patterns elsewhere in the repo, or framework conventions you can verify. If you cannot ground the fix in evidence the reader can check, omit it.
@@ -182,6 +169,8 @@ Changed files: {file_list}
 
 Diff:
 {diff}
+
+(For a large staged review, `{file_list}` and `{diff}` may be **file paths** rather than inline content. When a value above is a path, Read that file to get the full list/diff before reviewing — never treat the path string itself as the content to review.)
 </review-context>
 ```
 
@@ -194,7 +183,7 @@ Diff:
 | `{schema}` | `references/findings-schema.json` content | The JSON schema reviewers must conform to |
 | `{intent_summary}` | Stage 2 output | 2-3 line description of what the change is trying to accomplish |
 | `{pr_metadata}` | Stage 1 output | PR title, body, and URL when reviewing a PR. Empty string when reviewing a branch or standalone checkout |
-| `{file_list}` | Stage 1 output | List of changed files from the scope step |
-| `{diff}` | Stage 1 output | The actual diff content to review |
+| `{file_list}` | Stage 1 output | Changed-file list — inline, or a staged file path to Read for a large review |
+| `{diff}` | Stage 1 output | The diff to review — inline hunks, or a staged file path to Read for a large review |
 | `{run_id}` | Stage 4 output | Unique review run identifier for the artifact directory |
 | `{reviewer_name}` | Stage 3 output | Persona or agent name used as the artifact filename stem |

@@ -40,3 +40,9 @@
 
 # plan_output: html              # md | html (default: md)
 # brainstorm_output: html        # md | html (default: md)
+
+# --- ce-promote ---
+# Written automatically when you decline the Spiral setup offer in /ce-promote.
+# Suppresses that one-time setup nudge in this project. Remove the key to re-enable.
+
+# ce_promote_spiral_optout: true   # true | (absent) (default: absent -- offer once)

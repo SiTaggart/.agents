@@ -1,6 +1,6 @@
 # Tracker Detection and Defer Execution
 
-This reference covers how Defer actions file tickets in the project's tracker. It is loaded by `SKILL.md` when Interactive mode's routing question needs to decide whether to offer option C (File tickets), when the walk-through's Defer option executes, and when the bulk-preview of option C is shown. It is also loaded by autonomous callers (e.g., `lfg`) that need to file residual actionable findings without user prompts — see Execution Modes below.
+This reference covers how residual actionable findings are filed in the project's tracker. Loaded by caller workflows (for example `ce-work` Residual Work Gate, or `lfg` residual handling) — not by `ce-review`, which stops after the report.
 
 ---
 
@@ -8,9 +8,9 @@ This reference covers how Defer actions file tickets in the project's tracker. I
 
 Tracker-defer has two execution modes. The caller selects one; the detection, fallback chain, and ticket composition are shared.
 
-### Interactive mode (default)
+### Interactive mode
 
-Used by `ce-review` Interactive mode's routing question, walk-through Defer actions, and bulk-preview option C. All user-facing prompts fire:
+Used by `ce-work` Residual Work Gate and similar caller flows when the user chooses to file tickets. All user-facing prompts fire:
 
 - First Defer of the session with a generic (non-named) label confirms the effective tracker choice.
 - Execution failures prompt with Retry / Fall back to next sink / Convert to Skip.
@@ -94,7 +94,7 @@ Every Defer action creates a ticket with the following content, adapted to the t
 
 - **Title:** the merged finding's `title` (schema-capped at 10 words).
 - **Body:**
-  - Plain-English problem statement — reads the persona-produced `why_it_matters` from the contributing reviewer's artifact file at `/tmp/compound-engineering/ce-review/<run-id>/{reviewer}.json`, using the same `file + line_bucket(line, +/-3) + normalize(title)` matching headless mode uses (see SKILL.md Stage 6 detail enrichment). Falls back to the merged finding's `title`, `severity`, `file`, and `suggested_fix` (when present) when no artifact match is available — these fields are guaranteed in the merge-tier compact return.
+  - Plain-English problem statement — reads the persona-produced `why_it_matters` from the contributing reviewer's artifact file at `/tmp/compound-engineering/ce-review/<run-id>/{reviewer}.json`, using the same `file + line_bucket(line, +/-3) + normalize(title)` matching agent mode uses (see SKILL.md Stage 6 detail enrichment). Falls back to the merged finding's `title`, `severity`, `file`, and `suggested_fix` (when present) when no artifact match is available — these fields are guaranteed in the merge-tier compact return.
   - Suggested fix (when present in the finding's `suggested_fix`).
   - Evidence (direct quotes from the reviewer's artifact).
   - Metadata block: `Severity: <level>`, `Confidence: <score>`, `Reviewer(s): <list>`, `Finding ID: <fingerprint>`.

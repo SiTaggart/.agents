@@ -103,7 +103,7 @@ Use fully-qualified agent names inside Task calls.
 - `ce-repo-research-analyst` (Scope: `architecture, patterns`) for repo-grounded patterns, conventions, and implementation reality checks
 
 **Context & Research / Sources & References gaps**
-- `ce-learnings-researcher` for institutional knowledge and past solved problems
+- `learnings-researcher` for institutional knowledge and past solved problems
 - `ce-framework-docs-researcher` for official framework or library behavior
 - `ce-best-practices-researcher` for current external patterns and industry guidance
 - `web-researcher` for landscape/prior-art gaps — competitor patterns, market signals, or an unsettled external option set (which library/provider/approach) that recommendations depend on
@@ -134,7 +134,7 @@ Use fully-qualified agent names inside Task calls.
 - Use the specialist that matches the actual risk:
   - `ce-security-sentinel` for security, auth, privacy, and exploit risk
   - `ce-data-integrity-guardian` for migrations, backfills, persistent data safety, constraints, transaction boundaries, and production data transformation risk (plan context — not the PR-review `data-migration-reviewer` persona)
-  - `ce-deployment-verification-agent` for rollout checklists, rollback planning, and launch verification
+  - `deployment-verification-agent` for rollout checklists, rollback planning, and launch verification
   - `ce-performance-oracle` for capacity, latency, and scaling concerns
 
 **Agent Prompt Shape:**

@@ -53,12 +53,12 @@
           },
           "autofix_class": {
             "type": "string",
-            "enum": ["safe_auto", "gated_auto", "manual", "advisory"],
-            "description": "Routing class for downstream fixer dispatch. safe_auto = local mechanical fix the fixer applies without approval (test: a one-sentence fix with no 'depends on' clauses, AND no change to function signature, public-API/error contract, security posture, or permission model; for helper extraction, naming/placement must follow mechanically from the shared shape). gated_auto = concrete fix that changes contracts/permissions or whose placement requires a design conversation; needs user approval before apply. manual = actionable work needing design decisions; usually paired with a suggested_fix the user can confirm. advisory = report-only, no code change. The wrong-side cost is symmetric -- bias toward safe_auto when the rubric permits, since misclassifying mechanical fixes as gated_auto makes users triage findings the fixer could have applied."
+            "enum": ["gated_auto", "manual", "advisory"],
+            "description": "Routing hint for the caller after review (this skill does not apply fixes). gated_auto = concrete suggested_fix proposed; caller applies after judgment. manual = needs design or cross-cutting decisions. advisory = report-only."
           },
           "owner": {
             "type": "string",
-            "enum": ["review-fixer", "downstream-resolver", "human", "release"],
+            "enum": ["downstream-resolver", "human", "release"],
             "description": "Who should own the next action for this finding after synthesis"
           },
           "requires_verification": {
@@ -119,16 +119,14 @@
       "P3": "Low-impact, narrow scope, minor improvement. User's discretion."
     },
     "autofix_classes": {
-      "safe_auto": "Local, deterministic code or test fix suitable for the in-skill fixer. Examples: extract duplicated helper, add missing nil check, fix off-by-one, add missing test, remove dead code. Do not default to advisory when a concrete safe fix exists.",
-      "gated_auto": "Concrete fix exists, but it changes behavior, permissions, contracts, or other sensitive areas that deserve explicit approval. Examples: add auth to unprotected endpoint, change API response shape.",
-      "manual": "Actionable issue that requires design decisions or cross-cutting changes. Examples: redesign data model, add pagination strategy, choose between architectural approaches.",
-      "advisory": "Informational or operational item that should be surfaced in the report only. Examples: design asymmetry the PR improves but does not fully resolve, residual risk notes, deployment considerations."
+      "gated_auto": "Concrete suggested_fix proposed. Caller may apply after judgment — not by this skill.",
+      "manual": "Actionable issue requiring design decisions or cross-cutting changes.",
+      "advisory": "Informational or operational item for the report only."
     },
     "owners": {
-      "review-fixer": "The in-skill fixer can own this when policy allows.",
-      "downstream-resolver": "Turn this into residual work for later resolution.",
-      "human": "A person must make a judgment call before code changes should continue.",
-      "release": "Operational or rollout follow-up; do not convert into code-fix work automatically."
+      "downstream-resolver": "Caller or human should act after review.",
+      "human": "Judgment required before implementation.",
+      "release": "Operational or rollout follow-up."
     },
     "return_tiers": {
       "description": "Finding fields are split into two tiers. The full schema (with all required fields) applies to the artifact file on disk. The compact return to the orchestrator omits detail-tier fields. Both are valid uses of this schema in different contexts.",

@@ -265,11 +265,12 @@ Prepare a concise planning context summary (a paragraph or two) to pass as input
 - If an origin document exists, summarize the problem frame, requirements, and key decisions from that document
 - Otherwise use the feature description directly
 - If `STRATEGY.md` exists, read it and include the relevant pieces (target problem, approach, active tracks) in the summary so downstream research and planning decisions are anchored to product strategy
+- If `CONCEPTS.md` exists at repo root, read it — its definitions are the canonical names for domain entities, named processes, and status concepts. Plan with those terms rather than synonyms.
 
 Run these agents in parallel:
 
 - Task ce-repo-research-analyst(Scope: technology, architecture, patterns. {planning context summary})
-- Task ce-learnings-researcher(planning context summary)
+- Task learnings-researcher(planning context summary)
 Collect:
 - Technology stack and versions (used in section 1.2 to make sharper external research decisions)
 - Architectural patterns and conventions to follow
@@ -349,15 +350,15 @@ Announce the decision and the intent briefly before continuing. Examples:
 
 #### 1.3 External Research (Conditional)
 
-If Step 1.2 indicates external research is useful, dispatch by the **intent** classified in Stage 2, using the platform's subagent primitive (`Agent`/`Task` in Claude Code, `spawn_agent` in Codex, `subagent` in Pi). For `web-researcher`, pass a focus hint plus the planning context summary and do **not** pass codebase content — it operates externally.
+If Step 1.2 indicates external research is useful, dispatch by the **intent** classified in Stage 2, using the platform's subagent primitive (`Agent`/`Task` in Claude Code, `spawn_agent` in Codex, `subagent` in Pi). For `ce-web-researcher`, pass a focus hint plus the planning context summary and do **not** pass codebase content — it operates externally.
 
 - **Implementation-guidance** — run in parallel:
   - Task ce-best-practices-researcher(planning context summary)
   - Task ce-framework-docs-researcher(planning context summary, with exact frameworks/versions from Phase 1.1 where available)
-- **Landscape / option-discovery** — Task web-researcher(focus hint, planning context summary). When the request targets projects on a code host (e.g., "competitors on GitHub"), name the discovery dimensions in the focus hint: project names and URLs, release recency and activity, CLI/UX shape, install path, docs and examples, plugin/extension surfaces, recurring issue themes, and license — treating star counts as a weak signal only.
-- **Mixed** — **sequential, not parallel**: run `web-researcher` first to map the landscape and produce a shortlist; then run `ce-framework-docs-researcher` and/or `ce-best-practices-researcher` against the shortlisted technologies only when their details materially shape the plan.
+- **Landscape / option-discovery** — Task ce-web-researcher(focus hint, planning context summary). When the request targets projects on a code host (e.g., "competitors on GitHub"), name the discovery dimensions in the focus hint: project names and URLs, release recency and activity, CLI/UX shape, install path, docs and examples, plugin/extension surfaces, recurring issue themes, and license — treating star counts as a weak signal only.
+- **Mixed** — **sequential, not parallel**: run `ce-web-researcher` first to map the landscape and produce a shortlist; then run `ce-framework-docs-researcher` and/or `ce-best-practices-researcher` against the shortlisted technologies only when their details materially shape the plan.
 
-**Tool-unavailable handling.** `web-researcher` self-checks for web tools and stops if they are missing. Never block on this: if it reports research unavailable, or any researcher fails, warn and proceed, and carry the gap into Phase 1.4 so the plan records it honestly — especially when the user explicitly requested external research, where a silent skip would leave the plan looking evidence-based when it is not.
+**Tool-unavailable handling.** `ce-web-researcher` self-checks for web tools and stops if they are missing. Never block on this: if it reports research unavailable, or any researcher fails, warn and proceed, and carry the gap into Phase 1.4 so the plan records it honestly — especially when the user explicitly requested external research, where a silent skip would leave the plan looking evidence-based when it is not.
 
 #### 1.4 Consolidate Research
 
@@ -687,6 +688,8 @@ Plan written to <absolute path to plan>
 
 **Pipeline mode:** If invoked from an automated workflow such as LFG or any `disable-model-invocation` context, skip interactive questions. Make the needed choices automatically and proceed to writing the plan. Pipeline mode forces `OUTPUT_FORMAT=md` at Phase 0.0.
 
+**CONCEPTS.md gap-fill (only if the file already exists):** If the plan body uses a domain term whose definition is missing from `CONCEPTS.md`, add the entry. **Domain entities, named processes, and status concepts with project-specific meaning only** — not file paths, class names, function signatures, or implementation decisions. `CONCEPTS.md` is a glossary, not a spec or catch-all. Follow the format set by existing entries. Apply silently. Skip entirely if `CONCEPTS.md` does not exist — creation is owned by ce-compound and ce-compound-refresh.
+
 #### 5.3 Confidence Check and Deepening
 
 After writing the plan file, automatically evaluate whether the plan needs strengthening.
@@ -747,7 +750,7 @@ After document review and final checks, print a one-line summary of the headless
 1. **Start `/ce-work`** (recommended) - Begin implementing this plan in the current session
 2. **Run deeper doc review** - Walk through the remaining findings interactively (full ce-doc-review walkthrough)
 3. **Create Issue** - Create a tracked issue from this plan in your configured issue tracker (GitHub or Linear)
-4. **Open in Proof (web app) — review and comment to iterate with the agent** - Open the markdown document in the review app, iterate with comments, or copy a link to share with others. **Render only when `OUTPUT_FORMAT=md`.**
+4. **Open in Proof (web app) — review and comment to iterate with the agent** - Open the doc in Proof, iterate with the agent via comments, or copy a link to share with others. **Render only when `OUTPUT_FORMAT=md`.**
 4. **Open in browser** - Open the HTML plan file locally for review and sharing. **Render only when `OUTPUT_FORMAT=html`.**
 5. **Done for now** - Pause; the plan file is saved and can be resumed later
 
@@ -756,7 +759,7 @@ After document review and final checks, print a one-line summary of the headless
 - **Start `/ce-work`** — Invoke the `ce-work` skill via the platform's skill-invocation primitive (`Skill` in Claude Code, `Skill` in Codex, the equivalent on Gemini/Pi), passing the plan path as the skill argument. Do not merely tell the user to type `/ce-work` — fire the invocation now so the plan executes in this session.
 - **Run deeper doc review** — Re-invoke the `ce-doc-review` skill on the plan path **without** `mode:headless` so the interactive routing question and walkthrough fire. After it returns, re-render this menu with refreshed counts so the user can pick a next-stage action.
 - **Create Issue** — Detect the project tracker (`gh` for GitHub, `linear` for Linear) and create the issue from the plan file as described under "Issue Creation" in `references/plan-handoff.md`. After creation, display the issue URL and ask whether to proceed to `/ce-work` via the platform's blocking question tool.
-- **Open in Proof (web app) — review and comment to iterate with the agent** — Load the `ce-proof` skill in HITL-review mode with the plan file as `source file`, the plan title as `doc title`, identity `ai:compound-engineering` / `compound engineering`, and recommended next step `/ce-work`. Then follow the post-HITL resync logic in `references/plan-handoff.md`, which handles the four `ce-proof` return statuses, re-runs `ce-doc-review` after material edits, and falls back gracefully on upload failure.
+- **Open in Proof (web app) — review and comment to iterate with the agent** — Load the `ce-proof` skill in HITL-review mode with the plan file as `source file`, the plan title as `doc title`, identity `ai:compound-engineering` / `Compound Engineering`, and recommended next step `/ce-work`. Then follow the post-HITL resync logic in `references/plan-handoff.md`, which handles the four `ce-proof` return statuses, re-runs `ce-doc-review` after material edits, and falls back gracefully on upload failure.
 - **Open in browser** — Display the absolute path to the `.html` plan file so the user can open it locally. Where the platform exposes a browser-opening primitive (e.g., `open` on macOS, `xdg-open` on Linux, `start` on Windows), the agent may use it; otherwise print the absolute path and let the user open it. Do not invoke `ce-work` from this option — the user picked HTML for review/sharing, not handoff.
 - **Done for now** — Display a brief confirmation that the plan file is saved and end the turn. Do not start follow-up work without an explicit further user prompt.
 

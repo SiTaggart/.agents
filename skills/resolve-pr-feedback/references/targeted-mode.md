@@ -24,4 +24,4 @@ This fetches thread IDs and their first comment IDs (minimal fields, no bodies) 
 
 ## 2. Fix, Reply, Resolve
 
-Spawn a single `pr-comment-resolver` agent for the thread. Pass the same fields full mode does, including `isOutdated` and the location fields (`line`, `originalLine`, `startLine`, `originalStartLine`) -- targeted threads can be outdated too and need the same relocation handling. Then follow the same validate -> commit -> push -> reply -> resolve flow as Full Mode steps 6-8 (in `references/full-mode.md`).
+Spawn a single `pr-comment-resolver` agent for the thread. Pass the same fields full mode does, including `isOutdated` and the location fields (`line`, `originalLine`, `startLine`, `originalStartLine`) -- targeted threads can be outdated too and need the same relocation handling. Then follow the same validate -> commit -> push -> reply -> resolve flow as Full Mode steps 5-7 (in `references/full-mode.md`).

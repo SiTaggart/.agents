@@ -1,6 +1,6 @@
 ---
 name: ce-compound
-description: Document a recently solved problem to compound your team's knowledge
+description: Document a recently solved problem to compound your team's knowledge or CONCEPTS.md, the project's shared domain vocabulary.
 argument-hint: "[optional: brief context] [mode:headless] "
 ---
 
@@ -22,6 +22,10 @@ Captures problem solutions while context is fresh, creating structured documenta
 /ce-compound mode:headless              # Non-interactive run for automations
 /ce-compound mode:headless [context]    # Non-interactive run with context hint
 ```
+
+## CONCEPTS.md bootstrap requests
+
+If invoked specifically to create or bootstrap `CONCEPTS.md` from scratch rather than to document a solved problem, do not run the normal phases — `ce-compound` populates `CONCEPTS.md` only as a side effect of documenting a real learning (it seeds the *learning's area*, not the whole repo; see Phase 2.4). Repo-wide concept-map creation is `ce-compound-refresh`'s job. Redirect a standalone bootstrap request to `ce-compound-refresh` (which asks whether to build the concept map or run a refresh cycle), then exit.
 
 ## Mode Detection
 
@@ -46,6 +50,7 @@ These files are the durable contract for the workflow. Read them on-demand at th
 
 - `references/schema.yaml` — canonical frontmatter fields and enum values (read when validating YAML)
 - `references/yaml-schema.md` — category mapping from problem_type to directory (read when classifying)
+- `references/concepts-vocabulary.md` — CONCEPTS.md format and inclusion rules (read in Phase 2.4 when domain terms surface)
 - `assets/resolution-template.md` — section structure for new docs (read when assembling)
 
 When spawning subagents, pass the relevant file contents into the task prompt so they have the contract without needing cross-skill paths.
@@ -84,9 +89,13 @@ If the user says yes, invoke `ce-sessions` in Phase 1 (see step 4). If no, skip 
 ### Full Mode
 
 <critical_requirement>
-**The primary output is ONE file - the final documentation.**
+**The primary deliverable is ONE file - the final documentation.**
 
-Phase 1 subagents return TEXT DATA to the orchestrator. They must NOT use Write, Edit, or create any files. Only the orchestrator writes files: the solution doc in Phase 2, and — if the Discoverability Check finds a gap — a small edit to a project instruction file (AGENTS.md or CLAUDE.md). The instruction-file edit is maintenance, not a second deliverable; it ensures future agents can discover the knowledge store.
+Phase 1 subagents return TEXT DATA to the orchestrator. They must NOT use Write, Edit, or create any files. Only the orchestrator writes files. Beyond the Phase 2 solution doc, its other writes are maintenance side effects — not additional deliverables, and creating one when absent is expected, not a violation of this rule:
+- **`CONCEPTS.md`** — create or update in Phase 2.4 (Vocabulary Capture) when a qualifying domain term surfaces.
+- **A project instruction file** (AGENTS.md or CLAUDE.md) — a small edit when the Discoverability Check finds a gap.
+
+Both ensure future agents can discover and ground in the knowledge store; neither makes the documentation any less the single deliverable.
 </critical_requirement>
 
 ### Phase 0.5: Auto Memory Scan
@@ -209,12 +218,13 @@ Launch research subagents. Each returns text data to the orchestrator.
 
    Do not append additional context blocks, exclusion lists, or topic-keyword bullets — verbose payloads give ce-sessions license to keep widening the search and rapidly compound wall time. If keyword search is needed, ce-sessions owns that decision internally based on the topic.
    - Returns: structured digest of findings from prior sessions, or "no relevant prior sessions" if none found.
+   - **ce-sessions is the final Phase 1 input, not a workflow stop.** When it returns, proceed directly to Phase 2 with its output as the last input — do not emit a summary and do not pause for the user. A "no relevant prior sessions" return is still a valid input; the documentation gets written without session context.
 
 ### Phase 2: Assembly & Write
 
 <sequential_tasks>
 
-**WAIT for all Phase 1 subagents to complete before proceeding.**
+**WAIT for all Phase 1 inputs to complete before proceeding** — the three parallel subagents and, when the user opted in, the synchronous `ce-sessions` skill call. ce-sessions is a Phase 1 input even though it is a skill rather than a subagent.
 
 The orchestrating agent (main conversation) performs these steps:
 
@@ -245,6 +255,26 @@ The orchestrating agent (main conversation) performs these steps:
 When creating a new doc, preserve the section order from `assets/resolution-template.md` unless the user explicitly asks for a different structure.
 
 </sequential_tasks>
+
+### Phase 2.4: Vocabulary Capture
+
+**First, read `references/concepts-vocabulary.md`.** This is unconditional. Do not pre-judge from memory that nothing qualifies — the reference's criteria are non-obvious and qualifying terms often live in the surrounding conversation rather than the new doc itself. Reading the reference is what makes the rest of the phase possible.
+
+Then, applying those criteria, scan the new doc **and** the surrounding conversation for qualifying domain terms. If `CONCEPTS.md` exists at repo root, add missing qualifying terms and refine existing entries when new precision surfaced. If it does not exist and at least one qualifying term surfaced, create it.
+
+**Seed the learning's area at creation — don't write a lone term.** When `CONCEPTS.md` does not yet exist, alongside the surfaced term also seed the core domain nouns of the area this learning touched, following the **Seed goal** and **Scope of a seed** rules in `references/concepts-vocabulary.md`. The seed is scoped to the learning's area (the modules and domain the fix touched) and defines only terms investigated here — it does not reach for repo-wide nouns. This anchors the surfaced term so it does not dangle against undefined siblings. A repo-wide concept map is `ce-compound-refresh`'s bootstrap path, not this one.
+
+**At creation, hold the qualifying bar conservatively for borderline terms.** A borderline term, or a class/table/file name dressed up as an entity, defers to a later run — clear core nouns are seeded, borderline ones wait. The conservatism is about quality, not count; updates to an existing file follow the normal criteria.
+
+**When bootstrapping the file, start with this preamble under the `# Concepts` heading**, then add the qualifying entries below it:
+
+> Shared domain vocabulary for this project — entities, named processes, and status concepts with project-specific meaning. Seeded with core domain vocabulary, then accretes as ce-compound and ce-compound-refresh process learnings; direct edits are fine. Glossary only, not a spec or catch-all.
+
+**Refresh the coherence neighborhood of any entry you touch.** When adding or editing an entry, also inspect its *coherence neighborhood* — its cluster siblings and the terms it cross-references or that reference it. Within that neighborhood, do two things: fix glossary violations (implementation specifics — file paths, class names, function signatures, current-config values), and refresh entries the learning's own evidence shows have drifted. Bounds: neighborhood only, never a full-file audit; refresh only on evidence already in hand; if judging a neighbor would require investigation this learning did not do, flag it for `ce-compound-refresh` rather than editing on a guess. The test: after the edit, would a reader find the touched entry's siblings or referenced terms inconsistent with it? Broader audit is `ce-compound-refresh`'s job.
+
+If no terms qualified after applying the reference's criteria, record that outcome explicitly in the success output (e.g., "Vocabulary capture: scanned, no qualifying terms"). Do not silently skip — the visible scan-and-no-result record is the audit signal that the reference was consulted.
+
+**Apply edits silently in every mode — no user prompt in interactive, lightweight, or headless.** Vocabulary capture is a side effect of compounding, not a decision the user makes per run. Lightweight mode reaches this through its own single-pass step (see Lightweight Mode), and runs an **update-only** version — it refines an existing `CONCEPTS.md` but defers creation/seeding to a Full run.
 
 ### Phase 2.5: Selective Refresh Check
 
@@ -329,6 +359,14 @@ After the learning is written and the refresh decision is made, check whether th
       ```
    c. In full interactive mode, explain to the user why this matters — agents working in this repo (including fresh sessions, other tools, or collaborators without the plugin) won't know to check `.ai/solutions/` unless the instruction file surfaces it. Show the proposed change and where it would go, then use the platform's blocking question tool to get consent before making the edit: `AskUserQuestion` in Claude Code (call `ToolSearch` with `select:AskUserQuestion` first if its schema isn't loaded), `request_user_input` in Codex, `ask_user` in Gemini, `ask_user` in Pi (requires the `pi-ask-user` extension). Fall back to presenting the proposal in chat only when no blocking tool exists in the harness or the call errors (e.g., Codex edit modes) — not because a schema load is required. Never silently skip the question. In lightweight mode, output a one-liner note and move on. In headless mode, apply the edit directly without prompting and surface it in the terminal report under "Instruction-file edit"
 
+5. **If `CONCEPTS.md` exists at repo root, run a parallel discoverability check for it.** Assess whether the instruction file would lead an agent to discover the project's shared domain vocabulary. Use the same workflow as the `.ai/solutions/` check above: same target file, same edit-placement judgment, same consent-then-edit interaction shape per mode. A line in an existing section is almost always better than a new headed section. Example calibration when nothing else fits:
+
+   ```
+   CONCEPTS.md  # shared domain vocabulary (entities, named processes, status concepts) — relevant when orienting to the codebase or discussing domain concepts
+   ```
+
+   **Skip this step entirely if `CONCEPTS.md` does not exist** — never nag for an artifact the project has not adopted. When skipped, this step produces no output and no edit.
+
 ### Phase 3: Optional Enhancement
 
 **WAIT for Phase 2 to complete before proceeding.**
@@ -366,7 +404,8 @@ The orchestrator (main conversation) performs ALL of the following in one sequen
    - YAML frontmatter with track-appropriate fields, applying the YAML-safety quoting rule for array items (see `references/yaml-schema.md` > YAML Safety Rules)
    - Bug track: Problem, root cause, solution with key code snippets, one prevention tip
    - Knowledge track: Context, guidance with key examples, one applicability note
-4. **Skip specialized agent reviews** (Phase 3) to conserve context
+4. **Vocabulary capture (update-only)**: if `CONCEPTS.md` exists at repo root, read `references/concepts-vocabulary.md`, then scan the new doc and the conversation for qualifying terms and add/refine entries silently (same criteria as Phase 2.4). Do **not** bootstrap or seed in lightweight mode — if `CONCEPTS.md` does not exist, defer creation to a Full run, which owns seeding. Record the outcome in the output (e.g., "Vocabulary: 1 entry refined" or "scanned, no qualifying terms"). If you refined `CONCEPTS.md` and a quick read of `AGENTS.md`/`CLAUDE.md` shows it isn't surfaced there, add the discoverability tip to the output below — lightweight **tips**, it does not edit instruction files (a Full run owns that edit).
+5. **Skip specialized agent reviews** (Phase 3) to conserve context
 
 **Lightweight output:**
 ```
@@ -379,12 +418,16 @@ File created:
 Tip: Your AGENTS.md/CLAUDE.md doesn't surface .ai/solutions/ to agents —
 a brief mention helps all agents discover these learnings.
 
+[If CONCEPTS.md was refined this run and isn't surfaced in the instruction files:]
+Tip: Your AGENTS.md/CLAUDE.md doesn't surface CONCEPTS.md —
+a one-line mention helps agents find the shared vocabulary.
+
 Note: This was created in lightweight mode. For richer documentation
 (cross-references, detailed prevention strategies, specialized reviews),
 re-run /ce-compound in a fresh session.
 ```
 
-**No subagents are launched. No parallel tasks. One file written.**
+**No subagents are launched. No parallel tasks. The solution doc is the one deliverable** (Phase 2.4's update-only vocabulary capture may also refine an existing `CONCEPTS.md`).
 
 In lightweight mode, the overlap check is skipped (no Related Docs Finder subagent). This means lightweight mode may create a doc that overlaps with an existing one. That is acceptable — `ce-compound-refresh` will catch it later. Only suggest `ce-compound-refresh` if there is an obvious narrow refresh target. Do not broaden into a large refresh sweep from a lightweight session.
 
@@ -448,7 +491,7 @@ Knowledge track:
 |----------|-----------|
 | Subagents write files like `context-analysis.md`, `solution-draft.md` | Subagents return text data; orchestrator writes one final file |
 | Research and assembly run in parallel | Research completes → then assembly runs |
-| Multiple files created during workflow | One solution doc written or updated: `.ai/solutions/[category]/[filename].md` (plus an optional small edit to a project instruction file for discoverability) |
+| Multiple files created during workflow | One solution doc written or updated: `.ai/solutions/[category]/[filename].md` (plus optional maintenance writes: a `CONCEPTS.md` create/update from Phase 2.4 and a small instruction-file edit for discoverability) |
 | Creating a new doc when an existing doc covers the same problem | Check overlap assessment; update the existing doc when overlap is high |
 
 ## Success Output
@@ -465,6 +508,7 @@ Track: <bug | knowledge>
 Category: <category>
 Overlap: <none | low | moderate — see <path> | high — existing doc updated>
 Instruction-file edit: <none needed | applied to <path> | gap noted, not applied>
+CONCEPTS.md: <scanned, no qualifying terms | created with N entries (M seeded from the learning's area) | updated — N added, N refined>
 Refresh recommendation: <none | scope hint for /ce-compound-refresh>
 
 Documentation complete
@@ -498,8 +542,9 @@ Specialized Agent Reviews (Auto-Triggered):
   ✓ ce-performance-oracle: Validated query optimization approach
   ✓ ce-code-simplicity-reviewer: Solution is appropriately minimal
 
-File created:
-- .ai/solutions/performance-issues/n-plus-one-brief-generation.md
+Files written:
+- .ai/solutions/performance-issues/n-plus-one-brief-generation.md (created)
+- CONCEPTS.md (created with 3 entries: BriefSystem, EmailQueue, Brief Status)
 
 This documentation will be searchable for future reference when similar
 issues occur in the Email Processing or Brief System modules.
