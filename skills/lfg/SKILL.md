@@ -16,19 +16,19 @@ When invoking any skill referenced below, resolve its name against the available
 
    GATE: STOP. Verify that implementation work was performed - files were created or modified beyond the plan. Do NOT proceed to step 3 if no code changes were made.
 
-3. Invoke the `ce-review` skill with `mode:autofix plan:<plan-path-from-step-1>`.
+3. Invoke the `ce-review` skill with `mode:agent plan:<plan-path-from-step-1>`.
 
-   Pass the plan file path from step 1 so ce-review can verify requirements completeness. Read the Residual Actionable Work summary the skill emits.
+   Pass the plan file path from step 1 so ce-review can verify requirements completeness. Read the **Actionable Findings** summary the skill emits.
 
-4. **Persist review autofixes** (REQUIRED after step 3, before residual handoff)
+4. **Apply and persist review fixes** (REQUIRED after step 3, before residual handoff)
 
-   Check `git status --short`. If `ce-review mode:autofix` changed files, stage only those review-fix files, commit them with `fix(review): apply autofix feedback`, and push the current branch before continuing. If an upstream exists, run `git push`. If no upstream exists, resolve a writable remote dynamically: prefer `origin` when present, otherwise use `git remote` and choose the first configured remote. Then run `git push --set-upstream <remote> HEAD`. Do not proceed to step 5, run browser tests, or output DONE while review autofix edits remain only in the working tree. If no files changed, explicitly note that there were no review autofixes to persist.
+   Load `references/review-followup.md` and execute step 4 there (mechanical apply + commit/push when changes exist). Do not proceed to step 5, run browser tests, or output DONE while eligible review fixes remain only in the working tree uncommitted.
 
-5. **Autonomous residual handoff** (only when step 3 reported one or more residual `downstream-resolver` findings; skip when it reported `Residual actionable work: none.`)
+5. **Autonomous residual handoff** (only when step 3 reported one or more actionable `downstream-resolver` findings not applied in step 4; skip when it reported `Actionable findings: none.`)
 
    Do not prompt the user. This step embraces the autopilot contract: residuals must become durable before DONE, but the agent never stops to ask.
 
-   1. Load `references/tracker-defer.md` in **non-interactive mode**. Pass the residual actionable findings from step 3's summary (or the run artifact when the summary was truncated).
+   1. Load `references/tracker-defer.md` in **non-interactive mode**. Pass the residual actionable findings from step 3/4 (or the run artifact when the summary was truncated).
    2. Collect the structured return: `{ filed: [...], failed: [...], no_sink: [...] }`.
    3. Compose a `## Residual Review Findings` markdown section from the structured return:
       - For each item in `filed`: a bullet with severity, file:line, title, and a link to the tracker ticket URL.
@@ -46,13 +46,13 @@ When invoking any skill referenced below, resolve its name against the available
       gh pr edit PR_NUMBER --body-file BODY_FILE
       ```
 
-   6. If no open PR exists, create a tracked fallback file at `docs/residual-review-findings/<branch-or-head-sha>.md` containing the composed section and the source PR-review run context. Stage only that file, commit it with `docs(review): record residual review findings`, and push the current branch. If an upstream exists, run `git push`. If no upstream exists, resolve a writable remote dynamically: prefer `origin` when present, otherwise use `git remote` and choose the first configured remote. Then run `git push --set-upstream <remote> HEAD`. This is the durable no-PR sink. Do not output DONE until either the existing PR body has been updated or this fallback file commit has been pushed. If both paths fail, stop and report the failed commands; do not silently proceed.
+   6. If no open PR exists, create a tracked fallback file at `.ai/residual-review-findings/<branch-or-head-sha>.md` containing the composed section and the source PR-review run context. Stage only that file, commit it with `docs(review): record residual review findings`, and push the current branch. If an upstream exists, run `git push`. If no upstream exists, resolve a writable remote dynamically: prefer `origin` when present, otherwise use `git remote` and choose the first configured remote. Then run `git push --set-upstream <remote> HEAD`. This is the durable no-PR sink. Do not output DONE until either the existing PR body has been updated or this fallback file commit has been pushed. If both paths fail, stop and report the failed commands; do not silently proceed.
 
    Never block DONE on tracker filing failures once residuals have been durably recorded. A `no_sink` outcome is success only when the findings are present in the PR body or in the pushed fallback file.
 
 6. Invoke the `ce-test-browser` skill with `mode:pipeline`.
 
-7. Invoke the `git-commit-push-pr` skill.
+7. Invoke the `ce-commit-push-pr` skill.
 
    This commits any remaining changes, pushes the branch, and opens a pull request. If step 5 already opened a PR (check with `gh pr view --json number,url,state 2>/dev/null`), skip PR creation but still commit and push any uncommitted changes.
 
