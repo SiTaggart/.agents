@@ -46,4 +46,6 @@ After determining mode, read the matching reference and follow it. Each referenc
 - Valid fixes committed and pushed
 - Each thread replied to with quoted context
 - Threads resolved via GraphQL (except `needs-human`)
+- Any authored GitHub reviews accidentally left in `PENDING` state after
+  thread replies are submitted so the replies are visible
 - Empty result from get-pr-comments on verify (minus intentionally-open threads)

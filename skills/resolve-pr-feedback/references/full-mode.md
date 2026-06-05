@@ -191,6 +191,24 @@ bash scripts/get-pr-comments PR_NUMBER
 
 The `review_threads` array should be empty (except `needs-human` items).
 
+Then verify that replying inside review threads did not leave authored GitHub
+reviews in `PENDING` state:
+
+```bash
+gh api repos/{owner}/{repo}/pulls/PR_NUMBER/reviews
+```
+
+If any reviews authored by the PR owner are still `PENDING`, submit each one as
+comment-only so the thread replies become visible:
+
+```bash
+gh api -X POST repos/{owner}/{repo}/pulls/PR_NUMBER/reviews/REVIEW_ID/events \
+  -f event=COMMENT
+```
+
+Re-run the reviews query until no authored pending reviews remain before
+reporting success.
+
 **If new threads remain**, check the iteration count for this run:
 
 - **First or second fix-verify cycle**: Repeat from step 2 for the remaining threads.
