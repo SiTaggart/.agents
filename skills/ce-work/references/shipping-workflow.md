@@ -10,7 +10,7 @@ This file contains the shipping workflow (Phase 3-4). It is loaded when all Phas
 
    ```bash
    # Run full test suite (use project's test command)
-   # Examples: bin/rails test, npm test, pytest, go test, etc.
+   # Examples: npm test, pytest, go test, etc.
 
    # Run linting (per AGENTS.md)
    # Use linting-agent before pushing to origin
