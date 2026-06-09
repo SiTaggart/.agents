@@ -23,7 +23,8 @@
 #      port values. Variable references like process.env.PORT or getPort()
 #      are deliberately not matched; the probe falls through.
 #   3. Procfile.dev: web line scanned for -p/-p=<n>/--port/--port=<n>
-#   4. docker-compose.yml: line-anchored grep for "- "<n>:<n>"" port mapping
+#   4. docker-compose.yml: grep for list-item or inline "[<n>:<n>]" port
+#      mappings
 #   5. package.json: dev/start script for --port/-p flags
 #   6. .env files in override order: .env.local -> .env.development -> .env
 #      (first hit wins). Values are parsed with quote stripping (" and ')
@@ -224,9 +225,11 @@ fi
 if should_probe "$PROJ_TYPE" "docker-compose"; then
   compose_file="$PROJECT_ROOT/docker-compose.yml"
   if [ -f "$compose_file" ]; then
-    # Match port mappings as YAML list items: - "NNNN:NNNN" or - NNNN:NNNN.
+    # Match port mappings as YAML list items or inline lists:
+    #   - "NNNN:NNNN"
+    #   ports: ["NNNN:NNNN"]
     # First number after the optional opening quote is the host port.
-    compose_port=$(grep -Eo '^[[:space:]]*-[[:space:]]*"?[0-9]+:[0-9]+"?' "$compose_file" 2>/dev/null | head -1 | grep -Eo '[0-9]+' | head -1)
+    compose_port=$(grep -Eo '^[[:space:]]*-[[:space:]]*"?[0-9]+:[0-9]+"?|ports:[[:space:]]*\[[^]]*"?[0-9]+:[0-9]+"?' "$compose_file" 2>/dev/null | head -1 | grep -Eo '[0-9]+:[0-9]+' | head -1 | cut -d: -f1)
     if [ -n "$compose_port" ]; then
       echo "$compose_port"
       exit 0

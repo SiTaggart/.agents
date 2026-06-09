@@ -1,10 +1,13 @@
 import { homedir } from "os";
+import type { Stats } from "fs";
+import { lstat, readdir, rm } from "fs/promises";
 import path from "path";
 import { replaceSymlink, validateSymlink } from "../fs";
 import type { LinkMapping, LinkTargetOptions } from "../types";
 
 export async function linkTarget(options: LinkTargetOptions): Promise<void> {
   const mappings = resolveLinkMappings(options);
+  await migrateLegacyLinkTargets(mappings);
   await Promise.all(mappings.map((mapping) => validateSymlink(mapping)));
   await Promise.all(mappings.map((mapping) => replaceSymlink(mapping)));
 }
@@ -75,4 +78,53 @@ function resolveHome(homeDir?: string): string {
 
 function resolveProjectRoot(options: LinkTargetOptions): string {
   return path.resolve(options.projectRoot ?? options.root);
+}
+
+async function migrateLegacyLinkTargets(mappings: readonly LinkMapping[]): Promise<void> {
+  await Promise.all(mappings.map(async (mapping) => {
+    if (mapping.name !== "codex-skills") {
+      return;
+    }
+
+    await removeLegacyCodexSkillsDirectory(mapping.target);
+  }));
+}
+
+async function removeLegacyCodexSkillsDirectory(skillsDir: string): Promise<void> {
+  const existing = await lstatSafe(skillsDir);
+  if (!existing?.isDirectory()) {
+    return;
+  }
+
+  const entries = (await readdir(skillsDir)).filter((entry) => entry !== ".DS_Store");
+  if (entries.length === 0) {
+    await rm(skillsDir, { recursive: true, force: true });
+    return;
+  }
+
+  if (entries.length !== 1 || entries[0] !== "dotagents") {
+    return;
+  }
+
+  const legacyLink = await lstatSafe(path.join(skillsDir, "dotagents"));
+  if (!legacyLink?.isSymbolicLink()) {
+    return;
+  }
+
+  await rm(skillsDir, { recursive: true, force: true });
+}
+
+async function lstatSafe(filePath: string): Promise<Stats | null> {
+  try {
+    return await lstat(filePath);
+  } catch (error) {
+    if (isNodeError(error) && error.code === "ENOENT") {
+      return null;
+    }
+    throw error;
+  }
+}
+
+function isNodeError(error: unknown): error is NodeJS.ErrnoException {
+  return typeof error === "object" && error !== null && "code" in error;
 }

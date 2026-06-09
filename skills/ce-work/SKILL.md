@@ -147,6 +147,18 @@ Invoke `ce-review` only when the change is substantial, risky, or the user asks 
 
 ## Step 8: Finish Clearly
 
+If the input was a plan artifact and the accepted work is complete, update the
+plan status before reporting:
+
+- Markdown plans: change the YAML frontmatter field from `status: active` to
+  `status: completed`.
+- HTML plans: change the visible `<span class="status">active</span>` value to
+  `completed`.
+- Do not edit plan body content, implementation units, checkboxes, or
+  retrospective notes as part of this flip.
+- Do not mark a plan completed when work is blocked, partially shipped, or
+  intentionally deferred to the user.
+
 Finish with a concise report:
 
 - what changed
