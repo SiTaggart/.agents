@@ -76,7 +76,9 @@ For small + non-trivial bugfixes, the 3-5 sentence target still needs a user-vis
 - Type by intent, not file extension. When `fix` and `feat` both seem to fit, default to `fix` — adding code to remedy missing behavior is `fix`. Reserve `feat` for capabilities the user could not previously accomplish. Use `refactor`/`docs`/`chore`/`perf`/`test` when more precise.
 - Scope (optional): narrowest useful label. Omit when no single label adds clarity.
 - Description: imperative, lowercase, under 72 chars, no trailing period.
-- Match repo conventions visible in recent commits.
+- Match explicit project conventions only when they require a conflicting local
+  format; otherwise recent commits can inform scope and wording, not the
+  Conventional Commit shape.
 - **Never use `!` or `BREAKING CHANGE:` without explicit user confirmation** — they trigger automated major-version bumps.
 
 ---

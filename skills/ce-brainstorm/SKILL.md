@@ -14,6 +14,21 @@ The durable output of this workflow is a **requirements document**. In other wor
 
 This skill does not implement code. It explores, clarifies, and documents decisions for later planning or execution.
 
+## Loop Connections
+
+- Use `qmd` or Obsidian context before inventing product history when the topic
+  may already exist in notes, interviews, transcripts, research summaries,
+  PRDs, kickoff docs, or prior agent sessions.
+- Use `repoprompt` for Standard or Deep software brainstorms when the product
+  frame depends on broad or unfamiliar codebase shape. Treat it as context for
+  existing constraints and ownership, not as implementation planning.
+- Use `frontend-design` as a design lens when the brainstorm touches UI,
+  workflows, dashboards, components, accessibility, responsive behavior, or
+  visual polish. Fold the guidance into the brainstorm; do not make design a
+  separate side quest.
+- Hand branchy requirements to `ce-grill` before `ce-plan`.
+- Use `document-review` for requirements-doc quality, not `ce-review`.
+
 **IMPORTANT: All file references in generated documents must use repo-relative paths (e.g., `src/models/user.rb`), never absolute paths. Absolute paths break portability across machines, worktrees, and teammates.**
 
 ## Core Principles
@@ -67,7 +82,7 @@ Resolution steps:
    - `output:<unknown>` (e.g., `output:pdf`) → drop the token, fall through to step 2, and remember to emit a one-line note above the post-generation menu after final resolution: `Ignored unknown output: value '<value>' — using <resolved_format> instead.` where `<resolved_format>` is the value `OUTPUT_FORMAT` actually resolved to after steps 2-4. Do not hardcode `md` in the note — that misleads users when config has set HTML.
 2. **Config.** If step 1 did not resolve and the pre-resolved YAML above has an **active (non-commented)** `brainstorm_output:` key whose value matches `md` or `html` (case-insensitive), use it. Missing, invalid, or commented values fall through silently. Critical: lines starting with `#` are YAML comments and must be ignored — the shipped config template includes commented examples like `# brainstorm_output: html` to document the option, and matching those as active settings would silently force HTML mode on every run without the user having opted in.
 3. **Default.** Otherwise `OUTPUT_FORMAT=md`.
-4. **Pipeline override.** When invoked from LFG or any `disable-model-invocation` context, force `OUTPUT_FORMAT=md` regardless of steps 1-3. Downstream consumers (`ce-plan`, `ce-work`) parse markdown reliably; HTML in pipeline runs is unnecessary friction.
+4. **Pipeline override.** When invoked from an automated pipeline or any `disable-model-invocation` context, force `OUTPUT_FORMAT=md` regardless of steps 1-3. Downstream consumers (`ce-plan`, `ce-work`) parse markdown reliably; HTML in pipeline runs is unnecessary friction.
 
 **Token-parsing convention:** only literal-prefix flag tokens (`output:`, `mode:`, `delegate:` where applicable) are consumed and stripped. Other `<word>:<word>` tokens — including conventional commit prefixes like `feat:`, `fix:`, `chore:` that may appear inside a feature description — pass through verbatim.
 
@@ -84,7 +99,7 @@ If the user references an existing brainstorm topic or document, or there is an 
 - Read the document
 - Confirm with the user before resuming: "Found an existing requirements doc for [topic]. Should I continue from this, or start fresh?"
 - If resuming, summarize the current state briefly, continue from its existing decisions and outstanding questions, and update the existing document instead of creating a duplicate
-- **Resume preserves the existing artifact's format, except pipeline mode.** Write back in whatever format the existing artifact uses — markdown if the existing file is `.md`, HTML if it is `.html`. Explicit `output:` arguments on this run override (e.g., resuming an `.html` doc with `output:md` switches the artifact to markdown). Pipeline mode (LFG, any `disable-model-invocation` context) always wins per Phase 0.0: even when resuming an existing `.html` brainstorm, pipeline runs force `OUTPUT_FORMAT=md` so downstream automation receives the markdown shape it expects. The resume rewrites the markdown file at the parallel path and the original `.html` is left in place untouched.
+- **Resume preserves the existing artifact's format, except pipeline mode.** Write back in whatever format the existing artifact uses — markdown if the existing file is `.md`, HTML if it is `.html`. Explicit `output:` arguments on this run override (e.g., resuming an `.html` doc with `output:md` switches the artifact to markdown). Pipeline mode (automated pipeline or any `disable-model-invocation` context) always wins per Phase 0.0: even when resuming an existing `.html` brainstorm, pipeline runs force `OUTPUT_FORMAT=md` so downstream automation receives the markdown shape it expects. The resume rewrites the markdown file at the parallel path and the original `.html` is left in place untouched.
 
 #### 0.1b Classify Task Domain
 
@@ -141,6 +156,18 @@ Scan the repo before substantive brainstorming. Match depth to scope:
 
 *Topic Scan* — Search for relevant terms. Read the most relevant existing artifact if one exists (brainstorm, plan, spec, skill, feature doc). Skim adjacent examples covering similar behavior.
 
+*Knowledge Scan* — When the topic may be informed by user interviews,
+transcripts, research summaries, PRDs, kickoff docs, meeting notes, or prior
+agent sessions, search `qmd` and/or the Obsidian vault before asking the model to
+infer product context. Keep this bounded: pull only the notes that can change
+scope, user framing, constraints, or success criteria.
+
+*RepoPrompt Context* — For Standard and Deep software brainstorms where the
+frame depends on broad codebase ownership, cross-module flows, or unfamiliar
+implementation shape, use `repoprompt` context building to map the current
+system. Use the result to constrain product framing and success criteria, not to
+write the implementation plan.
+
 If nothing obvious appears after a short scan, say so and continue. Two rules govern technical depth during the scan:
 
 1. **Verify before claiming** — When the brainstorm touches checkable infrastructure (database tables, routes, config files, dependencies, model definitions), read the relevant source files to confirm what actually exists. Any claim that something is absent — a missing table, an endpoint that doesn't exist, a dependency not in the package manifest, a config option with no current support — must be verified against the codebase first; if not verified, label it as an unverified assumption. This applies to every brainstorm regardless of topic.
@@ -149,7 +176,7 @@ If nothing obvious appears after a short scan, say so and continue. Two rules go
 
 **Slack context** (opt-in, Standard and Deep only) — never auto-dispatch. Route by condition:
 
-- **Tools available + user asked**: Dispatch `ce-slack-researcher` with a brief summary of the brainstorm topic alongside Phase 1.1 work. Incorporate findings into constraint and context awareness.
+- **Tools available + user asked**: Dispatch `slack-researcher` with a brief summary of the brainstorm topic alongside Phase 1.1 work. Incorporate findings into constraint and context awareness.
 - **Tools available + user didn't ask**: Note in output: "Slack tools detected. Ask me to search Slack for organizational context at any point, or include it in your next prompt."
 - **No tools + user asked**: Note in output: "Slack context was requested but no Slack tools are available. Install and authenticate the Slack plugin to enable organizational context search."
 

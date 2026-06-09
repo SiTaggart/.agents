@@ -172,7 +172,7 @@ worse than omitting it.
 - **Success Criteria** — include when there are quality / metric / handoff
   signals that Requirements don't already carry: quantitative metrics ("p95
   latency under 200ms"), qualitative criteria ("the agent's output reads as
-  one voice"), process / handoff quality ("ce-doc-review can act on this
+  one voice"), process / handoff quality ("document-review can act on this
   without follow-ups"). Skip when Requirements ARE the success criteria
   (every R is "done when the R is true").
 
@@ -237,7 +237,7 @@ the brainstorm.
 
 Unlike plans, brainstorm artifacts have no `status` field — there is no
 `active → completed` lifecycle. A brainstorm is a one-time output that
-downstream consumers (`ce-plan`, `ce-doc-review`) reference via the plan's
+downstream consumers (`ce-plan`, `document-review`) reference via the plan's
 `origin:` field. The `<span class="status">` HTML hook described in
 `html-rendering.md` is a plan-side mechanic and does not render on
 brainstorm artifacts.

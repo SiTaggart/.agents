@@ -154,7 +154,7 @@ Common Tailwind values to prefer:
 
 - **Missing Figma URL**: Request the Figma URL and node ID from the user
 - **Missing Web URL**: Request the local or deployed URL to compare
-- **MCP Access Issues**: Clearly report any connection problems with Figma or Playwright MCPs
+- **MCP Access Issues**: Clearly report any connection problems with Figma or browser automation MCPs
 - **Ambiguous Differences**: When a difference could be intentional, note it and ask for clarification
 - **Breaking Changes**: If a fix would require significant refactoring, document the issue and propose the safest approach
 - **Multiple Iterations**: After each run, suggest whether another iteration is needed based on remaining differences

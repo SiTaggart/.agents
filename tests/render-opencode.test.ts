@@ -49,7 +49,8 @@ test("renders Claude-shaped agents into OpenCode-compatible generated files", as
       "description: Review via a helper agent",
       "---",
       "",
-      "Use review:ce-correctness-reviewer from ~/.claude/agents.",
+      "Use review:careful-reviewer from ~/.claude/agents.",
+      "Keep mode:headless and obsidian daily:read untouched.",
     ].join("\n"),
   );
 
@@ -76,7 +77,8 @@ test("renders Claude-shaped agents into OpenCode-compatible generated files", as
   expect(command).toContain(".opencode/commands before shipping.");
 
   const skill = await readText(path.join(root, ".generated", "opencode", "skills", "review-skill", "SKILL.md"));
-  expect(skill).toContain("Use ce-correctness-reviewer from ~/.config/opencode/agents.");
+  expect(skill).toContain("Use careful-reviewer from ~/.config/opencode/agents.");
+  expect(skill).toContain("Keep mode:headless and obsidian daily:read untouched.");
 });
 
 test("renders Claude agents, commands, and skills in a generated target tree", async () => {
@@ -164,6 +166,43 @@ test("renders Codex agents as TOML in a generated target tree", async () => {
   expect(agent).toContain('developer_instructions = "Use the review-skill skill');
   expect(agent).toContain("Use the review-skill skill");
   expect(agent).not.toContain("tools:");
+});
+
+test("skips hidden skill directories when rendering target skill shelves", async () => {
+  const root = await makeTempRoot("agents-render-hidden-skills-");
+  tempRoots.push(root);
+
+  await writeText(
+    path.join(root, "skills", "public-skill", "SKILL.md"),
+    [
+      "---",
+      "name: public-skill",
+      "description: Public skill",
+      "---",
+      "",
+      "Use this skill.",
+    ].join("\n"),
+  );
+  await writeText(
+    path.join(root, "skills", ".system", "hidden-skill", "SKILL.md"),
+    [
+      "---",
+      "name: hidden-skill",
+      "description: Hidden skill",
+      "---",
+      "",
+      "Do not render this skill.",
+    ].join("\n"),
+  );
+
+  await renderTarget({ root, target: "codex" });
+
+  expect(await Bun.file(path.join(root, ".generated", "codex", "skills", "public-skill", "SKILL.md")).exists()).toBe(
+    true,
+  );
+  expect(await Bun.file(path.join(root, ".generated", "codex", "skills", "hidden-skill", "SKILL.md")).exists()).toBe(
+    false,
+  );
 });
 
 test("escapes Codex TOML instructions with backslashes safely", async () => {

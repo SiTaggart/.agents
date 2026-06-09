@@ -37,6 +37,28 @@ test("links OpenCode to generated directories instead of canonical source direct
   );
 });
 
+test("links Codex skills to generated directory instead of nesting under stale canonical symlink", async () => {
+  const root = await makeTempRoot("agents-link-codex-source-");
+  const homeDir = await makeTempRoot("agents-link-codex-home-");
+  tempRoots.push(root, homeDir);
+
+  await writeText(path.join(root, "AGENTS.md"), "# Shared instructions");
+  await writeText(path.join(root, "skills", "source-only", "SKILL.md"), "source");
+  await writeText(path.join(root, ".generated", "codex", "agents", "careful-reviewer.toml"), "generated");
+  await writeText(path.join(root, ".generated", "codex", "prompts", "ship.md"), "generated");
+  await writeText(path.join(root, ".generated", "codex", "skills", "review-skill", "SKILL.md"), "generated");
+
+  await Bun.$`mkdir -p ${path.join(homeDir, ".codex")}`;
+  await Bun.$`ln -s ${path.join(root, "skills")} ${path.join(homeDir, ".codex", "skills")}`;
+
+  await linkTarget({ root, target: "codex", scope: "global", homeDir });
+
+  expect(await readSymlinkTarget(path.join(homeDir, ".codex", "skills"))).toBe(
+    path.join(root, ".generated", "codex", "skills"),
+  );
+  expect(await Bun.file(path.join(root, "skills", "dotagents")).exists()).toBe(false);
+});
+
 test("links Claude to generated directories and CLAUDE.md", async () => {
   const root = await makeTempRoot("agents-link-claude-source-");
   const homeDir = await makeTempRoot("agents-link-claude-home-");

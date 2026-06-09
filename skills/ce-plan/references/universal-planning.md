@@ -8,7 +8,7 @@ The detection stub in SKILL.md routes here for anything that isn't clearly softw
 
 - **Is this actually a software task?** The key distinction is task-type, not topic-domain. A study guide about Rust is non-software (producing educational content). A Rust library refactor is software (modifying code). If this is actually software, return to Phase 0.2 in the main SKILL.md.
 - **Is this a trivial single-fact lookup?** Only a question answerable from one fact with no research, retrieval, or judgment skips planning — answer it directly and stop, in the user's terms. Do not narrate that it "isn't a planning task" or explain the routing; that is process exhaust (see Veil of value below). Examples: "zsh: command not found: brew", "what's the capital of France." A question that needs multiple steps, any retrieval, or synthesis to answer well does **not** qualify: it is an answer-seeking task (see Disposition below), not a quick-help exit. When unsure, do not exit.
-- **Pipeline mode?** If invoked from LFG or any `disable-model-invocation` context: output "This is a non-software task. The LFG pipeline requires ce-work, which only supports software tasks. Use `/ce-plan` directly for non-software planning." and stop.
+- **Pipeline mode?** If invoked from an automated pipeline or any `disable-model-invocation` context: output "This is a non-software task. The automated pipeline requires ce-work, which only supports software tasks. Use `/ce-plan` directly for non-software planning." and stop.
 
 Once past these checks, commit to the task — do not bail because it looks like a "lookup" or "research question." The user invoked the planning tool on purpose. Then choose the disposition below.
 
@@ -160,8 +160,6 @@ After structuring the plan, ask the user how they want to receive it using the p
    - Use filename convention: `YYYY-MM-DD-<descriptive-name>-plan.md`
    - Start the document with a `# Title` heading, followed by `Created: YYYY-MM-DD` on the next line. No YAML frontmatter.
 
-2. **Open in Proof (web app) — review and comment to iterate with the agent** — Open the doc in Proof, iterate with the agent via comments, or copy a link to share with others. Load the `proof` skill to create and open the document.
-
-3. **Save to disk AND open in Proof** — Do both: write the markdown file to disk and open the doc in Proof for review.
+2. **Show in chat only** — Return the completed plan in the conversation without writing a file.
 
 Do not offer `/ce-work` (software-only) or issue creation (not applicable to non-software plans).

@@ -2,25 +2,44 @@
 
 When the user asks to commit, push, or save changes to git:
 
-## MUST Use /commit Skill
+## MUST Use Git Skills
 
-**DO NOT** run `git commit` directly. Instead:
+**DO NOT** run `git commit` directly. Use the installed git skills instead:
 
 ```
-Skill("commit")
+Skill("git-commit")
 ```
 
-The `/commit` skill:
+For commit plus push and PR creation, use:
 
-1. Removes Claude attribution from commits
-2. Generates reasoning.md capturing what was tried
-3. Clears build attempts for next feature
+```
+Skill("git-commit-push-pr")
+```
+
+The git skills:
+
+1. Stage only the intended files
+2. Use Conventional Commits for commit subjects and PR titles
+3. Avoid committing secrets, generated noise, or unrelated user changes
+4. Keep commit, push, and PR behavior explicit
+
+## Conventional Commit Contract
+
+- Commit subjects and PR titles must use `type(scope): summary`.
+- Scope is optional, narrow, and kebab-case when useful.
+- Use lowercase types: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`,
+  `perf`, `ci`, `style`, or `build`.
+- Summaries are imperative, lowercase, under 72 characters, and have no trailing
+  period.
+- Prefer `fix` over `feat` when a change repairs broken or missing behavior.
+- Do not use vague subjects like `update`, `changes`, `work`, or
+  `address feedback`.
 
 ## Why This Matters
 
-- Regular `git commit` adds "Generated with Claude Code" and Co-Author lines
-- The `/commit` skill removes these so commits appear user-authored
-- Reasoning capture preserves build history for future sessions
+- Direct `git commit` bypasses the shelf's safety checks and message conventions
+- The git skills preserve user intent and avoid sweeping in unrelated files
+- PR creation belongs in the combined git ops flow, not in ad hoc shell commands
 
 ## Trigger Words
 

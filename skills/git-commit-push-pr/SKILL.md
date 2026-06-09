@@ -58,7 +58,22 @@ Note the existing PR URL from the PR check if `state: OPEN`. Step 5 uses it to r
 
 ## Step 2: Determine conventions
 
-Match repo style for commit messages and PR titles (project instructions in context > recent commits > conventional commits as default). With conventional commits, default to `fix:` over `feat:` when ambiguous — adding code to remedy broken or missing behavior is `fix:`. Reserve `feat:` for capabilities the user could not previously accomplish. The user may override.
+Use Conventional Commits for commit subjects and PR titles unless the user
+explicitly requests another format or loaded project instructions require a
+conflicting local convention. Recent commit history can refine scope and
+wording, but it does not override the Conventional Commit requirement.
+
+Format commit subjects and PR titles as `type(scope): description`.
+
+- Type is one of `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `perf`,
+  `ci`, `style`, or `build`.
+- Scope is optional, narrow, and kebab-case when useful.
+- Description is imperative, lowercase, under 72 characters, and has no
+  trailing period.
+- Default to `fix` over `feat` when ambiguous: adding code to remedy broken or
+  missing behavior is `fix`. Reserve `feat` for capabilities the user could
+  not previously accomplish.
+- For a single-commit PR, prefer the PR title to match the commit subject.
 
 ## Step 3: Commit and push
 
@@ -70,7 +85,7 @@ Stage and commit each group. **Avoid `git add -A` and `git add .`** — they swe
 
 ```bash
 git add file1 file2 file3 && git commit -m "$(cat <<'EOF'
-commit message here
+fix(scope): subject line here
 EOF
 )"
 ```
@@ -94,11 +109,13 @@ If the working tree is clean and all commits are already pushed, this step is a 
 
 Otherwise, if the branch diff changes observable behavior (UI, CLI output, API behavior with runnable code, generated artifacts, workflow output) and evidence is not blocked (unavailable credentials, paid services, deploy-only infrastructure, hardware), ask: "This PR has observable behavior. Capture evidence for the PR description?"
 
-- **Capture now** — load `ce-demo-reel` with a target description from the branch diff. It returns `Tier`, `Description`, `URL`, `Path`. Exactly one of `URL`/`Path` contains a real value; the other is `"none"`. If `URL`, splice as a `## Demo` section. If `Path` (user chose local save), note in the body that a demo was recorded but is not embedded. If skipped, proceed without evidence.
+- **Capture now** — use available project, browser, or shell tooling to capture concise evidence for the observable behavior. If capture produces a public URL, splice it as a `## Demo` section. If capture produces only a local path, note in the body that evidence was captured locally but is not embedded. If capture is skipped or unavailable, proceed without evidence.
 - **Use existing evidence** — ask for the URL or markdown embed; splice as a `## Demo` section.
 - **Skip** — proceed without an evidence section.
 
 Then continue with the rest of the reference (Steps A through G) to compose the title and body.
+The title from the reference must preserve the Conventional Commit shape from
+Step 2.
 
 ## Step 5: Apply and report
 
@@ -120,9 +137,9 @@ Then continue with the rest of the reference (Steps A through G) to compose the 
 The body **must** be written to a temp file and passed via `--body-file <path>`. Never use `--body-file -`, stdin pipes, heredoc-to-stdin, or `--body "$(cat ...)"` — wrappers and stdin handling can silently produce an empty PR body while `gh` still exits 0 and returns a URL.
 
 ```bash
-BODY_FILE=$(mktemp "${TMPDIR:-/tmp}/ce-pr-body.XXXXXX") && cat > "$BODY_FILE" <<'__CE_PR_BODY_END__'
+BODY_FILE=$(mktemp "${TMPDIR:-/tmp}/pr-body.XXXXXX") && cat > "$BODY_FILE" <<'__PR_BODY_END__'
 <the composed body markdown goes here, verbatim>
-__CE_PR_BODY_END__
+__PR_BODY_END__
 ```
 
 The quoted sentinel keeps `$VAR`, backticks, and any literal `EOF` inside the body from being expanded.

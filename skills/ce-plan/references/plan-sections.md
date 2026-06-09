@@ -227,8 +227,7 @@ semantics so downstream tooling can rely on them:
 - **`origin`** — repo-relative path to an upstream brainstorm requirements
   doc (e.g., `.ai/brainstorms/2026-05-12-pagination-requirements.md`).
   Set when planning from an upstream brainstorm; carried for traceability
-  and re-resolved when `ce-plan` re-deepens. The HITL Proof flow uses
-  `origin` to trace back to the source brainstorm.
+  and re-resolved when `ce-plan` re-deepens.
 - **`deepened`** — ISO 8601 date marking the first time the confidence
   check substantively strengthened the plan. Presence affects Phase 0.1
   resume fast-path logic (see `references/deepening-workflow.md`).

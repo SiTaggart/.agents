@@ -136,26 +136,22 @@ Only include commands for tools actually detected in the project.
 | `*.tf` files         | `terraform --version`, `terraform providers`, `terraform state list` |
 | `Makefile`           | `make --version`, `make -n`                                          |
 
-### Skills (for Sentry Projects)
+### Skills
 
-If this is a Sentry project (or sentry-skills plugin is installed), include:
+Include installed skills from this shelf that match the repository's workflow:
 
 ```json
 [
-  "Skill(sentry-skills:commit)",
-  "Skill(sentry-skills:create-pr)",
-  "Skill(sentry-skills:code-review)",
-  "Skill(sentry-skills:find-bugs)",
-  "Skill(sentry-skills:iterate-pr)",
-  "Skill(sentry-skills:claude-settings-audit)",
-  "Skill(sentry-skills:agents-md)",
-  "Skill(sentry-skills:brand-guidelines)",
-  "Skill(sentry-skills:doc-coauthoring)",
-  "Skill(sentry-skills:security-review)",
-  "Skill(sentry-skills:django-perf-review)",
-  "Skill(sentry-skills:code-simplifier)",
-  "Skill(sentry-skills:skill-creator)",
-  "Skill(sentry-skills:skill-scanner)"
+  "Skill(git-commit)",
+  "Skill(git-commit-push-pr)",
+  "Skill(ce-review)",
+  "Skill(ce-simplify-code)",
+  "Skill(resolve-pr-feedback)",
+  "Skill(gh-fix-ci)",
+  "Skill(claude-settings-audit)",
+  "Skill(agents-md)",
+  "Skill(security-review)",
+  "Skill(skill-scanner)"
 ]
 ```
 

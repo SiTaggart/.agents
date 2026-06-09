@@ -5,9 +5,10 @@ description: >-
   create and manage scheduled automations; create, read, and run shell commands
   in Orca-managed terminals; and automate Orca's built-in browser
   (snapshot/click/fill/screenshot/tabs). Use this
-  instead of raw `git worktree`, ad hoc shell PTYs, or Playwright whenever the
-  task touches Orca state. Coding agents inside an Orca worktree should also use
-  it to keep the worktree comment fresh at meaningful checkpoints. Boundary with
+  instead of raw `git worktree`, ad hoc shell PTYs, or separate browser
+  automation whenever the task touches Orca state. Coding agents inside an Orca
+  worktree should also use it to keep the worktree comment fresh at meaningful
+  checkpoints. Boundary with
   `orchestration`: if the recipient of a terminal write is another AI agent
   (Claude Code, Gemini, Codex, a worker), use `orchestration` — it is the only
   correct way to send messages, nudges, replies, or task hand-offs to agents.

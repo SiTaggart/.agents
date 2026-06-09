@@ -71,6 +71,10 @@ function flattenOpenCodeAgentReferences(content: string): string {
       "$1",
     )
     .replace(
+      /(?<![a-z0-9:/-])[a-z][a-z0-9-]*:([a-z][a-z0-9-]*-(?:agent|analyst|architect|expert|finder|iterator|researcher|resolver|reviewer|specialist|writer))(?![a-z0-9:-])/g,
+      "$1",
+    )
+    .replace(
       /(?<![a-z0-9:/-])[a-z][a-z0-9-]*:(ce-[a-z][a-z0-9-]*)(?![a-z0-9:-])/g,
       "$1",
     );

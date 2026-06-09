@@ -114,11 +114,14 @@ Record the validation outcome (command run, pass/fail counts, any pre-existing f
 
 ## 6. Commit and Push
 
-1. Stage only files reported by sub-agents and commit with a message referencing the PR:
+1. Stage only files reported by sub-agents and commit with a Conventional
+   Commit message referencing the PR:
 
 ```bash
 git add [files from agent summaries]
-git commit -m "Address PR review feedback (#PR_NUMBER)
+git commit -m "fix(pr-feedback): address review feedback
+
+PR: #PR_NUMBER
 
 - [list changes from agent summaries]"
 ```

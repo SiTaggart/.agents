@@ -1,6 +1,6 @@
 ---
 name: ce-plan
-description: "Create structured plans for multi-step tasks -- software features, research workflows, events, study plans, or any goal that benefits from breakdown. Also deepens existing plans with interactive sub-agent review. Use when the user says 'plan this', 'create a plan', 'how should we build', 'break this down', or when a brainstorm doc is ready for planning. Use 'deepen the plan' or 'deepening pass' for the deepening flow. For exploratory requests, prefer ce-brainstorm first."
+description: "Create structured plans for multi-step tasks once the goal is clear enough to plan. Use after ce-brainstorm or ce-grill, or directly for clear planning requests. If the request has branchy product/scope ambiguity, run ce-grill first. After markdown plans, document-review runs before handoff."
 argument-hint: "[optional: feature description, requirements doc path, plan path to deepen, or any task to plan] [output:html]"
 ---
 
@@ -13,6 +13,36 @@ argument-hint: "[optional: feature description, requirements doc path, plan path
 **When directly invoked, always plan.** Never classify a direct invocation as "not a planning task" and abandon the workflow. If the input is unclear, ask clarifying questions or use the planning bootstrap (Phase 0.4) to establish enough context — but always stay in the planning workflow.
 
 This workflow produces a durable implementation plan. It does **not** implement code, run tests, or learn from execution-time results. If the answer depends on changing code and seeing what happens, that belongs in `ce-work`, not here.
+
+## Loop Contract
+
+The planning loop is:
+
+1. **Clarify with `ce-grill` when needed** - if the input is branchy,
+   strategically important, or missing product/scope clarity that would cause
+   different plans.
+2. **Plan with `ce-plan`** - produce the technical implementation plan.
+3. **Review with `document-review`** - markdown plans run the headless
+   document-review gate before handoff; interactive review remains available
+   when actionable findings remain.
+
+Use `ce-review` only after work exists as a branch, PR, or local diff. It is a
+work-review skill, not a requirements or plan-review skill.
+
+If a direct `ce-plan` invocation reveals only one or two ordinary missing facts,
+ask those questions inside this workflow. If it reveals a decision tree where
+the answer would materially change the plan, invoke `ce-grill` first and then
+resume planning from its handoff.
+
+For UI work, fold in `frontend-design` while planning states, layout ownership,
+accessibility, responsive behavior, and browser proof. For historically loaded
+work, use `qmd` or Obsidian context before treating missing product background
+as an assumption.
+
+For broad, unfamiliar, or cross-module software work, use `repoprompt` context
+building before finalizing the plan. Fold the result into owner boundaries,
+existing patterns, data flow, and tests. Do not let RepoPrompt widen the
+accepted product contract.
 
 ## Interaction Method
 
@@ -73,7 +103,7 @@ Resolution steps:
    - `output:<unknown>` (e.g., `output:pdf`) → drop the token, fall through to step 2, and remember to emit a one-line note above the post-generation menu after final resolution: `Ignored unknown output: value '<value>' — using <resolved_format> instead.` where `<resolved_format>` is the value `OUTPUT_FORMAT` actually resolved to after steps 2-4. Do not hardcode `md` in the note — that misleads users when config has set HTML.
 2. **Config.** If step 1 did not resolve and the pre-resolved YAML above has an **active (non-commented)** `plan_output:` key whose value matches `md` or `html` (case-insensitive), use it. Missing, invalid, or commented values fall through silently. Critical: lines starting with `#` are YAML comments and must be ignored — the shipped config template includes commented examples like `# plan_output: html` to document the option, and matching those as active settings would silently force HTML mode on every run without the user having opted in.
 3. **Default.** Otherwise `OUTPUT_FORMAT=md`.
-4. **Pipeline override.** When invoked from LFG or any `disable-model-invocation` context, force `OUTPUT_FORMAT=md` regardless of steps 1-3. `ce-work` and other automated downstream consumers parse markdown reliably; HTML in pipeline runs is unnecessary friction.
+4. **Pipeline override.** When invoked from an automated pipeline or any `disable-model-invocation` context, force `OUTPUT_FORMAT=md` regardless of steps 1-3. `ce-work` and other automated downstream consumers parse markdown reliably; HTML in pipeline runs is unnecessary friction.
 
 **Token-parsing convention:** only literal-prefix flag tokens (`output:`, `mode:`, `delegate:` where applicable) are consumed and stripped. Other `<word>:<word>` tokens — including conventional commit prefixes like `feat:`, `fix:`, `chore:` that may appear inside a feature description — pass through verbatim.
 
@@ -105,7 +135,7 @@ Normal editing requests (e.g., "update the test scenarios", "add a new implement
 
 If the plan already has a `deepened: YYYY-MM-DD` frontmatter field and there is no explicit user request to re-deepen, the fast path still applies the same confidence-gap evaluation — it does not force deepening.
 
-**Resume preserves the existing artifact's format, except pipeline mode.** When resuming an existing plan, the resume run writes back in whatever format the existing artifact uses — markdown if the existing file is `.md`, HTML if it is `.html` — so a resume doesn't silently change the artifact shape. Explicit `output:` arguments on this run override (e.g., resuming an `.html` plan with `output:md` switches the artifact to markdown). Pipeline mode (LFG, any `disable-model-invocation` context) always wins per Phase 0.0: even when resuming an existing `.html` plan, pipeline runs force `OUTPUT_FORMAT=md` so downstream automation receives the markdown shape it expects. The resume rewrites the markdown file at the parallel path (`<plan-basename>.md`) and the original `.html` is left in place untouched.
+**Resume preserves the existing artifact's format, except pipeline mode.** When resuming an existing plan, the resume run writes back in whatever format the existing artifact uses — markdown if the existing file is `.md`, HTML if it is `.html` — so a resume doesn't silently change the artifact shape. Explicit `output:` arguments on this run override (e.g., resuming an `.html` plan with `output:md` switches the artifact to markdown). Pipeline mode (automated pipeline or any `disable-model-invocation` context) always wins per Phase 0.0: even when resuming an existing `.html` plan, pipeline runs force `OUTPUT_FORMAT=md` so downstream automation receives the markdown shape it expects. The resume rewrites the markdown file at the parallel path (`<plan-basename>.md`) and the original `.html` is left in place untouched.
 
 #### 0.1a Recognize Approach-Altitude Requests
 
@@ -288,7 +318,7 @@ Prepare a concise planning context summary (a paragraph or two) to pass as input
 
 Run these agents in parallel:
 
-- Task ce-repo-research-analyst(Scope: technology, architecture, patterns. {planning context summary})
+- Task repo-research-analyst(Scope: technology, architecture, patterns. {planning context summary})
 - Task learnings-researcher(planning context summary)
 Collect:
 - Technology stack and versions (used in section 1.2 to make sharper external research decisions)
@@ -300,7 +330,7 @@ Collect:
 
 **Slack context** (opt-in) — never auto-dispatch. Route by condition:
 
-- **Tools available + user asked**: Dispatch `ce-slack-researcher` with the planning context summary in parallel with other Phase 1.1 agents. If the origin document has a Slack context section, pass it verbatim so the researcher focuses on gaps. Include findings in consolidation.
+- **Tools available + user asked**: Dispatch `slack-researcher` with the planning context summary in parallel with other Phase 1.1 agents. If the origin document has a Slack context section, pass it verbatim so the researcher focuses on gaps. Include findings in consolidation.
 - **Tools available + user didn't ask**: Note in output: "Slack tools detected. Ask me to search Slack for organizational context at any point, or include it in your next prompt."
 - **No tools + user asked**: Note in output: "Slack context was requested but no Slack tools are available. Install and authenticate the Slack plugin to enable organizational context search."
 
@@ -336,11 +366,11 @@ Based on the origin document, user signals, and local findings, decide **whether
 - **Topic risk** — Security, payments, external APIs warrant more caution regardless of user signals.
 - **Uncertainty level** — Is the approach clear or still open-ended?
 
-**Leverage ce-repo-research-analyst's technology context:**
+**Leverage repo-research-analyst's technology context:**
 
-The ce-repo-research-analyst output includes a structured Technology & Infrastructure summary. Use it to make sharper external research decisions:
+The repo-research-analyst output includes a structured Technology & Infrastructure summary. Use it to make sharper external research decisions:
 
-- If specific frameworks and versions were detected (e.g., Next.js 14, Go 1.22), pass those exact identifiers to ce-framework-docs-researcher so it fetches version-specific documentation
+- If specific frameworks and versions were detected (e.g., Next.js 14, Go 1.22), pass those exact identifiers to framework-docs-researcher so it fetches version-specific documentation
 - If the feature touches a technology layer the scan found well-established in the repo (e.g., existing Sidekiq jobs when planning a new background job), lean toward skipping external research -- local patterns are likely sufficient
 - If the feature touches a technology layer the scan found absent or thin (e.g., no existing proto files when planning a new gRPC service), lean toward external research -- there are no local patterns to follow
 - If the scan detected deployment infrastructure (Docker, K8s, serverless), note it in the planning context passed to downstream agents so they can account for deployment constraints
@@ -369,15 +399,15 @@ Announce the decision and the intent briefly before continuing. Examples:
 
 #### 1.3 External Research (Conditional)
 
-If Step 1.2 indicates external research is useful, dispatch by the **intent** classified in Stage 2, using the platform's subagent primitive (`Agent`/`Task` in Claude Code, `spawn_agent` in Codex, `subagent` in Pi). For `ce-web-researcher`, pass a focus hint plus the planning context summary and do **not** pass codebase content — it operates externally.
+If Step 1.2 indicates external research is useful, dispatch by the **intent** classified in Stage 2, using the platform's subagent primitive (`Agent`/`Task` in Claude Code, `spawn_agent` in Codex, `subagent` in Pi). For `web-researcher`, pass a focus hint plus the planning context summary and do **not** pass codebase content — it operates externally.
 
 - **Implementation-guidance** — run in parallel:
-  - Task ce-best-practices-researcher(planning context summary)
-  - Task ce-framework-docs-researcher(planning context summary, with exact frameworks/versions from Phase 1.1 where available)
-- **Landscape / option-discovery** — Task ce-web-researcher(focus hint, planning context summary). When the request targets projects on a code host (e.g., "competitors on GitHub"), name the discovery dimensions in the focus hint: project names and URLs, release recency and activity, CLI/UX shape, install path, docs and examples, plugin/extension surfaces, recurring issue themes, and license — treating star counts as a weak signal only.
-- **Mixed** — **sequential, not parallel**: run `ce-web-researcher` first to map the landscape and produce a shortlist; then run `ce-framework-docs-researcher` and/or `ce-best-practices-researcher` against the shortlisted technologies only when their details materially shape the plan.
+  - Task best-practices-researcher(planning context summary)
+  - Task framework-docs-researcher(planning context summary, with exact frameworks/versions from Phase 1.1 where available)
+- **Landscape / option-discovery** — Task web-researcher(focus hint, planning context summary). When the request targets projects on a code host (e.g., "competitors on GitHub"), name the discovery dimensions in the focus hint: project names and URLs, release recency and activity, CLI/UX shape, install path, docs and examples, plugin/extension surfaces, recurring issue themes, and license — treating star counts as a weak signal only.
+- **Mixed** — **sequential, not parallel**: run `web-researcher` first to map the landscape and produce a shortlist; then run `framework-docs-researcher` and/or `best-practices-researcher` against the shortlisted technologies only when their details materially shape the plan.
 
-**Tool-unavailable handling.** `ce-web-researcher` self-checks for web tools and stops if they are missing. Never block on this: if it reports research unavailable, or any researcher fails, warn and proceed, and carry the gap into Phase 1.4 so the plan records it honestly — especially when the user explicitly requested external research, where a silent skip would leave the plan looking evidence-based when it is not.
+**Tool-unavailable handling.** `web-researcher` self-checks for web tools and stops if they are missing. Never block on this: if it reports research unavailable, or any researcher fails, warn and proceed, and carry the gap into Phase 1.4 so the plan records it honestly — especially when the user explicitly requested external research, where a silent skip would leave the plan looking evidence-based when it is not.
 
 #### 1.4 Consolidate Research
 
@@ -411,7 +441,7 @@ This ensures flow analysis (Phase 1.5) runs and the confidence check (Phase 5.3)
 
 For **Standard** or **Deep** plans, or when user flow completeness is still unclear, run:
 
-- Task ce-spec-flow-analyzer(planning context summary, research findings)
+- Task spec-flow-analyzer(planning context summary, research findings)
 
 Use the output to:
 - Identify missing edge cases, state transitions, or handoff gaps
@@ -699,7 +729,7 @@ Compose the plan using the content from `references/plan-sections.md` and the fo
 
 **Write tight.** A section being material is not license to pad it. Hold every kept section to the prose-economy discipline in `references/plan-sections.md`: one idea per sentence, a requirement or unit is intent plus at most one qualifier, defer forks to Open Questions rather than specifying both arms, resolve superseded text in place rather than stacking strata. Before declaring the plan written, run the named test there — could the implementer find a contradiction in each section in one pass?
 
-**HTML composition timing.** When `OUTPUT_FORMAT=html`, Phase 5.3 deepening runs before this write completes its final form, but `ce-doc-review` is skipped in HTML mode (its mutation mechanics are markdown-only today — see Phase 5.3.8 format gate in `references/plan-handoff.md`). The HTML artifact reflects deepening synthesis but not doc-review autofixes; this is a known gap until ce-doc-review gains HTML-aware mutation.
+**HTML composition timing.** When `OUTPUT_FORMAT=html`, Phase 5.3 deepening runs before this write completes its final form, but `document-review` is skipped in HTML mode because its edits are markdown-only today — see Phase 5.3.8 format gate in `references/plan-handoff.md`. The HTML artifact reflects deepening synthesis but not doc-review cleanup; this is a known gap until document-review gains HTML-aware editing.
 
 Confirm (use absolute path so the reference is clickable in modern terminals):
 
@@ -707,7 +737,7 @@ Confirm (use absolute path so the reference is clickable in modern terminals):
 Plan written to <absolute path to plan>
 ```
 
-**Pipeline mode:** If invoked from an automated workflow such as LFG or any `disable-model-invocation` context, skip interactive questions. Make the needed choices automatically and proceed to writing the plan. Pipeline mode forces `OUTPUT_FORMAT=md` at Phase 0.0.
+**Pipeline mode:** If invoked from an automated workflow or any `disable-model-invocation` context, skip interactive questions. Make the needed choices automatically and proceed to writing the plan. Pipeline mode forces `OUTPUT_FORMAT=md` at Phase 0.0.
 
 **CONCEPTS.md gap-fill (only if the file already exists):** If the plan body uses a domain term whose definition is missing from `CONCEPTS.md`, add the entry. **Domain entities, named processes, and status concepts with project-specific meaning only** — not file paths, class names, function signatures, or implementation decisions. `CONCEPTS.md` is a glossary, not a spec or catch-all. Follow the format set by existing entries. Apply silently. Skip entirely if `CONCEPTS.md` does not exist — creation is owned by ce-compound and ce-compound-refresh.
 
@@ -722,8 +752,8 @@ After writing the plan file, automatically evaluate whether the plan needs stren
 
 Interactive mode exists because on-demand deepening is a different user posture — the user already has a plan they are invested in and wants to be surgical about what changes. This applies whether the plan was generated by this skill, written by hand, or produced by another tool.
 
-`ce-doc-review` and this confidence check are different:
-- Use the `ce-doc-review` skill when the document needs clarity, simplification, completeness, or scope control
+`document-review` and this confidence check are different:
+- Use the `document-review` skill when the document needs clarity, simplification, completeness, or scope control
 - This confidence check strengthens rationale, sequencing, risk treatment, and system-wide thinking when the plan is structurally sound but still needs stronger grounding
 
 **Pipeline mode:** This phase always runs in auto mode in pipeline/disable-model-invocation contexts. No user interaction needed.
@@ -752,7 +782,7 @@ Build a risk profile. Treat these as high-risk signals:
 - **Thin local grounding override:** If Phase 1.2 triggered external research because local patterns were thin (fewer than 3 direct examples or adjacent-domain match), always proceed to scoring regardless of how grounded the plan appears. When the plan was built on unfamiliar territory, claims about system behavior are more likely to be assumptions than verified facts. The scoring pass is cheap — if the plan is genuinely solid, scoring finds nothing and exits quickly
 - **Load-bearing external research override:** If Phase 1.4 marked external research as load-bearing (it materially shaped a KTD, Alternative, Scope boundary, or Risk), always proceed to scoring — **even when local implementation patterns are strong**. A landscape or prior-art finding can shape recommendations the local codebase cannot verify, and the thin-grounding override above would miss it. This enters the scoring pass only; it does not force deepening
 
-If the plan already appears sufficiently grounded and neither the thin-grounding nor the load-bearing-external-research override applies, report "Confidence check passed — no sections need strengthening", then **load `references/plan-handoff.md` now and execute 5.3.8 → 5.3.9 → 5.4 in sequence**. Document review is mandatory for markdown plans — do not skip it because the confidence check passed. The two tools catch different classes of issues. For HTML plans (`OUTPUT_FORMAT=html`), the plan-handoff 5.3.8 format gate skips ce-doc-review since its mutation mechanics are markdown-only today; the menu summary surfaces that limitation explicitly.
+If the plan already appears sufficiently grounded and neither the thin-grounding nor the load-bearing-external-research override applies, report "Confidence check passed — no sections need strengthening", then **load `references/plan-handoff.md` now and execute 5.3.8 → 5.3.9 → 5.4 in sequence**. Document review is mandatory for markdown plans — do not skip it because the confidence check passed. The two tools catch different classes of issues. For HTML plans (`OUTPUT_FORMAT=html`), the plan-handoff 5.3.8 format gate skips document-review since its editing mechanics are markdown-only today; the menu summary surfaces that limitation explicitly.
 
 ##### 5.3.3–5.3.7 Deepening Execution
 
@@ -760,27 +790,25 @@ When deepening is warranted, read `references/deepening-workflow.md` for confide
 
 ##### 5.3.8–5.4 Document Review, Final Checks, and Post-Generation Options
 
-**STOP. Load `references/plan-handoff.md` now before continuing.** It carries the full instructions for 5.3.8 (document review), 5.3.9 (final checks and cleanup), and 5.4 (post-generation handoff, including the Proof HITL flow, post-HITL re-review, and Issue Creation branching). **This load is non-optional** — without it, the agent renders the post-generation menu, captures the user's selection, and stops without firing the routed action. Document review at 5.3.8 runs unconditionally for `OUTPUT_FORMAT=md` regardless of whether the confidence check already ran; for `OUTPUT_FORMAT=html`, plan-handoff's 5.3.8 format gate skips ce-doc-review because its mutation mechanics are markdown-only today. The default mode for markdown is headless (`mode:headless`) — `safe_auto` fixes apply silently, remaining findings surface contextually above the menu, and a deeper interactive review is opt-in via free-form prompt.
+**STOP. Load `references/plan-handoff.md` now before continuing.** It carries the full instructions for 5.3.8 (document review), 5.3.9 (final checks and cleanup), and 5.4 (post-generation handoff, including Issue Creation branching). **This load is non-optional** — without it, the agent renders the post-generation menu, captures the user's selection, and stops without firing the routed action. Document review at 5.3.8 runs unconditionally for `OUTPUT_FORMAT=md` regardless of whether the confidence check already ran; for `OUTPUT_FORMAT=html`, plan-handoff's 5.3.8 format gate skips document-review because its editing mechanics are markdown-only today. The default mode for markdown is headless (`mode:headless`) — trivial-safe fixes apply silently, remaining findings surface contextually above the menu, and a deeper interactive review is opt-in via free-form prompt.
 
-After document review and final checks, print a one-line summary of the headless review state above the menu (e.g., `Doc review applied 3 fixes. 2 decisions, 1 proposed fix, 4 FYI observations remain (1 at P1).`; for HTML plans where 5.3.8 was skipped, print `Doc review skipped — ce-doc-review is markdown-only today; the HTML plan was not reviewed.`), then present the menu. The menu has 5 options when actionable findings remain (`proposed_fixes_count + decisions_count > 0`) and 4 options otherwise — including the FYI-only case AND the HTML-skip case (`skipped_reason: output_format_html`), both of which hide option 2 because ce-doc-review's walkthrough is gated to actionable markdown findings and would have nothing valid to walk through. See `references/plan-handoff.md` for the full rule. Render the 5-option menu as a numbered list in chat per the AGENTS.md narrow exception for legitimate option overflow, with the hint "Pick a number or describe what you want." On platforms whose blocking question tool has no option cap (Codex `request_user_input`, Pi `ask_user`), use the platform's blocking tool; when that tool is unavailable or errors (e.g., Codex edit modes where `request_user_input` is not exposed), fall back to the same numbered-list-in-chat rendering with the "Pick a number or describe what you want." hint. The 4-option case routes through the platform's blocking tool normally (`AskUserQuestion` in Claude Code — call `ToolSearch` with `select:AskUserQuestion` first if its schema isn't loaded), with the same numbered-list-in-chat fallback when no blocking tool is available or the call errors. Never silently skip the question.
+After document review and final checks, print a one-line summary of the headless review state above the menu (e.g., `Doc review applied 3 fixes. 2 decisions, 1 proposed fix, 4 FYI observations remain (1 at P1).`; for HTML plans where 5.3.8 was skipped, print `Doc review skipped — document-review is markdown-only today; the HTML plan was not reviewed.`), then present the menu. Show `Run deeper doc review` only when actionable findings remain (`proposed_fixes_count + decisions_count > 0`), and show `Open in browser` only for HTML artifacts. Renumber the visible options so users see a clean sequence. Use the platform's blocking question tool where available (`AskUserQuestion` in Claude Code — call `ToolSearch` with `select:AskUserQuestion` first if its schema isn't loaded; `request_user_input` in Codex; `ask_user` in Gemini/Pi). When no blocking question tool is available or it errors, fall back to a numbered list in chat with "Pick a number or describe what you want." Never silently skip the question.
 
 **Question:** "Plan ready at `<absolute path to plan>`. What would you like to do next?" (use absolute path so the reference is clickable in modern terminals)
 
-**Options.** Option 4's label matches the artifact's format. Under exclusive output mode, exactly one of "Open in Proof" or "Open in browser" applies per run — `OUTPUT_FORMAT=md` shows Proof; `OUTPUT_FORMAT=html` shows browser. Proof operates on markdown and cannot ingest HTML; the browser option opens the local `.html` file. Render the option matching the format produced this run.
+**Options.** The browser option applies only to HTML artifacts. Markdown plans are reviewed via document-review and then handed off to work, issue creation, or pause.
 
 1. **Start `/ce-work`** (recommended) - Begin implementing this plan in the current session
-2. **Run deeper doc review** - Walk through the remaining findings interactively (full ce-doc-review walkthrough)
+2. **Run deeper doc review** - Review the remaining findings interactively
 3. **Create Issue** - Create a tracked issue from this plan in your configured issue tracker (GitHub or Linear)
-4. **Open in Proof (web app) — review and comment to iterate with the agent** - Open the doc in the Proof editor, iterate with the agent via comments, or copy a link to share with others. **Render only when `OUTPUT_FORMAT=md`.**
 4. **Open in browser** - Open the HTML plan file locally for review and sharing. **Render only when `OUTPUT_FORMAT=html`.**
 5. **Done for now** - Pause; the plan file is saved and can be resumed later
 
-**Routing.** Act on the user's selection — do not just announce it. Elaborate sub-flows (Proof HITL state machine, Issue Creation tracker detection, post-HITL resync) live in `references/plan-handoff.md`.
+**Routing.** Act on the user's selection — do not just announce it. Elaborate sub-flows (Issue Creation tracker detection and post-action menu handling) live in `references/plan-handoff.md`.
 
 - **Start `/ce-work`** — Invoke the `ce-work` skill via the platform's skill-invocation primitive (`Skill` in Claude Code, `Skill` in Codex, the equivalent on Gemini/Pi), passing the plan path as the skill argument. Do not merely tell the user to type `/ce-work` — fire the invocation now so the plan executes in this session.
-- **Run deeper doc review** — Re-invoke the `ce-doc-review` skill on the plan path **without** `mode:headless` so the interactive routing question and walkthrough fire. After it returns, re-render this menu with refreshed counts so the user can pick a next-stage action.
+- **Run deeper doc review** — Re-invoke the `document-review` skill on the plan path **without** `mode:headless` so the interactive routing question fires. After it returns, re-render this menu with refreshed counts so the user can pick a next-stage action.
 - **Create Issue** — Detect the project tracker (`gh` for GitHub, `linear` for Linear) and create the issue from the plan file as described under "Issue Creation" in `references/plan-handoff.md`. After creation, display the issue URL and ask whether to proceed to `/ce-work` via the platform's blocking question tool.
-- **Open in Proof (web app) — review and comment to iterate with the agent** — Load the `ce-proof` skill in HITL-review mode with the plan file as `source file`, the plan title as `doc title`, identity `plan-review` / `Plan Review`, and recommended next step `/ce-work`. Then follow the post-HITL resync logic in `references/plan-handoff.md`, which handles the four `ce-proof` return statuses, re-runs `ce-doc-review` after material edits, and falls back gracefully on upload failure.
 - **Open in browser** — Display the absolute path to the `.html` plan file so the user can open it locally. Where the platform exposes a browser-opening primitive (e.g., `open` on macOS, `xdg-open` on Linux, `start` on Windows), the agent may use it; otherwise print the absolute path and let the user open it. Do not invoke `ce-work` from this option — the user picked HTML for review/sharing, not handoff.
 - **Done for now** — Display a brief confirmation that the plan file is saved and end the turn. Do not start follow-up work without an explicit further user prompt.
 
@@ -788,4 +816,4 @@ If the user types free-form prompts targeting the findings (e.g., "review", "wal
 
 **Completion check:** This skill is not complete until the post-generation menu above has been presented, the user has selected an action, and the inline routing for that selection has been executed. Presenting the menu and stopping at the user's selection is not completion — fire the routed action.
 
-**Pipeline mode exception:** In LFG or any `disable-model-invocation` context, skip the interactive menu and return control to the caller after the plan file is written, confidence check has run, and `ce-doc-review` has run in headless mode (per `references/plan-handoff.md`). Pipeline mode forces `OUTPUT_FORMAT=md` at Phase 0.0, so the 5.3.8 format gate never selects the HTML skip path in pipeline runs.
+**Pipeline mode exception:** In an automated pipeline or any `disable-model-invocation` context, skip the interactive menu and return control to the caller after the plan file is written, confidence check has run, and `document-review` has run in headless mode (per `references/plan-handoff.md`). Pipeline mode forces `OUTPUT_FORMAT=md` at Phase 0.0, so the 5.3.8 format gate never selects the HTML skip path in pipeline runs.

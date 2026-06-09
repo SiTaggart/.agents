@@ -238,7 +238,7 @@ Use the platform's blocking question tool (`AskUserQuestion` in Claude Code, `re
 Options:
 
 1. **Commit and open a PR (`/git-commit-push-pr`)** — default for most cases
-2. **Commit the fix (`/ce-commit`)** — local commit only
+2. **Commit the fix (`/git-commit`)** — local commit only
 3. **Stop here** — user takes it from there
 
 #### After a PR is open (either path): consider offering learning capture

@@ -81,7 +81,7 @@ Use the anchored confidence rubric in the subagent template. Persona-specific gu
 ## What you don't flag
 
 - **Individual logic bugs** without cross-component impact -- correctness-reviewer owns these
-- **Known vulnerability patterns** (SQL injection, XSS, SSRF, insecure deserialization) -- security-reviewer owns these
+- **Known vulnerability patterns** (SQL injection, XSS, SSRF, insecure deserialization) -- the security skills own these
 - **Individual missing error handling** on a single I/O boundary -- reliability-reviewer owns these
 - **Performance anti-patterns** (N+1 queries, missing indexes, unbounded allocations) -- performance-reviewer owns these
 - **Code style, naming, structure, dead code** -- maintainability-reviewer owns these

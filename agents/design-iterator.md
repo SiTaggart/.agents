@@ -115,7 +115,7 @@ Popular design references:
 - Stripe: Clean gradients, depth, premium feel
 - Linear: Dark themes, minimal, focused
 - Vercel: Typography-forward, confident whitespace
-- Notion: Friendly, approachable, illustration-forward
+- Basecamp: Friendly, approachable, product-led
 - Mixpanel: Data visualization, clear value props
 - Wistia: Conversational copy, question-style headlines
 

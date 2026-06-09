@@ -65,7 +65,7 @@ With the default `runs_per_eval: 3` and 4 evals, that's 12 with-skill subagent d
 | Outcome | Interpretation | Action |
 |---------|----------------|--------|
 | All 4 evals pass with low variance | Assumption holds. ce-compound Phase 2.4 wiring works as advertised. | Ship PR #838. |
-| Eval 1 or 2 fails Stage 1 | Synthesis loss is severe — distinctive coined terms are being dropped. | Investigate ce-session-historian's synthesis prompt; consider tightening it to preserve verbatim terminology. Revise PR #838's claims accordingly. |
+| Eval 1 or 2 fails Stage 1 | Synthesis loss is severe — distinctive coined terms are being dropped. | Investigate `session-historian`'s synthesis prompt; consider tightening it to preserve verbatim terminology. Revise PR #838's claims accordingly. |
 | Eval 1 or 2 passes Stage 1 but fails Stage 2 | Terms survive but rationale is lost. | Phase 2.4 will see terms but may not write good entries. Consider whether the wiring still delivers value, or whether the historian needs to preserve more context. |
 | Eval 3 fails while 1 and 2 pass | Indexing gap — terms only retrievable when queried by name. | The Phase 2.4 wiring is decorative for the broad-topic use case. Reconsider whether to ship the session-search scan input, or change how Phase 2.4 queries ce-sessions. |
 | High variance | Mechanism works but unreliably. | Multiple invocations within ce-compound's flow would help, or accept it as a best-effort enhancement rather than load-bearing. |

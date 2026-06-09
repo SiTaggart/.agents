@@ -35,56 +35,49 @@ bun run link opencode
 
 | Component  | Count |
 | ---------- | ----- |
-| Agents     | 56    |
-| Commands   | 4     |
-| Skills     | 87    |
+| Agents     | 40    |
+| Commands   | 3     |
+| Skills     | 55    |
 | Rules      | 2     |
+
+## Operating Loops
+
+The shelf is organized around a few tight loops rather than standalone skills:
+
+| Loop | Route |
+| ---- | ----- |
+| Explore and decide | `qmd` / Obsidian / `repoprompt` when broad codebase context matters -> `ce-brainstorm` -> `ce-grill` when branchy -> `document-review` when a requirements doc needs polish -> `ce-plan` |
+| Plan and build | `ce-plan` with `repoprompt` when broad -> `document-review` for markdown plans -> `ce-work` -> `ce-quality-gate`; fold in `frontend-design` for UI work |
+| Review and ship | `ce-review` on changed work -> `ce-simplify-code` when shape needs cleanup -> git skills for ops |
+| Remember and reuse | `ce-compound` / `ce-compound-refresh` -> Obsidian or QMD for durable knowledge |
+| Debug and investigate | `ce-debug` -> `repoprompt` when broad context is needed -> `ce-work` -> `ce-review` |
 
 ## Agents
 
-### Review (30)
+### Review (18)
 
 | Agent                            | Description                                                     |
 | -------------------------------- | --------------------------------------------------------------- |
-| `adversarial-document-reviewer`  | Challenge premises and stress-test decisions in large or high-stakes documents |
 | `adversarial-reviewer`           | Construct failure scenarios for large or high-risk diffs        |
-| `agent-native-reviewer`          | Ensure agent-native parity: any user action is also agent-accessible |
 | `api-contract-reviewer`          | Review diffs touching API routes, types, or versioning for breaking changes |
 | `architecture-strategist`        | Analyze architectural decisions and compliance                  |
 | `cli-agent-readiness-reviewer`   | Review CLI source for AI agent readiness using severity rubric  |
 | `cli-readiness-reviewer`         | Review CLI command diffs for agent optimization                 |
 | `code-simplicity-reviewer`       | Final pass for simplicity and minimalism                        |
-| `coherence-reviewer`             | Check planning documents for internal consistency and terminology drift |
 | `correctness-reviewer`           | Review code for logic errors, edge cases, and state management bugs |
-| `data-integrity-guardian`        | Database migrations and data integrity                          |
-| `data-migration-expert`          | Validate ID mappings match production, check for swapped values |
-| `data-migrations-reviewer`       | Review migration files, schema changes, and backfill scripts    |
+| `data-migration-reviewer`        | Review migrations, schema changes, backfills, and data transforms |
 | `design-implementation-reviewer` | Verify UI implementations match Figma designs                   |
-| `design-lens-reviewer`           | Surface missing design decisions in planning documents          |
-| `feasibility-reviewer`           | Evaluate whether proposed technical approaches will survive implementation |
 | `julik-frontend-races-reviewer`  | Review JavaScript/Stimulus code for race conditions             |
-| `kieran-rails-reviewer`          | Rails code review with strict conventions                       |
 | `kieran-python-reviewer`         | Python code review with strict conventions                      |
 | `kieran-typescript-reviewer`     | TypeScript code review with strict conventions                  |
 | `maintainability-reviewer`       | Review code for premature abstraction, dead code, and coupling  |
 | `pattern-recognition-specialist` | Analyze code for patterns and anti-patterns                     |
-| `performance-oracle`             | Performance analysis and optimization                           |
 | `performance-reviewer`           | Review diffs touching queries, caching, or I/O for performance  |
 | `previous-comments-reviewer`     | Check whether prior PR feedback has been addressed in current diff |
-| `product-lens-reviewer`          | Challenge problem framing and scope alignment in planning docs  |
 | `project-standards-reviewer`     | Audit changes against CLAUDE.md and AGENTS.md standards         |
 | `reliability-reviewer`           | Review error handling, retries, and failure modes for production reliability |
-| `scope-guardian-reviewer`        | Flag unjustified complexity and scope creep in planning documents |
-| `security-lens-reviewer`         | Evaluate planning documents for security gaps and threat model holes |
 
-### Security (2)
-
-| Agent                            | Description                                                     |
-| -------------------------------- | --------------------------------------------------------------- |
-| `security-reviewer`              | Review diffs touching auth, endpoints, or user input for vulnerabilities |
-| `security-sentinel`              | Security audits and vulnerability assessments                   |
-
-### Research (10)
+### Research (9)
 
 | Agent                       | Description                                         |
 | --------------------------- | --------------------------------------------------- |
@@ -94,7 +87,6 @@ bun run link opencode
 | `issue-intelligence-analyst`| Analyze GitHub issues for recurring themes and pain patterns |
 | `learnings-researcher`      | Search past solutions in .ai/solutions/ for institutional knowledge |
 | `repo-research-analyst`     | Research repository structure and conventions       |
-| `rp-explorer`               | Token-efficient codebase exploration via RepoPrompt |
 | `session-historian`         | Analyze past agent sessions across Claude Code / Codex / Cursor |
 | `slack-researcher`          | Research organizational context from Slack workspaces |
 | `web-researcher`            | Research external documentation and web references  |
@@ -120,20 +112,18 @@ bun run link opencode
 | `react-test-architect`           | Design and implement React test strategies             |
 | `testing-reviewer`               | Review code for test coverage gaps and weak assertions  |
 
-### Workflow (3)
+### Workflow (2)
 
 | Agent                        | Description                                       |
 | ---------------------------- | ------------------------------------------------- |
 | `pr-comment-resolver`        | Address PR comments and implement fixes           |
 | `spec-flow-analyzer`         | Analyze user flows and identify gaps in specs     |
-| `task-orchestrator`          | Determine optimal delegation across sub-agents    |
 
 ## Commands
 
 | Command                  | Description                                                  |
 | ------------------------ | ------------------------------------------------------------ |
 | `/deslop`                | Remove AI-generated code slop from current branch            |
-| `/playwright-test`       | Run browser tests on PR-affected pages                       |
 | `/set-custom-rules`      | Set custom rules for the project                             |
 | `/verify-custom-rules`   | Verify custom rules for the project                          |
 
@@ -143,19 +133,15 @@ bun run link opencode
 
 | Skill                          | Description                                            |
 | ------------------------------ | ------------------------------------------------------ |
-| `agent-native-architecture`    | Build AI agents using prompt-native architecture       |
-| `agent-native-audit`           | Run comprehensive agent-native architecture review with scored principles |
 | `frontend-design`              | Create production-grade frontend interfaces            |
-| `web-design-guidelines`        | Review UI code for Web Interface Guidelines compliance |
 | `vercel-react-best-practices`  | React and Next.js performance optimization from Vercel |
 
 ### Code Quality
 
 | Skill              | Description                                                  |
 | ------------------ | ------------------------------------------------------------ |
-| `code-simplifier`  | Simplify and refine code for clarity and maintainability     |
+| `ce-quality-gate`  | Make touched code clean for lint, format, type, and tests    |
 | `deslop`           | Remove AI-generated code slop from current branch            |
-| `find-bugs`        | Find bugs, security vulnerabilities, and code quality issues |
 | `security-review`  | Security code review for vulnerabilities (OWASP)             |
 | `skill-scanner`    | Scan agent skills for security issues and prompt injection   |
 
@@ -164,38 +150,27 @@ bun run link opencode
 | Skill                       | Description                                          |
 | --------------------------- | ---------------------------------------------------- |
 | `claude-settings-audit`     | Generate recommended Claude Code settings.json       |
-| `github-search`             | Search GitHub code, repos, issues, and PRs via CLI   |
 | `onboarding`                | Generate ONBOARDING.md for new contributors          |
 | `repo-research-analyst`     | Analyze repository structure and patterns            |
-| `test-driven-development`   | Test-driven development workflows                    |
 | `typescript-advanced-types` | Master TypeScript's advanced type system             |
 
 ### Codebase Exploration
 
 | Skill                  | Description                                           |
 | ---------------------- | ----------------------------------------------------- |
-| `repoprompt`           | Use RepoPrompt CLI for codebase exploration           |
-| `rp-explorer`          | Token-efficient codebase exploration using RepoPrompt |
-| `rp-build-cli`         | Build with rp-cli context builder, chat, and implement|
-| `rp-investigate-cli`   | Deep codebase investigation and architecture research |
-| `rp-oracle-export-cli` | Export context for oracle consultation                |
-| `rp-refactor-cli`      | Refactoring assistant using rp-cli                    |
-| `rp-reminder-cli`      | Reminder to use rp-cli                                |
-| `rp-review-cli`        | Code review workflow using rp-cli                     |
+| `repoprompt`           | Use RepoPrompt for token-efficient codebase context   |
 
 ### Documentation
 
 | Skill              | Description                                          |
 | ------------------ | ---------------------------------------------------- |
 | `agents-md`        | Create and maintain AGENTS.md / CLAUDE.md files      |
-| `doc-coauthoring`  | Structured workflow for co-authoring documentation   |
-| `document-review`  | Refine brainstorm or plan documents before next step |
+| `document-review`  | Review requirements and plan documents before handoff |
 
 ### Knowledge Search
 
 | Skill       | Description                                                  |
 | ----------- | ------------------------------------------------------------ |
-| `defuddle`  | Extract clean markdown from web pages, removing clutter      |
 | `qmd`       | Search markdown knowledge bases, notes, and documentation    |
 
 ### Obsidian
@@ -212,12 +187,9 @@ bun run link opencode
 
 | Skill                        | Description                                              |
 | ---------------------------- | -------------------------------------------------------- |
-| `commit`                     | Create git commits with user approval                    |
-| `create-pr`                  | Create pull requests following conventions               |
-| `describe_pr`                | Generate comprehensive PR descriptions                   |
 | `git-clean-gone-branches`    | Clean up local branches whose remote is gone             |
-| `git-commit`                 | Create commits with clear, value-communicating messages  |
-| `git-commit-push-pr`         | Commit, push, and open a PR in one step                  |
+| `git-commit`                 | Create value-led Conventional Commits                    |
+| `git-commit-push-pr`         | Commit, push, and open a PR with a conventional title    |
 | `git-worktree`               | Manage Git worktrees for parallel development            |
 | `resolve-pr-feedback`        | Resolve PR review feedback by evaluating and fixing in parallel |
 | `standup-skill`              | Generate a summary of work from the previous workday     |
@@ -238,56 +210,32 @@ bun run link opencode
 | `ce-compound`          | Document solved problems to compound team knowledge            |
 | `ce-compound-refresh`  | Refresh stale learnings and pattern docs against current codebase |
 | `ce-debug`             | Systematic debugging with anti-patterns and investigation techniques |
-| `ce-demo-reel`         | Capture demo reels via terminal / screenshot / browser pipelines |
-| `ce-grill`             | Stress-test a plan or design through interview-style questions |
+| `find-skills`          | Route tasks to the right local skill loop                    |
+| `ce-grill`             | Clarify branchy requirements before planning                   |
 | `ce-handoff`           | Compact current work into a continuation brief                 |
 | `ce-ideate`            | Generate and evaluate grounded improvement ideas for a project |
 | `ce-optimize`          | Auto-research loop for tuning prompts and evaluating solutions |
 | `ce-plan`              | Transform requirements into structured implementation plans    |
-| `ce-polish-beta`       | Human-in-the-loop polish phase between /ce:review and merge    |
-| `ce-product-pulse`     | Evaluate product outcomes and signal quality                  |
-| `ce-release-notes`     | Browse plugin release history                                  |
-| `ce-review`            | Structured code review with tiered persona agents              |
-| `ce-riffrec-feedback-analysis` | Convert Riffrec recordings into structured feedback      |
-| `ce-session-extract`   | Extract useful slices from session history                     |
-| `ce-session-inventory` | Inventory local coding-agent sessions                          |
+| `ce-review`            | Review branch, PR, or local work before shipping               |
 | `ce-simplify-code`     | Simplify recent code changes while preserving behavior         |
 | `ce-sessions`          | Cross-platform session history analysis                        |
-| `ce-setup`             | Unified setup skill with dependency management                 |
 | `ce-slack-research`    | Research organizational context from Slack                     |
-| `ce-strategy`          | Develop strategy from context, constraints, and options        |
-| `ce-update`            | Check plugin versions and bump references                      |
 | `ce-work`              | Execute work efficiently while maintaining quality             |
-| `ce-work-beta`         | Execute work with experimental Codex delegation support        |
-| `changelog`            | Create engaging changelogs for recent merges                   |
-| `proof`                | Verify claims and results before declaring work done           |
-
-### Autonomous Workflows
-
-| Skill              | Description                                              |
-| ------------------ | -------------------------------------------------------- |
-| `lfg`              | Full autonomous engineering workflow                     |
-| `test-browser`     | Run browser tests on pages affected by current PR        |
+| `changelog`            | Write source-backed changelogs from recent merges              |
 
 ### Integrations
 
 | Skill                           | Description                                                    |
 | ------------------------------- | -------------------------------------------------------------- |
 | `linear`                        | Manage issues, projects, and team workflows in Linear          |
-| `notion-knowledge-capture`      | Transform conversations into structured Notion pages           |
-| `notion-meeting-intelligence`   | Prepare meeting materials by gathering context from Notion     |
-| `notion-research-documentation` | Search Notion workspace and create research documentation      |
-| `notion-spec-to-implementation` | Turn specs into concrete Notion tasks for implementation       |
-| `skills-sh-marketplace`         | Search, discover, and install skills from skills.sh            |
 
 ### Image Generation
 
 | Skill             | Description                                              |
 | ----------------- | -------------------------------------------------------- |
-| `gemini-imagegen` | Generate and edit images using Google's Gemini API       |
 | `imagegen`        | Generate or edit images via the OpenAI Image API         |
 
-> **Browser automation:** install the standalone `vercel-labs/agent-browser` plugin — it bundles the CLI alongside its own skill. `test-browser`, `design-iterator`, `design-implementation-reviewer`, and `figma-design-sync` all expect the `agent-browser` CLI to be on your `$PATH`.
+> **Browser automation:** install the standalone `vercel-labs/agent-browser` plugin when using design workflows that still depend on it. `design-iterator`, `design-implementation-reviewer`, and `figma-design-sync` expect the `agent-browser` CLI to be on your `$PATH`.
 
 ## Rules
 

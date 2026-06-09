@@ -99,43 +99,43 @@ Use fully-qualified agent names inside Task calls.
 **Deterministic Section-to-Agent Mapping:**
 
 **Requirements / Open Questions classification**
-- `ce-spec-flow-analyzer` for missing user flows, edge cases, and handoff gaps
-- `ce-repo-research-analyst` (Scope: `architecture, patterns`) for repo-grounded patterns, conventions, and implementation reality checks
+- `spec-flow-analyzer` for missing user flows, edge cases, and handoff gaps
+- `repo-research-analyst` (Scope: `architecture, patterns`) for repo-grounded patterns, conventions, and implementation reality checks
 
 **Context & Research / Sources & References gaps**
-- `ce-learnings-researcher` for institutional knowledge and past solved problems
-- `ce-framework-docs-researcher` for official framework or library behavior
-- `ce-best-practices-researcher` for current external patterns and industry guidance
-- `ce-web-researcher` for landscape/prior-art gaps — competitor patterns, market signals, or an unsettled external option set (which library/provider/approach) that recommendations depend on
-- Add `ce-git-history-analyzer` only when historical rationale or prior art is materially missing
+- `learnings-researcher` for institutional knowledge and past solved problems
+- `framework-docs-researcher` for official framework or library behavior
+- `best-practices-researcher` for current external patterns and industry guidance
+- `web-researcher` for landscape/prior-art gaps — competitor patterns, market signals, or an unsettled external option set (which library/provider/approach) that recommendations depend on
+- Add `git-history-analyzer` only when historical rationale or prior art is materially missing
 
 **Key Technical Decisions**
-- `ce-architecture-strategist` for design integrity, boundaries, and architectural tradeoffs
-- Add `ce-framework-docs-researcher` or `ce-best-practices-researcher` when the decision needs external grounding beyond repo evidence
+- `architecture-strategist` for design integrity, boundaries, and architectural tradeoffs
+- Add `framework-docs-researcher` or `best-practices-researcher` when the decision needs external grounding beyond repo evidence
 
 **High-Level Technical Design**
-- `ce-architecture-strategist` for validating that the technical design accurately represents the intended approach and identifying gaps
-- `ce-repo-research-analyst` (Scope: `architecture, patterns`) for grounding the technical design in existing repo patterns and conventions
-- Add `ce-best-practices-researcher` when the technical design involves a DSL, API surface, or pattern that benefits from external validation
+- `architecture-strategist` for validating that the technical design accurately represents the intended approach and identifying gaps
+- `repo-research-analyst` (Scope: `architecture, patterns`) for grounding the technical design in existing repo patterns and conventions
+- Add `best-practices-researcher` when the technical design involves a DSL, API surface, or pattern that benefits from external validation
 
 **Implementation Units / Verification**
-- `ce-repo-research-analyst` (Scope: `patterns`) for concrete file targets, patterns to follow, and repo-specific sequencing clues
-- `ce-pattern-recognition-specialist` for consistency, duplication risks, and alignment with existing patterns
-- Add `ce-spec-flow-analyzer` when sequencing depends on user flow or handoff completeness
+- `repo-research-analyst` (Scope: `patterns`) for concrete file targets, patterns to follow, and repo-specific sequencing clues
+- `pattern-recognition-specialist` for consistency, duplication risks, and alignment with existing patterns
+- Add `spec-flow-analyzer` when sequencing depends on user flow or handoff completeness
 
 **System-Wide Impact**
-- `ce-architecture-strategist` for cross-boundary effects, interface surfaces, and architectural knock-on impact
-- Add the specific specialist that matches the risk:
-  - `ce-performance-oracle` for scalability, latency, throughput, and resource-risk analysis
-  - `ce-security-sentinel` for auth, validation, exploit surfaces, and security boundary review
-  - `ce-data-integrity-guardian` for migrations, persistent state safety, consistency, and data lifecycle risks
+- `architecture-strategist` for cross-boundary effects, interface surfaces, and architectural knock-on impact
+- Add the specific review surface that matches the risk:
+  - Use the `performance-reviewer` persona only when the plan names concrete hot paths, query shapes, caching behavior, or I/O volume that would be reviewed against code.
+  - Use the `security-review` or `security-best-practices` skill for explicit auth, validation, exploit-surface, or secure-default guidance.
+  - Use `data-migration-reviewer` only for migrations, backfills, schema snapshots, and persistent data transformations.
 
 **Risks & Dependencies / Operational Notes**
-- Use the specialist that matches the actual risk:
-  - `ce-security-sentinel` for security, auth, privacy, and exploit risk
-  - `ce-data-integrity-guardian` for migrations, backfills, persistent data safety, constraints, transaction boundaries, and production data transformation risk (plan context — not the PR-review `ce-data-migration-reviewer` persona)
-  - `ce-deployment-verification-agent` for rollout checklists, rollback planning, and launch verification
-  - `ce-performance-oracle` for capacity, latency, and scaling concerns
+- Use the review surface that matches the actual risk:
+  - `security-review` or `security-best-practices` for security, auth, privacy, and exploit risk
+  - `data-migration-reviewer` for migrations, backfills, persistent data safety, constraints, transaction boundaries, and production data transformation risk
+  - `deployment-verification-agent` for rollout checklists, rollback planning, and launch verification
+  - `performance-reviewer` for concrete capacity, latency, and scaling concerns visible in implementation or verification plans
 
 **Agent Prompt Shape:**
 
@@ -170,7 +170,7 @@ If artifact-backed mode is not clearly warranted, stay in direct mode.
 Artifact-backed mode uses a per-run OS-temp scratch directory. Create it once before dispatching sub-agents and capture its **absolute path** — pass that absolute path to each sub-agent so they write to it directly. Do not use `.context/`; the artifacts are per-run throwaway that are cleaned up when deepening ends (see 5.3.6b), matching the repo Scratch Space convention for one-shot artifacts. Do not pass unresolved shell-variable strings to sub-agents; they need the resolved absolute path.
 
 ```bash
-SCRATCH_DIR="$(mktemp -d -t ce-plan-deepen-XXXXXX)"
+SCRATCH_DIR="$(mktemp -d -t plan-deepen-XXXXXX)"
 echo "$SCRATCH_DIR"
 ```
 
@@ -201,7 +201,7 @@ Skip this step in auto mode — proceed directly to 5.3.7.
 
 In interactive mode, present each agent's findings to the user before integration. For each agent that returned findings:
 
-1. **Summarize the agent and its target section** — e.g., "The ce-architecture-strategist reviewed Key Technical Decisions and found:"
+1. **Summarize the agent and its target section** — e.g., "The architecture-strategist reviewed Key Technical Decisions and found:"
 2. **Present the findings concisely** — bullet the key points, not the raw agent output. Include enough context for the user to evaluate: what the agent found, what evidence supports it, and what plan change it implies.
 3. **Ask the user** using the platform's blocking question tool when available (see Interaction Method):
    - **Accept** — integrate these findings into the plan
@@ -214,7 +214,7 @@ When presenting findings from multiple agents targeting the same section, presen
 
 After all agents have been reviewed, carry only the accepted findings forward to 5.3.7.
 
-If the user accepted no findings, report "No findings accepted — plan unchanged." Then proceed directly to Phase 5.4 (skip document-review and synthesis — the plan was not modified). This interactive-mode-only skip does not apply in auto mode; auto mode always proceeds through 5.3.7 and 5.3.8. No explicit scratch cleanup needed — `$SCRATCH_DIR` is OS temp and will be cleaned up by the OS; leaving it in place preserves the rejected agent artifacts for debugging.
+If the user accepted no findings, report "No findings accepted — plan unchanged." Skip only synthesis (5.3.7), then return to SKILL.md and load `references/plan-handoff.md` so the normal 5.3.8 document-review gate, final checks, and post-generation menu still run. This preserves the planning loop contract: markdown plans pass through `document-review` even when the optional deepening pass made no changes. No explicit scratch cleanup needed — `$SCRATCH_DIR` is OS temp and will be cleaned up by the OS; leaving it in place preserves the rejected agent artifacts for debugging.
 
 If findings were accepted and the plan was modified, proceed through 5.3.7 and 5.3.8 as normal — document-review acts as a quality gate on the changes.
 

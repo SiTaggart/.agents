@@ -48,7 +48,7 @@ function resolveCodexMappings(options: LinkTargetOptions): readonly LinkMapping[
   return [
     { name: "codex-agents", source: path.join(generated, "agents"), target: path.join(targetRoot, "agents", "dotagents"), kind: "dir" },
     { name: "codex-prompts", source: path.join(generated, "prompts"), target: path.join(targetRoot, "prompts"), kind: "dir" },
-    { name: "codex-skills", source: path.join(generated, "skills"), target: path.join(targetRoot, "skills", "dotagents"), kind: "dir" },
+    { name: "codex-skills", source: path.join(generated, "skills"), target: path.join(targetRoot, "skills"), kind: "dir" },
     { name: "codex-agents-md", source: path.join(root, "AGENTS.md"), target: path.join(targetRoot, "AGENTS.md"), kind: "file" },
   ];
 }
