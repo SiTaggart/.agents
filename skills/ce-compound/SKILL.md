@@ -198,7 +198,7 @@ Launch research subagents. Each returns text data to the orchestrator.
 
 #### 4. **Session History via `ce-sessions`** (synchronous skill call, after launching the parallel block — only if the user opted in)
    - **Skip entirely** if the user declined session history in the follow-up question, if running in lightweight mode, or if running in headless mode.
-   - Invoke the `ce-sessions` skill via the platform's skill-invocation primitive (`Skill` in Claude Code, `Skill` in Codex, the equivalent on Gemini/Pi). Pass the dispatch payload below as the skill argument string. `ce-sessions` runs in main context — it owns discovery, branch/keyword filtering, scan-window selection, the deep-dive cap, per-session extraction to a `mktemp` scratch dir, and dispatch of the synthesis-only `ce-session-historian` subagent. The compound orchestrator only needs to pass the topic and time window and read back the findings text.
+- Invoke the `ce-sessions` skill via the platform's skill-invocation primitive (`Skill` in Claude Code, `Skill` in Codex, the equivalent on Gemini/Pi). Pass the dispatch payload below as the skill argument string. `ce-sessions` runs in main context -- it owns discovery, branch/keyword filtering, scan-window selection, the deep-dive cap, per-session extraction to a `mktemp` scratch dir, and dispatch of the synthesis-only `session-historian` subagent. The compound orchestrator only needs to pass the topic and time window and read back the findings text.
 
    **Dispatch payload — keep tight.** A long, keyword-rich payload licenses ce-sessions to keep widening. Use this shape:
 
@@ -377,10 +377,10 @@ After the learning is written and the refresh decision is made, check whether th
 
 Based on problem type, optionally invoke specialized agents to review the documentation:
 
-- **performance_issue** → `ce-performance-oracle`
-- **security_issue** → `ce-security-sentinel`
-- **database_issue** → `ce-data-integrity-guardian`
-- Any code-heavy issue → always run `ce-code-simplicity-reviewer` for minimal, clear examples. Structural concerns in the diff are already covered when the same work goes through `/ce-review` (maintainability persona).
+- **performance_issue** -> capture the measured hot path, scale assumption, and verification in the learning; use `performance-reviewer` only for code-backed follow-up review.
+- **security_issue** -> route explicit vulnerability or secure-default follow-up through the `security-review` / `security-best-practices` skills.
+- **database_issue** -> use `data-migration-reviewer` only when the learning includes migrations, backfills, schema snapshots, or persistent data transformations.
+- Any code-heavy issue -> always run `code-simplicity-reviewer` for minimal, clear examples. Structural concerns in the diff are already covered when the same work goes through `/ce-review` (maintainability persona).
 
 </parallel_tasks>
 
@@ -539,8 +539,8 @@ Subagent Results:
   ✓ Session History: 3 prior sessions on same branch, 2 failed approaches surfaced
 
 Specialized Agent Reviews (Auto-Triggered):
-  ✓ ce-performance-oracle: Validated query optimization approach
-  ✓ ce-code-simplicity-reviewer: Solution is appropriately minimal
+  ✓ performance-reviewer: Validated query optimization approach
+  ✓ code-simplicity-reviewer: Solution is appropriately minimal
 
 Files written:
 - .ai/solutions/performance-issues/n-plus-one-brief-generation.md (created)
@@ -606,17 +606,17 @@ Writes the final learning directly into `.ai/solutions/`.
 Based on problem type, these agents can enhance documentation:
 
 ### Code Quality & Review
-- **ce-code-simplicity-reviewer**: Ensures solution code is minimal and clear
-- **ce-pattern-recognition-specialist**: Identifies anti-patterns or repeating issues
+- **code-simplicity-reviewer**: Ensures solution code is minimal and clear
+- **pattern-recognition-specialist**: Identifies anti-patterns or repeating issues
 
 ### Specific Domain Experts
-- **ce-performance-oracle**: Analyzes performance_issue category solutions
-- **ce-security-sentinel**: Reviews security_issue solutions for vulnerabilities
-- **ce-data-integrity-guardian**: Reviews database_issue migrations and queries
+- **performance-reviewer**: Reviews code-backed performance_issue follow-ups
+- **security-review / security-best-practices**: Review security_issue follow-ups
+- **data-migration-reviewer**: Reviews database_issue migrations, backfills, schema snapshots, and persistent data transforms
 
 ### Enhancement & Research
-- **ce-best-practices-researcher**: Enriches solution with industry best practices
-- **ce-framework-docs-researcher**: Links to framework/library documentation references
+- **best-practices-researcher**: Enriches solution with industry best practices
+- **framework-docs-researcher**: Links to framework/library documentation references
 
 ### When to Invoke
 - **Auto-triggered** (optional): Agents can run post-documentation for enhancement

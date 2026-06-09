@@ -49,7 +49,7 @@ Your confidence should be **low (below 0.60)** when the issue depends on runtime
 
 ## What you don't flag
 
-- **Agent-native parity concerns** -- whether UI actions have corresponding agent tools. That is the agent-native-reviewer's domain, not yours.
+- **Cross-surface parity concerns** -- whether UI actions need corresponding automation or API access. Flag them only when they affect the CLI contract under review.
 - **Non-CLI code** -- web controllers, background jobs, library internals, or API endpoints that are not invoked as CLI commands.
 - **Framework choice itself** -- do not recommend switching from Click to Cobra or vice versa. Evaluate how well the chosen framework is used for agent readiness.
 - **Test files** -- test implementations of CLI commands are not the CLI surface itself.

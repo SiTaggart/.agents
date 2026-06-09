@@ -8,6 +8,14 @@ allowed-tools: Bash(obsidian *)
 
 Manage a local Obsidian vault using the `obsidian` CLI. Requires Obsidian 1.12+ running locally with CLI enabled.
 
+## Loop Role
+
+Obsidian is the durable note layer for interviews, transcripts, research
+summaries, PRDs, kickoff docs, meeting notes, and agent session artifacts. Use
+it to read or publish the human-facing record around the CE loops. Use QMD when
+you need indexed search across that knowledge; use Obsidian when you need to
+inspect, edit, open, or organize the vault itself.
+
 ## Prerequisites
 
 - Obsidian app must be running (CLI connects to the running instance)

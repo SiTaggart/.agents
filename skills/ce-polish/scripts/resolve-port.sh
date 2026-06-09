@@ -23,7 +23,8 @@
 #      port values. Variable references like process.env.PORT or getPort()
 #      are deliberately not matched; the probe falls through.
 #   3. Procfile.dev: web line scanned for -p/-p=<n>/--port/--port=<n>
-#   4. docker-compose.yml: line-anchored grep for "- "<n>:<n>"" port mapping
+#   4. docker-compose.yml: grep for list-item or inline "[<n>:<n>]" port
+#      mappings
 #   5. package.json: dev/start script for --port/-p flags
 #   6. .env files in override order: .env.local -> .env.development -> .env
 #      (first hit wins). Values are parsed with quote stripping (" and ')
@@ -39,8 +40,8 @@
 #
 # .env parsing contract: surrounding double or single quotes are stripped.
 # Inline comments (# ...) are truncated after trimming whitespace. This is
-# intentionally more aggressive than the test-browser skill's inline cascade,
-# which does neither. See dev-server-detection.md for the divergence notes.
+# intentionally stricter than the older inline browser-test cascade. See
+# dev-server-detection.md for the historical divergence notes.
 
 set -u
 
@@ -203,7 +204,6 @@ fi
 
 # ── Probe 3: Procfile.dev ───────────────────────────────────────────────────
 
-
 if should_probe "$PROJ_TYPE" "procfile"; then
   procfile="$PROJECT_ROOT/Procfile.dev"
   if [ -f "$procfile" ]; then
@@ -225,8 +225,11 @@ fi
 if should_probe "$PROJ_TYPE" "docker-compose"; then
   compose_file="$PROJECT_ROOT/docker-compose.yml"
   if [ -f "$compose_file" ]; then
-    # Simple line-anchored grep for port mappings: - "NNNN:NNNN" or - NNNN:NNNN
-    compose_port=$(grep -Eo '"[0-9]+:[0-9]+"' "$compose_file" 2>/dev/null | head -1 | grep -Eo '[0-9]+' | head -1)
+    # Match port mappings as YAML list items or inline lists:
+    #   - "NNNN:NNNN"
+    #   ports: ["NNNN:NNNN"]
+    # First number after the optional opening quote is the host port.
+    compose_port=$(grep -Eo '^[[:space:]]*-[[:space:]]*"?[0-9]+:[0-9]+"?|ports:[[:space:]]*\[[^]]*"?[0-9]+:[0-9]+"?' "$compose_file" 2>/dev/null | head -1 | grep -Eo '[0-9]+:[0-9]+' | head -1 | cut -d: -f1)
     if [ -n "$compose_port" ]; then
       echo "$compose_port"
       exit 0

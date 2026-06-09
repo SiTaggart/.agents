@@ -1,6 +1,6 @@
 # Dev-server port detection
 
-Port resolution runs via `scripts/resolve-port.sh`. This document explains the probe order, framework defaults, and intentional divergences from the `test-browser` skill's inline cascade.
+Port resolution runs via `scripts/resolve-port.sh`. This document explains the probe order, framework defaults, and historical divergences from older inline browser-test cascades.
 
 This cascade runs **only when** `.claude/launch.json` is absent or has no `port` field for the resolved configuration. When `launch.json` specifies a port, use it verbatim and skip this cascade entirely.
 
@@ -29,10 +29,10 @@ This cascade runs **only when** `.claude/launch.json` is absent or has no `port`
 
 ## Sync-note block
 
-`resolve-port.sh` and the `test-browser` skill's inline cascade overlap in purpose but diverge in three specific ways. These divergences are intentional -- do not "fix" one to match the other without understanding the rationale.
+`resolve-port.sh` intentionally differs from older inline browser-test cascades in three ways. Do not remove these behaviors without understanding the rationale.
 
-**(a) Quote stripping on `.env` values.** `resolve-port.sh` strips surrounding `"` and `'` from `PORT=` values (so `PORT="3001"` resolves to `3001`). The `test-browser` inline cascade does not strip quotes. The script version is more robust for real-world `.env` files where quoting is common.
+**(a) Quote stripping on `.env` values.** `resolve-port.sh` strips surrounding `"` and `'` from `PORT=` values (so `PORT="3001"` resolves to `3001`). This is more robust for real-world `.env` files where quoting is common.
 
-**(b) Comment stripping on `.env` values.** `resolve-port.sh` truncates at `#` after trimming whitespace (so `PORT=3001 # dev only` resolves to `3001`). The `test-browser` inline cascade does not strip comments. Same rationale: real `.env` files frequently contain inline comments.
+**(b) Comment stripping on `.env` values.** `resolve-port.sh` truncates at `#` after trimming whitespace (so `PORT=3001 # dev only` resolves to `3001`). Same rationale: real `.env` files frequently contain inline comments.
 
-**(c) Removal of the `AGENTS.md`/`CLAUDE.md` grep.** `resolve-port.sh` does not scan instruction files for port references. The `test-browser` inline cascade does. Instruction files carry natural language that may mention ports in contexts unrelated to the dev server (documentation, examples, troubleshooting), producing false positives that are hard to debug. Framework config files and `.env` are more reliable sources of truth.
+**(c) No `AGENTS.md`/`CLAUDE.md` grep.** `resolve-port.sh` does not scan instruction files for port references. Instruction files carry natural language that may mention ports in contexts unrelated to the dev server (documentation, examples, troubleshooting), producing false positives that are hard to debug. Framework config files and `.env` are more reliable sources of truth.

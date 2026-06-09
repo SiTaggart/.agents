@@ -1,138 +1,122 @@
 ---
 name: changelog
-description: Create engaging changelogs for recent merges to main branch
-argument-hint: "[optional: daily|weekly, or time period in days]"
+description: Write concise, source-backed changelog summaries from recently merged PRs or commits.
+argument-hint: "[daily|weekly|N days|since YYYY-MM-DD]"
 disable-model-invocation: true
 ---
 
-You are a witty and enthusiastic product marketer tasked with creating a fun, engaging change log for an internal development team. Your goal is to summarize the latest merges to the main branch, highlighting new features, bug fixes, and giving credit to the hard-working developers.
+# Changelog
 
-## Time Period
+Create a clear changelog from recently merged work. The output should help a
+reader understand what changed, what matters, and whether anything needs action.
 
-- For daily changelogs: Look at PRs merged in the last 24 hours
-- For weekly summaries: Look at PRs merged in the last 7 days
-- Always specify the time period in the title (e.g., "Daily" vs "Weekly")
-- Default: Get the latest changes from the last day from the main branch of the repository
+## Scope
 
-## PR Analysis
+Resolve the requested window:
 
-Analyze the provided GitHub changes and related issues. Look for:
+- `daily`: merged in the last 24 hours
+- `weekly`: merged in the last 7 days
+- `N days`: merged in the last N days
+- `since YYYY-MM-DD`: merged since that date
+- no argument: default to `daily`
 
-1. New features that have been added
-2. Bug fixes that have been implemented
-3. Any other significant changes or improvements
-4. References to specific issues and their details
-5. Names of contributors who made the changes
-6. Use gh cli to lookup the PRs as well and the description of the PRs
-7. Check PR labels to identify feature type (feature, bug, chore, etc.)
-8. Look for breaking changes and highlight them prominently
-9. Include PR numbers for traceability
-10. Check if PRs are linked to issues and include issue context
+Use the repository's default branch when it is obvious. Otherwise prefer `main`,
+then `master`.
 
-## Content Priorities
+## Evidence
 
-1. Breaking changes (if any) - MUST be at the top
-2. User-facing features
-3. Critical bug fixes
-4. Performance improvements
-5. Developer experience improvements
-6. Documentation updates
+Gather source data before writing:
 
-## Formatting Guidelines
+1. Use `gh pr list` for merged PRs in the window when GitHub is available.
+   Include PR number, title, URL, author, merged time, labels, and body.
+2. For important or unclear PRs, use `gh pr view <number>` to inspect linked
+   issues, files, commits, and review context.
+3. If GitHub is unavailable, fall back to `git log --first-parent` over the
+   target branch and state that PR metadata was unavailable.
+4. Do not infer product impact from titles alone. Use PR body, labels, linked
+   issues, changed files, and commit messages to separate user-facing changes
+   from internal work.
 
-Now, create a change log summary with the following guidelines:
+Never post externally, call webhooks, or update files unless the user explicitly
+asks for that side effect.
 
-1. Keep it concise and to the point
-2. Highlight the most important changes first
-3. Group similar changes together (e.g., all new features, all bug fixes)
-4. Include issue references where applicable
-5. Mention the names of contributors, giving them credit for their work
-6. Add a touch of humor or playfulness to make it engaging
-7. Use emojis sparingly to add visual interest
-8. Keep total message under 2000 characters for Discord
-9. Use consistent emoji for each section
-10. Format code/technical terms in backticks
-11. Include PR numbers in parentheses (e.g., "Fixed login bug (#123)")
+## Classification
 
-## Deployment Notes
+Group entries by impact. Omit empty sections.
 
-When relevant, include:
+- **Action Required**: breaking changes, migrations, environment variables,
+  manual deploy steps, dependency bumps requiring attention, or rollout notes.
+- **User-Facing Changes**: new features, UX changes, product behavior, visible
+  fixes, or workflow improvements.
+- **Fixes**: bug fixes that are not already covered as major user-facing items.
+- **Performance And Reliability**: speed, stability, observability, CI, or
+  operational improvements.
+- **Developer Experience**: tooling, tests, refactors, documentation, cleanup,
+  and internal ergonomics.
 
-- Database migrations required
-- Environment variable updates needed
-- Manual intervention steps post-deploy
-- Dependencies that need updating
+If a PR belongs in multiple sections, place it where the reader most needs to
+notice it and mention the secondary impact in the entry text.
 
-Your final output should be formatted as follows:
+## Output
 
-<change_log>
+Write markdown, not XML wrappers.
 
-# 🚀 [Daily/Weekly] Change Log: [Current Date]
+Recommended shape:
 
-## 🚨 Breaking Changes (if any)
+```markdown
+# Changelog: <period>
 
-[List any breaking changes that require immediate attention]
+<one-sentence summary of the window>
 
-## 🌟 New Features
+## Action Required
 
-[List new features here with PR numbers]
+- <impact first>. <short detail>. [#123](url)
 
-## 🐛 Bug Fixes
+## User-Facing Changes
 
-[List bug fixes here with PR numbers]
+- <impact first>. <short detail>. [#124](url)
 
-## 🛠️ Other Improvements
+## Fixes
 
-[List other significant changes or improvements]
+- <bug fixed and who benefits>. [#125](url)
 
-## 🙌 Shoutouts
+## Performance And Reliability
 
-[Mention contributors and their contributions]
+- <operational or reliability improvement>. [#126](url)
 
-## 🎉 Fun Fact of the Day
+## Developer Experience
 
-[Include a brief, work-related fun fact or joke]
+- <internal change and why it matters>. [#127](url)
 
-</change_log>
+## Sources Checked
 
-## Style Guide Review
-
-Now review the changelog using the EVERY_WRITE_STYLE.md file and go one by one to make sure you are following the style guide. Use multiple agents, run in parallel to make it faster.
-
-Remember, your final output should only include the content within the <change_log> tags. Do not include any of your thought process or the original data in the output.
-
-## Discord Posting (Optional)
-
-You can post changelogs to Discord by adding your own webhook URL:
-
-```
-# Set your Discord webhook URL
-DISCORD_WEBHOOK_URL="https://discord.com/api/webhooks/YOUR_WEBHOOK_ID/YOUR_WEBHOOK_TOKEN"
-
-# Post using curl
-curl -H "Content-Type: application/json" \
-  -d "{\"content\": \"{{CHANGELOG}}\"}" \
-  $DISCORD_WEBHOOK_URL
+- <count> merged PRs from <date> to <date>
+- GitHub PR metadata available: yes/no
 ```
 
-To get a webhook URL, go to your Discord server → Server Settings → Integrations → Webhooks → New Webhook.
+Keep entries compact: one bullet per meaningful PR or cluster of tightly related
+PRs. Include PR numbers and links when available. Include contributor names only
+when the audience asked for shoutouts or authorship matters.
 
-## Error Handling
+## Tone
 
-- If no changes in the time period, post a "quiet day" message: "🌤️ Quiet day! No new changes merged."
-- If unable to fetch PR details, list the PR numbers for manual review
-- Always validate message length before posting to Discord (max 2000 chars)
+- Be direct, calm, and specific.
+- Lead with user or operational impact, then implementation detail.
+- Avoid jokes, fun facts, emojis, hype, and filler.
+- Do not invent certainty. If impact is unclear, label it as internal or say
+  what the source actually showed.
+- Match the requested audience if given: product, engineering, leadership, or
+  release notes.
 
-## Schedule Recommendations
+## Empty Or Partial Data
 
-- Run daily at 6 AM NY time for previous day's changes
-- Run weekly summary on Mondays for the previous week
-- Special runs after major releases or deployments
+If no merged PRs are found, return:
 
-## Audience Considerations
+```markdown
+# Changelog: <period>
 
-Adjust the tone and detail level based on the channel:
+No merged PRs found for this window.
+```
 
-- **Dev team channels**: Include technical details, performance metrics, code snippets
-- **Product team channels**: Focus on user-facing changes and business impact
-- **Leadership channels**: Highlight progress on key initiatives and blockers
+If metadata is incomplete, still produce the best summary from available git
+history and include a brief `Sources Checked` note describing the limitation.

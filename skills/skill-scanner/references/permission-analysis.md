@@ -42,17 +42,17 @@ Expected tool sets by skill type:
 ### Analysis / Review Skills
 - **Expected**: `Read, Grep, Glob` or `Read, Grep, Glob, Bash`
 - **Bash justification**: Running linters, type checkers, or bundled scripts
-- **Examples**: code-review, security-review, find-bugs
+- **Examples**: ce-review, security-review, skill-scanner
 
 ### Workflow Automation Skills
 - **Expected**: `Read, Grep, Glob, Bash`
 - **Bash justification**: Git operations, CI commands, gh CLI
-- **Examples**: commit, create-pr, iterate-pr
+- **Examples**: git-commit, git-commit-push-pr, iterate-pr
 
 ### Content Generation Skills
 - **Expected**: `Read, Grep, Glob, Write` or `Read, Grep, Glob, Bash, Write, Edit`
 - **Write/Edit justification**: Creating or modifying documentation, configs
-- **Examples**: agents-md, doc-coauthoring
+- **Examples**: agents-md, changelog
 
 ### External-Facing Skills
 - **Expected**: `Read, Grep, Glob, Bash, WebFetch`

@@ -102,6 +102,23 @@ qmd query "question"
 | Architecture | decisions, rationale, meeting notes | both |
 | Docs | existing docs to extend or reference | docs |
 
+## Phase Skills
+
+- Discover/context: use `qmd`, Obsidian skills, `ce-sessions`,
+  `ce-slack-research`, and `repoprompt` when broad codebase context is needed.
+- Frame: use `ce-brainstorm`; add `ce-grill` for branchy or strategic
+  ambiguity; use `document-review` for requirements docs.
+- Plan: use `ce-plan`; layer in `repoprompt` for broad codebase context and
+  `document-review` for markdown plans.
+- Work: use `ce-work`; fold in `frontend-design` for UI; run
+  `ce-quality-gate` after code edits.
+- Review: use `ce-review` for built work; use `ce-simplify-code` for cleanup;
+  use `security-review` only for real trust-boundary or security asks.
+- Ship/feedback: use `git-commit`, `git-commit-push-pr`, `gh-fix-ci`, and
+  `resolve-pr-feedback` for git and PR ops.
+- Remember: use `ce-compound`, `ce-compound-refresh`, QMD/Obsidian, and todo
+  skills for durable knowledge.
+
 ## Planning
 
 - Plan only when it reduces risk. For broad, risky, or ambiguous work, begin
@@ -151,6 +168,11 @@ qmd query "question"
 - Consider business outcome before code aesthetics.
 - Do not edit during review unless the user asks for fixes.
 - Fix phase: apply only confirmed fixes, verify each edit, run checks.
+- Commit messages and PR titles must use Conventional Commits:
+  `type(scope): summary`.
+- Use lowercase types such as `feat`, `fix`, `refactor`, `test`, `docs`,
+  `chore`, `perf`, `ci`, `style`, or `build`; keep summaries imperative,
+  lowercase, under 72 characters, and without a trailing period.
 - Commit before creating a PR unless the user explicitly says otherwise.
 
 ## TypeScript And React

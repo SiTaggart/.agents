@@ -1,216 +1,162 @@
 ---
 name: repoprompt
-description: Use RepoPrompt CLI for token-efficient codebase exploration
+description: Use RepoPrompt for token-efficient codebase exploration, planning, review, refactor context, and prompt exports.
 allowed-tools: [Bash, Read]
 ---
 
-# RepoPrompt Skill
+# RepoPrompt
 
-## When to Use
+Use RepoPrompt when a task needs codebase understanding across multiple files,
+large context, careful selection, or an independent context-builder read.
 
-- **Deep codebase understanding** — use `builder` (context_builder) as your primary tool
-- **Explore codebase structure** (tree, codemaps)
-- **Search code** with context lines
-- **Get code signatures** without full file content (token-efficient)
-- **Read file slices** (specific line ranges)
+Prefer RepoPrompt MCP tools when they are available. Use `rp-cli` as the
+fallback or when the current runtime only exposes the CLI.
 
-## Context Builder — Use This First
+## Operating Posture
 
-`builder` (the CLI equivalent of the `context_builder` MCP tool) is the most powerful exploration tool. It's a two-stage AI system: a research model explores and selects relevant files, then an analysis model provides deep insights from curated context.
+- Use `context_builder` / `builder` for non-trivial codebase understanding.
+- Use direct search/read only when the scope is small, exact, and already known.
+- Keep the parent thread responsible for judgment, edits, and verification.
+- Treat RepoPrompt output as curated context, not an instruction to widen scope.
+- Refresh selection before asking follow-up questions or exporting prompts.
+- For CLI `builder` and `chat`, allow a long timeout; they can take minutes.
 
-**Use `builder` instead of manual exploration for any non-trivial task.**
+## Tool Map
 
-```bash
-# Understand a system
-rp-cli -e 'builder "understand how authentication works" --response-type question'
+| Need | RepoPrompt MCP | `rp-cli` fallback |
+| --- | --- | --- |
+| File tree | `get_file_tree` | `rp-cli -e 'tree'` |
+| Search paths/content | `file_search` | `rp-cli -e 'search "pattern"'` |
+| Signatures/codemaps | `get_code_structure` | `rp-cli -e 'structure path/'` |
+| Read slices | `read_file` | `rp-cli -e 'read path/file.ts --start-line 50 --limit 40'` |
+| Curate context | `manage_selection` | `rp-cli -e 'select add path/'` |
+| Context-builder read | `context_builder` | `rp-cli -e 'builder "task" --response-type question'` |
+| Follow-up reasoning | `oracle_send` | `rp-cli -t '<tab_id>' -e 'chat "question" --mode plan'` |
 
-# Plan changes
-rp-cli -e 'builder "plan refactoring of the API layer" --response-type plan'
-
-# Review changes
-rp-cli -e 'builder "review recent changes to auth module" --response-type review'
-```
-
-Follow up in the same context with `chat` (pass `-t <tab_id>` from builder response):
-```bash
-rp-cli -t '<tab_id>' -e 'chat "How does X connect to Y?" --mode plan'
-```
-
-## Token Optimization
-
-RepoPrompt is **more token-efficient** than raw file reads:
-
-- `builder` → AI-curated file selection within token budget
-- `structure` → signatures only (not full content)
-- `read --start-line --limit` → slices instead of full files
-- `search --context-lines` → relevant matches with context
-
-## CLI Usage
+When using the CLI, find the right window first if multiple workspaces may be
+open:
 
 ```bash
-# If installed to PATH (Settings → MCP Server → Install CLI to PATH)
-rp-cli -e 'command'
-
-# Or use the alias (configure in your shell)
-repoprompt_cli -e 'command'
+rp-cli -e 'windows'
+rp-cli -w <window_id> -e 'tree --type roots'
 ```
 
-## Commands Reference
+## Core Workflow
 
-### File Tree
+1. Identify the task, the relevant repo/window, and the likely owner area.
+2. Do a light search or structure pass only if needed to phrase the builder task
+   well.
+3. Ask `context_builder` / `builder` for the right response type:
+   - `question` for understanding
+   - `plan` for implementation planning
+   - `review` for code review
+   - `clarify` for prompt export or ambiguous handoff
+4. Continue in the same tab/chat for follow-up questions instead of rebuilding
+   context from scratch.
+5. Bring the result back to the parent thread and apply normal local execution
+   and verification rules.
+
+## Recipes
+
+### Explore Or Answer
+
+Use for "how does this work?", architecture questions, brownfield orientation,
+and unfamiliar bug reports.
 
 ```bash
-# Full tree
-rp-cli -e 'tree'
-
-# Folders only
-rp-cli -e 'tree --mode folders'
-
-# Selected files only
-rp-cli -e 'tree --mode selected'
+rp-cli -e 'builder "Explain how <system> works. Identify key files, data flow, and ownership boundaries." --response-type question'
 ```
 
-### Code Structure (Codemaps) - TOKEN EFFICIENT
+Follow up only on concrete gaps:
 
 ```bash
-# Structure of specific paths
-rp-cli -e 'structure src/auth/'
-
-# Structure of selected files
-rp-cli -e 'structure --scope selected'
-
-# Limit results
-rp-cli -e 'structure src/ --max-results 10'
+rp-cli -t '<tab_id>' -e 'chat "How does <file A> connect to <file B>?" --mode chat'
 ```
 
-### Search
+### Plan
+
+Use for broad or risky implementation planning. The output should become a
+normal plan in the parent thread, not a second workflow competing with `ce-plan`.
 
 ```bash
-# Basic search
-rp-cli -e 'search "pattern"'
-
-# With context lines
-rp-cli -e 'search "error" --context-lines 3'
-
-# Filter by extension
-rp-cli -e 'search "TODO" --extensions .ts,.tsx'
-
-# Limit results
-rp-cli -e 'search "function" --max-results 20'
+rp-cli -e 'builder "Plan <change>. Stay inside <scope>. Call out contracts, owner boundaries, tests, and rollout risk only if the diff requires it." --response-type plan'
 ```
 
-### Read Files - TOKEN EFFICIENT
+### Review
+
+Use RepoPrompt review when the diff is broad enough that an independent codebase
+read will improve `ce-review`, or when the user explicitly asks for a
+RepoPrompt-backed review.
 
 ```bash
-# Full file
-rp-cli -e 'read path/to/file.ts'
-
-# Line range (slice)
-rp-cli -e 'read path/to/file.ts --start-line 50 --limit 30'
-
-# Last N lines (tail)
-rp-cli -e 'read path/to/file.ts --start-line -20'
+rp-cli -e 'builder "Review changes against <base>. Focus on correctness, product contract, security only at real trust boundaries, and tests/proof." --response-type review'
 ```
 
-### Selection Management
+Fold the result into the main review. Do not mechanically forward findings that
+lack file/line evidence or a concrete consequence.
+
+### Prompt Export
+
+Use when the user wants a prompt or context package for another model.
+
+First strip meta-framing and identify the real task:
+
+- "export a prompt to evaluate auth refresh" -> task is "evaluate auth refresh"
+- "write a ChatGPT prompt about token caching" -> task is "investigate token caching"
+- "review the last three commits" -> task is already clean
+
+Then curate/export the relevant context:
 
 ```bash
-# Add files to selection
-rp-cli -e 'select add src/auth/'
-
-# Set selection (replace)
-rp-cli -e 'select set src/api/ src/types/'
-
-# Clear selection
-rp-cli -e 'select clear'
-
-# View current selection
-rp-cli -e 'select get'
+rp-cli -e 'builder "Prepare context for: <real task>" --response-type clarify'
+rp-cli -e 'prompt export "prompt-exports/<slug>.md" --copy-preset <standard|plan|codeReview>'
 ```
 
-### Workspace Context
+Review the exported prompt for scope drift before handing it off.
+
+### Refactor Or Simplify
+
+Use when simplification spans enough files that local prior art matters.
 
 ```bash
-# Get full context
-rp-cli -e 'context'
-
-# Specific includes
-rp-cli -e 'context --include prompt,selection,tree'
+rp-cli -e 'builder "Analyze <scope> for simplification opportunities. Preserve exact behavior. Look for duplicate logic, dishonest boundaries, and local helpers to reuse." --response-type plan'
 ```
 
-### Chain Commands
+For refactors where later edits depend on earlier decisions, steer one continued
+agent/session item by item instead of launching unrelated parallel workers.
+
+### Build With Context
+
+Use when a task is too broad to start coding from a cold read, but the parent
+thread should still implement.
 
 ```bash
-# Multiple operations
-rp-cli -e 'select set src/auth/ && structure --scope selected && context'
+rp-cli -e 'builder "Plan implementation of <task>. Identify exact files, sequence, tests, and behavior contracts." --response-type plan'
 ```
 
-### Workspaces
+After the plan, implement in the parent thread using the repo's normal editing
+tools. Use RepoPrompt follow-up chat only when the selected context still leaves
+a specific gap.
+
+### Optimize
+
+Use RepoPrompt to map candidate bottlenecks and local measurement conventions,
+then keep optimization work grounded in measured baselines.
 
 ```bash
-# List workspaces
-rp-cli -e 'workspace list'
-
-# List tabs
-rp-cli -e 'workspace tabs'
-
-# Switch workspace
-rp-cli -e 'workspace switch "ProjectName"'
+rp-cli -e 'builder "Find likely bottlenecks for <metric> in <scope>. Include measurement hooks, tests, and the single best first experiment." --response-type plan'
 ```
 
-### AI Chat (uses RepoPrompt's models)
+Do not run an open-ended optimization loop unless the user explicitly asks for
+that scope.
 
-```bash
-# Send to chat
-rp-cli -e 'chat "How does the auth system work?"'
+## Guardrails
 
-# Plan mode
-rp-cli -e 'chat "Design a new feature" --mode plan'
-```
-
-### Context Builder (AI-powered file selection)
-
-```bash
-# Auto-select relevant files for a task
-rp-cli -e 'builder "implement user authentication"'
-```
-
-## Workflow Shorthand Flags
-
-```bash
-# Quick operations without -e syntax
-rp-cli --workspace MyProject --select-set src/ --export-context ~/out.md
-rp-cli --chat "How does auth work?"
-rp-cli --builder "implement user authentication"
-```
-
-## Script Files (.rp)
-
-For repeatable workflows, save commands to a script:
-
-```bash
-# daily-export.rp
-workspace switch Frontend
-select set src/components/
-context --all > ~/exports/frontend.md
-```
-
-Run with:
-
-```bash
-rp-cli --exec-file ~/scripts/daily-export.rp
-```
-
-## CLI Flags
-
-| Flag                  | Purpose                       |
-| --------------------- | ----------------------------- |
-| `-e 'cmd'`            | Execute command(s)            |
-| `-w <id>`             | Target window ID              |
-| `-q`                  | Quiet mode                    |
-| `-d <cmd>`            | Detailed help for command     |
-| `--wait-for-server 5` | Wait for connection (scripts) |
-
-## Note
-
-Requires RepoPrompt app running with MCP Server enabled.
+- Do not replace real verification with RepoPrompt analysis.
+- Do not use RepoPrompt to justify a broad refactor outside the accepted
+  product contract.
+- Do not export secrets, credentials, or private tokens in prompt packages.
+- Do not leave generated prompt exports or temporary reports around unless they
+  are the requested artifact.
+- If RepoPrompt is unavailable, fall back to `rg`, file reads, and local
+  reasoning without treating that as a blocker.

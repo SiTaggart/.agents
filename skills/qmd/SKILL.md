@@ -13,6 +13,13 @@ allowed-tools: Bash(qmd:*), mcp__qmd__*
 
 Local search engine for markdown content.
 
+## Loop Role
+
+Use QMD as the first pass over durable knowledge: Obsidian notes, docs,
+interviews, transcripts, research summaries, PRDs, kickoff docs, and prior agent
+artifacts. In the CE loops, use it before brainstorming, planning, reviewing, or
+summarizing when the answer may already exist in notes.
+
 ## Status
 
 !`qmd status 2>/dev/null || echo "Not installed: npm install -g @tobilu/qmd"`

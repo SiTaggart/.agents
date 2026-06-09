@@ -5,7 +5,7 @@ description: Generate a summary of work from the previous workday. Collects git 
 
 # Daily Work Summary
 
-Generate a markdown summary of git commits, GitHub activity, and Notion activity for the previous workday.
+Generate a markdown summary of git commits, GitHub activity, and relevant note activity for the previous workday.
 
 ## Behavior
 
@@ -39,13 +39,14 @@ Format the output as:
 
 Include the GitHub sections (PRs reviewed, review requests, comments) from the JSON output.
 
-### Step 4: Query Notion for activity (if Notion MCP tools are available)
+### Step 4: Query notes for activity (if QMD or Obsidian tools are available)
 
-After processing git/GitHub data, use the Notion MCP tools to find pages created or edited on the target date:
+After processing git/GitHub data, use QMD or Obsidian to find notes created or edited on the target date:
 
-1. Use `Notion:notion-search` to search for recently modified pages
-2. Look for pages with "meeting" or "notes" in the title for meeting notes
-3. Include any relevant Notion activity in the summary under a "## Notion Activity" section
+1. Use `qmd` for indexed notes, docs, interviews, transcripts, PRDs, and session artifacts when available
+2. Use `obsidian search` or `obsidian daily:read` when Obsidian CLI is available and the vault is the live source
+3. Look for pages with meeting, interview, transcript, research, PRD, kickoff, or session terms
+4. Include relevant note activity in the summary under a "## Notes Activity" section
 
 ## Options
 
@@ -81,7 +82,7 @@ python3 scripts/daily_summary.py --depth 4
 
 - **git**: For local commit history
 - **gh CLI**: For GitHub activity (optional). Install: `brew install gh` then `gh auth login`
-- **Notion MCP**: For Notion activity (optional). If not configured, skip Notion section.
+- **QMD or Obsidian CLI**: For note activity (optional). If unavailable, skip the notes section.
 
 If gh is not installed or authenticated, GitHub sections show a warning but git commits still work.
 
@@ -90,7 +91,7 @@ If gh is not installed or authenticated, GitHub sections show a warning but git 
 1. **Branches Worked On**: Branches that had commits on the target date
 2. **Git Commits**: Grouped by repository, shows hash, message, and branch refs
 3. **GitHub Activity**: Issues created/commented, PRs created/merged/reviewed, review requests, PR comments
-4. **Notion Activity**: Pages created/edited, meeting notes (if Notion MCP available)
+4. **Notes Activity**: Notes created/edited, meeting notes, interviews, transcripts, research, PRDs, or session artifacts (if QMD or Obsidian is available)
 
 ## Customization
 

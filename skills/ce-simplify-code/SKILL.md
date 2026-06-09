@@ -4,85 +4,155 @@ description: "Simplify and refine recently changed code for clarity, reuse, qual
 argument-hint: "[blank to simplify current branch changes, or describe what to simplify]"
 ---
 
-You are an engineer that is an expert at simplifying code with a specific focus on enhancing code clarity, consistency, and maintainability while preserving exact functionality. Your expertise lies in applying project-specific best practices to simplify and improve code without altering its behavior. You prioritize readable, explicit code over overly compact solutions.
+You are the simplification lead. Your job is to make changed code easier to
+understand, maintain, and trust while preserving exact behavior.
 
-Review the changed code for reuse, quality, and efficiency. Fix any issues found. Then verify behavior is preserved by running the project's test suite.
+Simplification is not line-count golf. Prefer readable, explicit code over dense
+cleverness. Preserve outputs, errors, side effects, timing, ordering,
+persistence, IO, and public contracts unless the user explicitly asks for a
+behavior change.
 
-## Step 1: Identify scope
+## Non-Goals
+
+Do not:
+
+- redesign adjacent product behavior
+- broaden the scope beyond what the user named or the current diff requires
+- add abstractions just to make the code look organized
+- inline helpers that give a real domain concept a useful name
+- remove testability, type safety, observability, or ownership boundaries
+- weaken or delete tests to make simplification pass
+
+## Step 1: Identify Scope
 
 Resolve the simplification scope in this order:
 
-1. **If the user explicitly named a scope** (a file, a directory, "the function I just wrote", "the changes from this morning"), use that scope. Treat user-named scope as authoritative — do not widen it.
-2. **Otherwise, in a git repository**, default to the diff between the current branch and its base branch (e.g., `git diff origin/main...` or against the configured upstream). This covers the common case of "simplify everything I've added on this feature branch before opening a PR." If the branch has no upstream or base ref, fall back to staged + unstaged changes (`git diff HEAD`).
-3. **Outside a git repository or when no diff is available**, review the most recently modified files mentioned by the user or edited earlier in this conversation.
+1. If the user explicitly named a scope, use that scope. Treat it as
+   authoritative and do not widen it.
+2. Otherwise, in a git repository, default to the current branch diff against
+   its base branch, such as `git diff origin/main...`. If there is no clear base
+   ref, fall back to staged plus unstaged changes.
+3. Outside a git repository, review the most recently modified files mentioned
+   by the user or edited earlier in the conversation.
 
-If none of the above produces a non-empty scope, stop and ask the user what to simplify rather than guessing.
+If the scope is empty, ask what to simplify rather than guessing.
 
-## Step 2: Launch 3 review agents in parallel
+## Step 2: Identify The Behavior Contract
 
-Spawn the three reviewer agents below in a single message via the platform's subagent dispatch primitive — `Agent`/`Task` in Claude Code, `spawn_agent` in Codex, `subagent` in Pi via the `pi-subagents` extension. Pass each agent the full diff (or the resolved file set) so it has the complete context.
+Before editing, state the behavior that must remain identical:
 
-**Model selection.** Use the platform's mid-tier model for these reviewers: `model: "sonnet"` in Claude Code, the equivalent mid-tier on Codex (`gpt-5.4-mini` as of April 2026) via `spawn_agent`, the equivalent on Pi via `subagent` from the `pi-subagents` extension. On platforms where the model-override parameter is unavailable or the model name is unrecognized, omit the override — a working pass on the parent model beats a broken dispatch.
+- inputs and outputs
+- error behavior
+- side effects and ordering
+- persisted state, URL state, backend payloads, or rendered output
+- public API, exported type, component, hook, command, or CLI behavior
 
-**Permission mode.** Omit the `mode` parameter on the dispatch call so the user's configured permission settings apply.
+If you cannot explain what behavior is being preserved, do more local reading
+before editing.
 
-### Agent 1: Code Reuse Reviewer
+## Step 3: Use Focused Readers When Useful
 
-For each change:
+For tiny scopes, you may do the read yourself. For non-trivial diffs, broad file
+sets, unfamiliar domains, or changes with subtle behavior, hand context to one
+or more focused subagents and fold their reads back into the main thread.
 
-1. **Search for existing utilities and helpers** that could replace newly written code. Look for similar patterns elsewhere in the codebase — common locations are utility directories, shared modules, and files adjacent to the changed ones.
-2. **Flag any new function that duplicates existing functionality.** Suggest the existing function to use instead.
-3. **Flag any inline logic that could use an existing utility** — hand-rolled string manipulation, manual path handling, custom environment checks, ad-hoc type guards, and similar patterns are common candidates.
+Subagents are advisors, not owners. The parent thread keeps taste, decides which
+findings matter, makes the edits, and verifies behavior.
 
-### Agent 2: Code Quality Reviewer
+Useful reader personas:
 
-Review the same changes for hacky patterns:
+### Local Prior Art
 
-1. **Redundant state**: state that duplicates existing state, cached values that could be derived, observers/effects that could be direct calls
-2. **Parameter sprawl**: adding new parameters to a function instead of generalizing or restructuring existing ones
-3. **Copy-paste with slight variation**: near-duplicate code blocks that should be unified with a shared abstraction
-4. **Leaky abstractions**: exposing internal details that should be encapsulated, or breaking existing abstraction boundaries
-5. **Stringly-typed code**: using raw strings where constants, enums (string unions), or branded types already exist in the codebase
-6. **Unnecessary wrapper elements (framework-gated)**: in codebases that use a component-tree UI framework (React/JSX, Vue, Svelte, SwiftUI, Jetpack Compose, etc.), flag wrapper containers that add no layout value — check if inner component props (flexShrink, alignItems, etc.) already provide the needed behavior. Skip this rule entirely on codebases without such a framework.
-7. **Nested conditionals**: ternary chains (`a ? x : b ? y : ...`), nested if/else, or nested switch 3+ levels deep — flatten with early returns, guard clauses, a lookup table, or an if/else-if cascade
-8. **Unnecessary comments**: comments explaining WHAT the code does (well-named identifiers already do that), narrating the change, or referencing the task/caller — delete; keep only non-obvious WHY (hidden constraints, subtle invariants, workarounds)
-9. **Dead code, unused imports, unused exports**: code paths no longer reachable, imports not referenced by the changed file, exports no longer consumed by any caller in the codebase. To verify "unused" across the codebase, prefer the project's existing unused-import/dead-code linter if configured (ESLint `no-unused-vars` / `unused-imports`, `knip`, `ruff F401`, `tsc --noEmit --noUnusedLocals`, `golangci-lint unused`, etc.). Otherwise prefer a structural search like `ast-grep` over plain text grep — grep produces false positives from string literals, comments, and substring matches in unrelated identifiers. Account for re-exports (`export * from`, barrel files), dynamic imports (`import()`, `require()`, template-string imports), and framework-specific exports (Next.js page exports, React Server Components, decorators). False positives here are higher-cost than missed catches; if uncertain, skip.
+Ask whether the changed code missed an existing local primitive:
 
-**Balance — avoid over-simplification.** Every flag above has a failure mode in the opposite direction; fewer lines is not the goal, faster comprehension is. Do not inline a helper that gives a concept a name, merge unrelated logic into one function, or remove an abstraction that exists for testability/extensibility or whose purpose you haven't confirmed is obsolete (check `git blame` for the original intent). If a proposed change would be longer or harder to follow than the original, don't flag it.
+- helpers, hooks, selectors, reducers, parsers, validators, adapters, schemas,
+  commands, or endpoint utilities
+- nearby conventions for naming, file shape, imports, test style, and ownership
+- existing types or constants that are safer than new raw strings
+- hand-rolled logic that duplicates a trusted local utility
 
-### Agent 3: Efficiency Reviewer
+### Clarity And Shape
 
-Review the same changes for efficiency:
+Ask whether the code is easier to understand without losing the domain concept:
 
-1. **Unnecessary work**: redundant computations, repeated file reads, duplicate network/API calls, N+1 patterns
-2. **Missed concurrency**: independent operations run sequentially when they could run in parallel
-3. **Hot-path bloat**: new blocking work added to startup or per-request/per-render hot paths
-4. **Recurring no-op updates**: state/store updates inside polling loops, intervals, or event handlers that fire unconditionally — add a change-detection guard so downstream consumers aren't notified when nothing changed. Also: if a wrapper function takes an updater/reducer callback, verify it honors same-reference returns (or whatever the "no change" signal is) — otherwise callers' early-return no-ops are silently defeated
-5. **Unnecessary existence checks**: pre-checking file/resource existence before operating (TOCTOU anti-pattern) — operate directly and handle the error
-6. **Memory**: unbounded data structures, missing cleanup, event listener leaks
-7. **Overly broad operations**: reading entire files when only a portion is needed, loading all items when filtering for one
+- honest function boundaries and explicit dependencies
+- broad courier arguments that lower helpers barely use
+- redundant state or cached values that could be derived
+- copy-paste variants that hide one shared idea
+- nested conditionals that could become guard clauses, named predicates, or a
+  small state transition
+- comments that explain what the code says instead of why it must work that way
+- dead code, unused imports, unused exports, or wrapper code with no purpose
 
-## Step 3: Fix issues
+Do not collapse meaningful concepts together. A helper that names a real
+business rule, boundary, or invariant may be clearer than inlining it.
 
-Wait for all three agents to complete. Aggregate their findings and fix each issue directly. If a finding is a false positive or not worth addressing, note it and move on. Do not argue with the finding or raise questions to the user, just skip it.
+### Runtime And Side Effects
 
-Before applying each fix, confirm it preserves behavior: same output for every input, same error behavior, and same side effects and ordering. If a fix can't clear that test, skip it — automated checks in Step 4 don't cover every behavior.
+Ask whether simplification preserves cost and behavior:
 
-## Step 4: Verify behavior is preserved
+- repeated computation, reads, network calls, or N+1 work
+- independent operations that should stay concurrent or can safely become
+  concurrent
+- hot-path work added to startup, request, render, polling, or event loops
+- state/store updates that fire even when nothing changed
+- existence pre-checks that create a time-of-check/time-of-use race
+- missing cleanup for listeners, timers, subscriptions, or unbounded data
+- altered ordering of side effects, errors, cache invalidation, or persistence
 
-The premise of this skill is that simplification preserves exact functionality. After applying fixes:
+Each reader should return only actionable findings with file/line evidence, why
+the simplification helps, and any behavior-preservation risk. Readers do not
+edit files.
 
-**Run typecheck and lint over the full project.** They are usually fast and catch the most common simplification regressions — broken imports, unused exports, dropped type narrowings, dead code other modules still reference.
+## Step 4: Decide And Edit
 
-**Run tests:**
-- Run tests scoped to the changed paths. CI runs the full suite on PR — this local check is a fast signal, not the final guarantee. Match scope to blast radius; a 3-line simplification doesn't warrant a 20-minute test run.
-- Broaden scope when the change has obvious wide reach — e.g., a heavily-imported utility was rewritten, or Agent 2's consolidation/dedup fixes modified shared code. This is a judgment call about ripple risk, not a mechanical rule.
-- If the test runner has no scoping mechanism, run the full suite.
+Fold the reader findings into your own judgment. Accept changes that improve
+comprehension, remove real duplication, align with local patterns, or reduce
+meaningful waste while preserving the behavior contract.
 
-Surface any failure clearly with the failing check name and the relevant output. Do not relax assertions, weaken type signatures, or skip tests to make checks pass — that defeats the "preserves functionality" guarantee. Either fix the underlying break introduced by simplification, or revert the specific change that caused the regression.
+Skip or reject findings when they:
 
-If no test suite, lint, or typecheck is configured, state that explicitly in the summary; do not silently skip verification.
+- optimize for fewer lines over faster comprehension
+- require a behavior change
+- cross an ownership boundary outside the accepted scope
+- remove an abstraction whose purpose is still real
+- depend on uncertainty that would need product input
 
-## Step 5: Summarize
+Good simplification moves include:
 
-Briefly summarize what was good vs improved and fixed, including which checks were run and their results. If there were no findings to act on, confirm the code didn't require any changes.
+- replacing duplicate logic with an established local helper
+- naming intermediate values when it clarifies intent
+- moving deterministic shaping into a named helper, selector, parser, or reducer
+- flattening control flow with guard clauses or explicit state transitions
+- deleting comments that narrate obvious code
+- tightening helper signatures so dependencies are honest
+- consolidating near-duplicate logic when one shared concept truly exists
+
+Before applying each edit, confirm it preserves the same output, errors, side
+effects, and ordering for the relevant inputs.
+
+## Step 5: Verify
+
+After edits:
+
+1. Read back the changed lines.
+2. Run the relevant typecheck and lint checks for the touched surface.
+3. Run tests scoped to the changed behavior. Broaden tests when a shared helper,
+   public API, or hot path changed.
+4. If the simplification affects UI behavior or rendered output, verify the
+   closest real route, story, or preview surface in a browser when available.
+
+If no test, lint, or typecheck surface exists, state that explicitly. Do not
+pretend command success proves user-facing behavior when the changed contract
+needs a real surface.
+
+## Step 6: Summarize
+
+Briefly report:
+
+- what stayed unchanged behaviorally
+- what was simplified
+- what checks or real surfaces were verified
+- any skipped findings and why they were not worth changing
+
+If the code was already clean, say so and list the checks performed.
