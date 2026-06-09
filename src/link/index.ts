@@ -2,13 +2,14 @@ import { homedir } from "os";
 import type { Stats } from "fs";
 import { lstat, readdir, rm } from "fs/promises";
 import path from "path";
-import { replaceSymlink, validateSymlink } from "../fs";
+import { replaceSymlink, validateLinkSource } from "../fs";
 import type { LinkMapping, LinkTargetOptions } from "../types";
 
 export async function linkTarget(options: LinkTargetOptions): Promise<void> {
   const mappings = resolveLinkMappings(options);
+  await Promise.all(mappings.map((mapping) => validateLinkSource(mapping)));
+  await Promise.all(mappings.map((mapping) => validateLinkTarget(mapping)));
   await migrateLegacyLinkTargets(mappings);
-  await Promise.all(mappings.map((mapping) => validateSymlink(mapping)));
   await Promise.all(mappings.map((mapping) => replaceSymlink(mapping)));
 }
 
@@ -90,28 +91,44 @@ async function migrateLegacyLinkTargets(mappings: readonly LinkMapping[]): Promi
   }));
 }
 
+async function validateLinkTarget(mapping: LinkMapping): Promise<void> {
+  const existing = await lstatSafe(mapping.target);
+  if (!existing || existing.isSymbolicLink()) {
+    return;
+  }
+
+  if (mapping.name === "codex-skills" && await isMigratableCodexSkillsDirectory(mapping.target)) {
+    return;
+  }
+
+  throw new Error(`Refusing to replace non-symlink target: ${mapping.target}`);
+}
+
 async function removeLegacyCodexSkillsDirectory(skillsDir: string): Promise<void> {
-  const existing = await lstatSafe(skillsDir);
-  if (!existing?.isDirectory()) {
-    return;
-  }
-
-  const entries = (await readdir(skillsDir)).filter((entry) => entry !== ".DS_Store");
-  if (entries.length === 0) {
-    await rm(skillsDir, { recursive: true, force: true });
-    return;
-  }
-
-  if (entries.length !== 1 || entries[0] !== "dotagents") {
-    return;
-  }
-
-  const legacyLink = await lstatSafe(path.join(skillsDir, "dotagents"));
-  if (!legacyLink?.isSymbolicLink()) {
+  if (!await isMigratableCodexSkillsDirectory(skillsDir)) {
     return;
   }
 
   await rm(skillsDir, { recursive: true, force: true });
+}
+
+async function isMigratableCodexSkillsDirectory(skillsDir: string): Promise<boolean> {
+  const existing = await lstatSafe(skillsDir);
+  if (!existing?.isDirectory()) {
+    return false;
+  }
+
+  const entries = (await readdir(skillsDir)).filter((entry) => entry !== ".DS_Store");
+  if (entries.length === 0) {
+    return true;
+  }
+
+  if (entries.length !== 1 || entries[0] !== "dotagents") {
+    return false;
+  }
+
+  const legacyLink = await lstatSafe(path.join(skillsDir, "dotagents"));
+  return legacyLink?.isSymbolicLink() ?? false;
 }
 
 async function lstatSafe(filePath: string): Promise<Stats | null> {

@@ -73,13 +73,17 @@ export async function replaceSymlink(options: LinkOptions): Promise<void> {
   await symlink(link, options.target, options.kind);
 }
 
-export async function validateSymlink(options: LinkOptions): Promise<void> {
+export async function validateLinkSource(options: LinkOptions): Promise<void> {
   const sourceStat = await statSafe(options.source);
   if (!sourceStat) {
     throw new Error(`Cannot link missing source: ${options.source}`);
   }
 
   validateSourceKind(options, sourceStat);
+}
+
+export async function validateSymlink(options: LinkOptions): Promise<void> {
+  await validateLinkSource(options);
 
   const existing = await statSafe(options.target);
   if (existing && !existing.isSymbolicLink()) {

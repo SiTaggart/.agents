@@ -80,6 +80,28 @@ test("migrates legacy Codex skills directory containing dotagents symlink", asyn
   );
 });
 
+test("keeps legacy Codex skills directory when generated source preflight fails", async () => {
+  const root = await makeTempRoot("agents-link-codex-preflight-source-");
+  const homeDir = await makeTempRoot("agents-link-codex-preflight-home-");
+  tempRoots.push(root, homeDir);
+
+  await writeText(path.join(root, "AGENTS.md"), "# Shared instructions");
+  await writeText(path.join(root, "skills", "source-only", "SKILL.md"), "source");
+  await writeText(path.join(root, ".generated", "codex", "agents", "careful-reviewer.toml"), "generated");
+  await writeText(path.join(root, ".generated", "codex", "skills", "review-skill", "SKILL.md"), "generated");
+
+  await Bun.$`mkdir -p ${path.join(homeDir, ".codex", "skills")}`;
+  await Bun.$`ln -s ${path.join(root, "skills")} ${path.join(homeDir, ".codex", "skills", "dotagents")}`;
+
+  await expect(linkTarget({ root, target: "codex", scope: "global", homeDir })).rejects.toThrow(
+    "Cannot link missing source",
+  );
+
+  expect(await readSymlinkTarget(path.join(homeDir, ".codex", "skills", "dotagents"))).toBe(
+    path.join(root, "skills"),
+  );
+});
+
 test("links Claude to generated directories and CLAUDE.md", async () => {
   const root = await makeTempRoot("agents-link-claude-source-");
   const homeDir = await makeTempRoot("agents-link-claude-home-");
