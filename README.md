@@ -37,7 +37,7 @@ bun run link opencode
 | ---------- | ----- |
 | Agents     | 40    |
 | Commands   | 3     |
-| Skills     | 55    |
+| Skills     | 56    |
 | Rules      | 2     |
 
 ## Operating Loops
@@ -134,6 +134,7 @@ The shelf is organized around a few tight loops rather than standalone skills:
 | Skill                          | Description                                            |
 | ------------------------------ | ------------------------------------------------------ |
 | `frontend-design`              | Create production-grade frontend interfaces            |
+| `improve-codebase-architecture` | Find architecture deepening opportunities              |
 | `vercel-react-best-practices`  | React and Next.js performance optimization from Vercel |
 
 ### Code Quality
