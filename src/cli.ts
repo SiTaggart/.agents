@@ -131,11 +131,34 @@ function printHelp(): void {
     "  --scope <scope>     global or project (defaults to global)",
     "  --home <path>       Home directory override for global links",
     "  --project <path>    Project root override for project links",
+    "",
+    "Codex loads .agents natively; the codex target only cleans legacy generated links.",
   ].join("\n"));
 }
 
 function printCompleted(action: string, targets: readonly Target[], root: string): void {
-  console.log(`${action} ${targets.join(", ")} for ${root}`);
+  const activeTargets = targets.filter((target) => target !== "codex");
+  const lines = activeTargets.length > 0
+    ? [`${action} ${activeTargets.join(", ")} for ${root}`]
+    : [];
+
+  if (targets.includes("codex")) {
+    lines.push(`${codexCompletionMessage(action)} for ${root}`);
+  }
+
+  console.log(lines.join("\n"));
+}
+
+function codexCompletionMessage(action: string): string {
+  if (action === "Rendered") {
+    return "Cleaned Codex generated output";
+  }
+
+  if (action === "Linked") {
+    return "Cleaned Codex legacy links";
+  }
+
+  return "Cleaned Codex generated output and legacy links";
 }
 
 if (import.meta.main) {

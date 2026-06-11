@@ -9,7 +9,6 @@ those generated outputs:
 
 ```bash
 bun run sync opencode
-bun run sync codex
 bun run sync claude
 ```
 
@@ -17,11 +16,14 @@ Generated target trees live under `.generated/` and are intentionally ignored by
 git. Canonical source remains in `agents/`, `skills/`, `commands/`, `rules/`, and
 `hooks/`.
 
+Codex loads the canonical `.agents` repository natively. The Codex CLI target is
+kept only to clean links created by older versions of this sync tool; it does not
+render or link generated Codex outputs.
+
 Render without linking:
 
 ```bash
 bun run render opencode
-bun run render codex
 bun run render claude
 ```
 

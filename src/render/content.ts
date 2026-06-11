@@ -52,12 +52,6 @@ export function transformContentForOpenCode(content: string): string {
   return flattenOpenCodeAgentReferences(rewriteClaudePathsForOpenCode(content));
 }
 
-export function transformContentForCodex(content: string): string {
-  return content
-    .replace(/~\/\.claude\//g, "~/.codex/")
-    .replace(/\.claude\//g, ".codex/");
-}
-
 function rewriteClaudePathsForOpenCode(content: string): string {
   return content
     .replace(/~\/\.claude\//g, "~/.config/opencode/")

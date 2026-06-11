@@ -141,31 +141,15 @@ test("renders Claude agents, commands, and skills in a generated target tree", a
   expect(skill).toContain("Use the careful reviewer.");
 });
 
-test("renders Codex agents as TOML in a generated target tree", async () => {
-  const root = await makeTempRoot("agents-render-codex-");
+test("removes obsolete Codex generated output", async () => {
+  const root = await makeTempRoot("agents-render-codex-clean-");
   tempRoots.push(root);
 
-  await writeText(
-    path.join(root, "agents", "careful-reviewer.md"),
-    [
-      "---",
-      "name: careful-reviewer",
-      "description: Finds logic bugs",
-      "tools: Read, Grep",
-      "---",
-      "",
-      "Use the review-skill skill and inspect ~/.claude/agents.",
-    ].join("\n"),
-  );
+  await writeText(path.join(root, ".generated", "codex", "agents", "stale.toml"), "stale");
 
   await renderTarget({ root, target: "codex" });
 
-  const agent = await readText(path.join(root, ".generated", "codex", "agents", "careful-reviewer.toml"));
-  expect(agent).toContain('name = "careful-reviewer"');
-  expect(agent).toContain('description = "Finds logic bugs"');
-  expect(agent).toContain('developer_instructions = "Use the review-skill skill');
-  expect(agent).toContain("Use the review-skill skill");
-  expect(agent).not.toContain("tools:");
+  expect(await Bun.file(path.join(root, ".generated", "codex")).exists()).toBe(false);
 });
 
 test("skips hidden skill directories when rendering target skill shelves", async () => {
@@ -195,37 +179,14 @@ test("skips hidden skill directories when rendering target skill shelves", async
     ].join("\n"),
   );
 
-  await renderTarget({ root, target: "codex" });
+  await renderTarget({ root, target: "opencode" });
 
-  expect(await Bun.file(path.join(root, ".generated", "codex", "skills", "public-skill", "SKILL.md")).exists()).toBe(
+  expect(await Bun.file(path.join(root, ".generated", "opencode", "skills", "public-skill", "SKILL.md")).exists()).toBe(
     true,
   );
-  expect(await Bun.file(path.join(root, ".generated", "codex", "skills", "hidden-skill", "SKILL.md")).exists()).toBe(
+  expect(await Bun.file(path.join(root, ".generated", "opencode", "skills", "hidden-skill", "SKILL.md")).exists()).toBe(
     false,
   );
-});
-
-test("escapes Codex TOML instructions with backslashes safely", async () => {
-  const root = await makeTempRoot("agents-render-codex-escaping-");
-  tempRoots.push(root);
-
-  await writeText(
-    path.join(root, "agents", "regex-reviewer.md"),
-    [
-      "---",
-      "name: regex-reviewer",
-      "description: Checks regex examples",
-      "---",
-      "",
-      String.raw`Use regex \d+ and path C:\tmp.`,
-    ].join("\n"),
-  );
-
-  await renderTarget({ root, target: "codex" });
-
-  const agent = await readText(path.join(root, ".generated", "codex", "agents", "regex-reviewer.toml"));
-  expect(agent).toContain(String.raw`developer_instructions = "Use regex \\d+ and path C:\\tmp."`);
-  expect(agent).not.toContain('developer_instructions = """');
 });
 
 test("creates empty generated directories for linkable target sections", async () => {
@@ -239,9 +200,7 @@ test("creates empty generated directories for linkable target sections", async (
   expect(await isDirectory(path.join(root, ".generated", "opencode", "agents"))).toBe(true);
   expect(await isDirectory(path.join(root, ".generated", "opencode", "commands"))).toBe(true);
   expect(await isDirectory(path.join(root, ".generated", "opencode", "skills"))).toBe(true);
-  expect(await isDirectory(path.join(root, ".generated", "codex", "agents"))).toBe(true);
-  expect(await isDirectory(path.join(root, ".generated", "codex", "prompts"))).toBe(true);
-  expect(await isDirectory(path.join(root, ".generated", "codex", "skills"))).toBe(true);
+  expect(await Bun.file(path.join(root, ".generated", "codex")).exists()).toBe(false);
   expect(await isDirectory(path.join(root, ".generated", "claude", "agents"))).toBe(true);
   expect(await isDirectory(path.join(root, ".generated", "claude", "commands"))).toBe(true);
   expect(await isDirectory(path.join(root, ".generated", "claude", "skills"))).toBe(true);
