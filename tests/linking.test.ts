@@ -75,10 +75,31 @@ test("removes legacy Codex skills directory containing managed dotagents symlink
 
   await Bun.$`mkdir -p ${path.join(homeDir, ".codex", "skills")}`;
   await Bun.$`ln -s ${path.join(root, "skills")} ${path.join(homeDir, ".codex", "skills", "dotagents")}`;
+  await writeText(path.join(homeDir, ".codex", "skills", ".DS_Store"), "finder metadata");
 
   await linkTarget({ root, target: "codex", scope: "global", homeDir });
 
   expect(await Bun.file(path.join(homeDir, ".codex", "skills", "dotagents")).exists()).toBe(false);
+  expect(await Bun.file(path.join(homeDir, ".codex", "skills")).exists()).toBe(false);
+});
+
+test("removes managed Codex skill link written through canonical skills symlink", async () => {
+  const root = await makeTempRoot("agents-link-codex-canonical-source-");
+  const homeDir = await makeTempRoot("agents-link-codex-canonical-home-");
+  tempRoots.push(root, homeDir);
+
+  await writeText(path.join(root, "AGENTS.md"), "# Shared instructions");
+  await writeText(path.join(root, "skills", "source-only", "SKILL.md"), "source");
+  await writeText(path.join(root, ".generated", "codex", "skills", "review-skill", "SKILL.md"), "generated");
+
+  await Bun.$`mkdir -p ${path.join(homeDir, ".codex")}`;
+  await Bun.$`ln -s ${path.join(root, "skills")} ${path.join(homeDir, ".codex", "skills")}`;
+  await Bun.$`ln -s ${path.join(root, ".generated", "codex", "skills")} ${path.join(root, "skills", "dotagents")}`;
+
+  await linkTarget({ root, target: "codex", scope: "global", homeDir });
+
+  expect(await Bun.file(path.join(homeDir, ".codex", "skills")).exists()).toBe(false);
+  expect(await Bun.file(path.join(root, "skills", "dotagents")).exists()).toBe(false);
 });
 
 test("does not require generated Codex outputs to clean links", async () => {

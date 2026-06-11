@@ -1,6 +1,6 @@
 import { homedir } from "os";
 import type { Stats } from "fs";
-import { lstat, readdir, readlink, rmdir, unlink } from "fs/promises";
+import { lstat, readdir, readlink, rm, rmdir, unlink } from "fs/promises";
 import path from "path";
 import { replaceSymlink, validateLinkSource } from "../fs";
 import type { LinkMapping, LinkTargetOptions } from "../types";
@@ -91,6 +91,7 @@ async function removeManagedCodexLinks(options: LinkTargetOptions): Promise<void
       path.join(generated, "skills"),
       path.join(root, "skills"),
     ]),
+    removeManagedSymlink(path.join(root, "skills", "dotagents"), [path.join(generated, "skills")]),
     removeManagedSymlink(path.join(targetRoot, "agents", "dotagents"), [path.join(generated, "agents")]),
     removeLegacyCodexSkillsDirectory(path.join(targetRoot, "skills"), [
       path.join(generated, "skills"),
@@ -139,11 +140,14 @@ async function removeEmptyDirectory(dir: string): Promise<void> {
     return;
   }
 
-  const entries = (await readdir(dir)).filter((entry) => entry !== ".DS_Store");
-  if (entries.length > 0) {
+  const entries = await readdir(dir);
+  const removableEntries = entries.filter((entry) => entry === ".DS_Store");
+  const retainedEntries = entries.filter((entry) => entry !== ".DS_Store");
+  if (retainedEntries.length > 0) {
     return;
   }
 
+  await Promise.all(removableEntries.map((entry) => rm(path.join(dir, entry), { force: true })));
   await rmdir(dir);
 }
 
