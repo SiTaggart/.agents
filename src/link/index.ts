@@ -1,6 +1,6 @@
 import { homedir } from "os";
 import type { Stats } from "fs";
-import { lstat, readdir, rm } from "fs/promises";
+import { lstat, readdir, readlink, rmdir, unlink } from "fs/promises";
 import path from "path";
 import { replaceSymlink, validateLinkSource } from "../fs";
 import type { LinkMapping, LinkTargetOptions } from "../types";
@@ -9,7 +9,10 @@ export async function linkTarget(options: LinkTargetOptions): Promise<void> {
   const mappings = resolveLinkMappings(options);
   await Promise.all(mappings.map((mapping) => validateLinkSource(mapping)));
   await Promise.all(mappings.map((mapping) => validateLinkTarget(mapping)));
-  await migrateLegacyLinkTargets(mappings);
+  if (options.target === "codex") {
+    await removeManagedCodexLinks(options);
+    return;
+  }
   await Promise.all(mappings.map((mapping) => replaceSymlink(mapping)));
 }
 
@@ -19,7 +22,7 @@ export function resolveLinkMappings(options: LinkTargetOptions): readonly LinkMa
   }
 
   if (options.target === "codex") {
-    return resolveCodexMappings(options);
+    return [];
   }
 
   return resolveClaudeMappings(options);
@@ -38,22 +41,6 @@ function resolveOpenCodeMappings(options: LinkTargetOptions): readonly LinkMappi
     { name: "opencode-commands", source: path.join(generated, "commands"), target: path.join(targetRoot, "commands"), kind: "dir" },
     { name: "opencode-skills", source: path.join(generated, "skills"), target: path.join(targetRoot, "skills"), kind: "dir" },
     { name: "opencode-agents-md", source: path.join(root, "AGENTS.md"), target: path.join(targetRoot, "AGENTS.md"), kind: "file" },
-  ];
-}
-
-function resolveCodexMappings(options: LinkTargetOptions): readonly LinkMapping[] {
-  const scope = options.scope ?? "global";
-  const root = path.resolve(options.root);
-  const generated = path.join(root, ".generated", "codex");
-  const targetRoot = scope === "global"
-    ? path.join(resolveHome(options.homeDir), ".codex")
-    : path.join(resolveProjectRoot(options), ".codex");
-
-  return [
-    { name: "codex-agents", source: path.join(generated, "agents"), target: path.join(targetRoot, "agents", "dotagents"), kind: "dir" },
-    { name: "codex-prompts", source: path.join(generated, "prompts"), target: path.join(targetRoot, "prompts"), kind: "dir" },
-    { name: "codex-skills", source: path.join(generated, "skills"), target: path.join(targetRoot, "skills"), kind: "dir" },
-    { name: "codex-agents-md", source: path.join(root, "AGENTS.md"), target: path.join(targetRoot, "AGENTS.md"), kind: "file" },
   ];
 }
 
@@ -81,54 +68,95 @@ function resolveProjectRoot(options: LinkTargetOptions): string {
   return path.resolve(options.projectRoot ?? options.root);
 }
 
-async function migrateLegacyLinkTargets(mappings: readonly LinkMapping[]): Promise<void> {
-  await Promise.all(mappings.map(async (mapping) => {
-    if (mapping.name !== "codex-skills") {
-      return;
-    }
-
-    await removeLegacyCodexSkillsDirectory(mapping.target);
-  }));
-}
-
 async function validateLinkTarget(mapping: LinkMapping): Promise<void> {
   const existing = await lstatSafe(mapping.target);
   if (!existing || existing.isSymbolicLink()) {
     return;
   }
 
-  if (mapping.name === "codex-skills" && await isMigratableCodexSkillsDirectory(mapping.target)) {
-    return;
-  }
-
   throw new Error(`Refusing to replace non-symlink target: ${mapping.target}`);
 }
 
-async function removeLegacyCodexSkillsDirectory(skillsDir: string): Promise<void> {
-  if (!await isMigratableCodexSkillsDirectory(skillsDir)) {
+async function removeManagedCodexLinks(options: LinkTargetOptions): Promise<void> {
+  const root = path.resolve(options.root);
+  const generated = path.join(root, ".generated", "codex");
+  const targetRoot = (options.scope ?? "global") === "global"
+    ? path.join(resolveHome(options.homeDir), ".codex")
+    : path.join(resolveProjectRoot(options), ".codex");
+
+  await Promise.all([
+    removeManagedSymlink(path.join(targetRoot, "AGENTS.md"), [path.join(root, "AGENTS.md")]),
+    removeManagedSymlink(path.join(targetRoot, "prompts"), [path.join(generated, "prompts")]),
+    removeManagedSymlink(path.join(targetRoot, "skills"), [
+      path.join(generated, "skills"),
+      path.join(root, "skills"),
+    ]),
+    removeManagedSymlink(path.join(targetRoot, "agents", "dotagents"), [path.join(generated, "agents")]),
+    removeLegacyCodexSkillsDirectory(path.join(targetRoot, "skills"), [
+      path.join(generated, "skills"),
+      path.join(root, "skills"),
+    ]),
+  ]);
+
+  await removeEmptyDirectory(path.join(targetRoot, "agents"));
+}
+
+async function removeLegacyCodexSkillsDirectory(
+  skillsDir: string,
+  managedTargets: readonly string[],
+): Promise<void> {
+  const existing = await lstatSafe(skillsDir);
+  if (!existing?.isDirectory()) {
     return;
   }
 
-  await rm(skillsDir, { recursive: true, force: true });
+  const legacyLink = path.join(skillsDir, "dotagents");
+  if (!await removeManagedSymlink(legacyLink, managedTargets)) {
+    return;
+  }
+
+  await removeEmptyDirectory(skillsDir);
 }
 
-async function isMigratableCodexSkillsDirectory(skillsDir: string): Promise<boolean> {
-  const existing = await lstatSafe(skillsDir);
+async function removeManagedSymlink(linkPath: string, managedTargets: readonly string[]): Promise<boolean> {
+  const existing = await lstatSafe(linkPath);
+  if (!existing?.isSymbolicLink()) {
+    return false;
+  }
+
+  const target = await resolveSymlink(linkPath);
+  if (!target || !managedTargets.some((managedTarget) => target === path.resolve(managedTarget))) {
+    return false;
+  }
+
+  await unlink(linkPath);
+  return true;
+}
+
+async function removeEmptyDirectory(dir: string): Promise<void> {
+  const existing = await lstatSafe(dir);
   if (!existing?.isDirectory()) {
-    return false;
+    return;
   }
 
-  const entries = (await readdir(skillsDir)).filter((entry) => entry !== ".DS_Store");
-  if (entries.length === 0) {
-    return true;
+  const entries = (await readdir(dir)).filter((entry) => entry !== ".DS_Store");
+  if (entries.length > 0) {
+    return;
   }
 
-  if (entries.length !== 1 || entries[0] !== "dotagents") {
-    return false;
-  }
+  await rmdir(dir);
+}
 
-  const legacyLink = await lstatSafe(path.join(skillsDir, "dotagents"));
-  return legacyLink?.isSymbolicLink() ?? false;
+async function resolveSymlink(linkPath: string): Promise<string | null> {
+  try {
+    const target = await readlink(linkPath);
+    return path.resolve(path.dirname(linkPath), target);
+  } catch (error) {
+    if (isNodeError(error) && error.code === "ENOENT") {
+      return null;
+    }
+    throw error;
+  }
 }
 
 async function lstatSafe(filePath: string): Promise<Stats | null> {

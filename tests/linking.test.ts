@@ -37,9 +37,9 @@ test("links OpenCode to generated directories instead of canonical source direct
   );
 });
 
-test("links Codex skills to generated directory instead of nesting under stale canonical symlink", async () => {
-  const root = await makeTempRoot("agents-link-codex-source-");
-  const homeDir = await makeTempRoot("agents-link-codex-home-");
+test("cleans managed Codex links instead of syncing generated outputs", async () => {
+  const root = await makeTempRoot("agents-link-codex-clean-source-");
+  const homeDir = await makeTempRoot("agents-link-codex-clean-home-");
   tempRoots.push(root, homeDir);
 
   await writeText(path.join(root, "AGENTS.md"), "# Shared instructions");
@@ -48,18 +48,21 @@ test("links Codex skills to generated directory instead of nesting under stale c
   await writeText(path.join(root, ".generated", "codex", "prompts", "ship.md"), "generated");
   await writeText(path.join(root, ".generated", "codex", "skills", "review-skill", "SKILL.md"), "generated");
 
-  await Bun.$`mkdir -p ${path.join(homeDir, ".codex")}`;
-  await Bun.$`ln -s ${path.join(root, "skills")} ${path.join(homeDir, ".codex", "skills")}`;
+  await Bun.$`mkdir -p ${path.join(homeDir, ".codex", "agents")}`;
+  await Bun.$`ln -s ${path.join(root, ".generated", "codex", "agents")} ${path.join(homeDir, ".codex", "agents", "dotagents")}`;
+  await Bun.$`ln -s ${path.join(root, ".generated", "codex", "prompts")} ${path.join(homeDir, ".codex", "prompts")}`;
+  await Bun.$`ln -s ${path.join(root, ".generated", "codex", "skills")} ${path.join(homeDir, ".codex", "skills")}`;
+  await Bun.$`ln -s ${path.join(root, "AGENTS.md")} ${path.join(homeDir, ".codex", "AGENTS.md")}`;
 
   await linkTarget({ root, target: "codex", scope: "global", homeDir });
 
-  expect(await readSymlinkTarget(path.join(homeDir, ".codex", "skills"))).toBe(
-    path.join(root, ".generated", "codex", "skills"),
-  );
-  expect(await Bun.file(path.join(root, "skills", "dotagents")).exists()).toBe(false);
+  expect(await Bun.file(path.join(homeDir, ".codex", "agents", "dotagents")).exists()).toBe(false);
+  expect(await Bun.file(path.join(homeDir, ".codex", "prompts")).exists()).toBe(false);
+  expect(await Bun.file(path.join(homeDir, ".codex", "skills")).exists()).toBe(false);
+  expect(await Bun.file(path.join(homeDir, ".codex", "AGENTS.md")).exists()).toBe(false);
 });
 
-test("migrates legacy Codex skills directory containing dotagents symlink", async () => {
+test("removes legacy Codex skills directory containing managed dotagents symlink", async () => {
   const root = await makeTempRoot("agents-link-codex-legacy-source-");
   const homeDir = await makeTempRoot("agents-link-codex-legacy-home-");
   tempRoots.push(root, homeDir);
@@ -75,31 +78,32 @@ test("migrates legacy Codex skills directory containing dotagents symlink", asyn
 
   await linkTarget({ root, target: "codex", scope: "global", homeDir });
 
-  expect(await readSymlinkTarget(path.join(homeDir, ".codex", "skills"))).toBe(
-    path.join(root, ".generated", "codex", "skills"),
-  );
+  expect(await Bun.file(path.join(homeDir, ".codex", "skills", "dotagents")).exists()).toBe(false);
 });
 
-test("keeps legacy Codex skills directory when generated source preflight fails", async () => {
-  const root = await makeTempRoot("agents-link-codex-preflight-source-");
-  const homeDir = await makeTempRoot("agents-link-codex-preflight-home-");
+test("does not require generated Codex outputs to clean links", async () => {
+  const root = await makeTempRoot("agents-link-codex-no-generated-source-");
+  const homeDir = await makeTempRoot("agents-link-codex-no-generated-home-");
   tempRoots.push(root, homeDir);
 
   await writeText(path.join(root, "AGENTS.md"), "# Shared instructions");
-  await writeText(path.join(root, "skills", "source-only", "SKILL.md"), "source");
-  await writeText(path.join(root, ".generated", "codex", "agents", "careful-reviewer.toml"), "generated");
-  await writeText(path.join(root, ".generated", "codex", "skills", "review-skill", "SKILL.md"), "generated");
 
-  await Bun.$`mkdir -p ${path.join(homeDir, ".codex", "skills")}`;
-  await Bun.$`ln -s ${path.join(root, "skills")} ${path.join(homeDir, ".codex", "skills", "dotagents")}`;
+  await linkTarget({ root, target: "codex", scope: "global", homeDir });
 
-  await expect(linkTarget({ root, target: "codex", scope: "global", homeDir })).rejects.toThrow(
-    "Cannot link missing source",
-  );
+  expect(await Bun.file(path.join(homeDir, ".codex", "skills")).exists()).toBe(false);
+});
 
-  expect(await readSymlinkTarget(path.join(homeDir, ".codex", "skills", "dotagents"))).toBe(
-    path.join(root, "skills"),
-  );
+test("leaves unmanaged Codex skills directory untouched", async () => {
+  const root = await makeTempRoot("agents-link-codex-unmanaged-source-");
+  const homeDir = await makeTempRoot("agents-link-codex-unmanaged-home-");
+  tempRoots.push(root, homeDir);
+
+  await writeText(path.join(root, "AGENTS.md"), "# Shared instructions");
+  await writeText(path.join(homeDir, ".codex", "skills", "custom", "SKILL.md"), "custom");
+
+  await linkTarget({ root, target: "codex", scope: "global", homeDir });
+
+  expect(await Bun.file(path.join(homeDir, ".codex", "skills", "custom", "SKILL.md")).exists()).toBe(true);
 });
 
 test("links Claude to generated directories and CLAUDE.md", async () => {
