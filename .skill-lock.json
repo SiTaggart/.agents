@@ -15,18 +15,18 @@
       "sourceType": "github",
       "sourceUrl": "https://github.com/stablyai/orca.git",
       "skillPath": "skills/orca-cli/SKILL.md",
-      "skillFolderHash": "3b9164e0fba50923c9ce3a4a298a9c8b81677291",
+      "skillFolderHash": "535bf7b62e1e374adb380e16f837a3c575e302d4",
       "installedAt": "2026-06-01T06:27:16.549Z",
-      "updatedAt": "2026-06-01T06:27:16.549Z"
+      "updatedAt": "2026-06-14T01:31:06.536Z"
     },
     "orchestration": {
       "source": "stablyai/orca",
       "sourceType": "github",
       "sourceUrl": "https://github.com/stablyai/orca.git",
       "skillPath": "skills/orchestration/SKILL.md",
-      "skillFolderHash": "820faebf9aa70e7c1792909ceb9fbf35db93795a",
+      "skillFolderHash": "2f7404841129a80c8b9add53c761f0ff11174dae",
       "installedAt": "2026-06-01T06:27:16.549Z",
-      "updatedAt": "2026-06-03T21:56:09.858Z"
+      "updatedAt": "2026-06-14T01:31:25.482Z"
     },
     "remotion-best-practices": {
       "source": "remotion-dev/skills",
