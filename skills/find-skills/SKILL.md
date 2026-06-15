@@ -25,6 +25,15 @@ ambiguous feature.
 5. `document-review` - review the requirements doc when it needs a quality pass.
 6. `ce-plan` - turn settled requirements into an implementation plan.
 
+### Learn Over Time
+
+Use when the user wants to learn a topic, skill, or concept across multiple
+sessions, or asks for lessons, reference materials, teaching state, or a durable
+learning workspace.
+
+1. `teach` - maintain the `.ai/teach/` mission, resources, glossary, lessons,
+   reference docs, and learning records.
+
 ### Plan And Build
 
 Use when the task is clear enough to execute or already has a plan.
@@ -74,6 +83,8 @@ Use when behavior is broken or unknown.
 ## Selection Rules
 
 - If the user has a vague idea, start with `ce-brainstorm`.
+- If the user wants to learn a topic over multiple sessions, use `teach` instead
+  of routing the learning workflow through brainstorm or planning loops.
 - If the user has branchy requirements, run `ce-grill` before `ce-plan`.
 - If the user has a written requirements or plan artifact, use
   `document-review`, not `ce-review`.
