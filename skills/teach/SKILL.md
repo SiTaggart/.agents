@@ -8,15 +8,19 @@ The user has asked you to teach them something through a persistent learning wor
 
 ## Teaching Workspace
 
-Use `.ai/teach/` under the process working directory as the teaching workspace unless the user gives another path. This keeps generated teaching artifacts with the repo's other agent artifacts instead of scattering them through the project root. If the user explicitly points at a dedicated non-repo teaching workspace, use that path as the workspace root. Workspace files are relative to the teaching workspace; bundled format docs are relative to this skill directory.
+Use `.ai/teach/` under the workspace root as the teaching workspace unless the user gives another path. This keeps generated teaching artifacts with the repo's other agent artifacts instead of scattering them through package, app, or project subdirectories. Workspace files are relative to the teaching workspace; bundled format docs are relative to this skill directory.
 
 Before teaching:
 
-1. Resolve the teaching workspace path, defaulting to `.ai/teach/`.
-2. Read existing `MISSION.md`, `RESOURCES.md`, `GLOSSARY.md`, `NOTES.md`, `learning-records/`, `lessons/`, and `references/` in that workspace when they exist.
-3. If `MISSION.md` is missing or vague, interview the user before creating lessons. Ask for the real-world reason they want the skill, not only the topic name.
-4. Create files and directories lazily when they become useful. Do not overwrite prior lessons or records; scan existing numeric prefixes and increment the highest one.
-5. If the current directory is clearly an unrelated code or project repo and the user has not explicitly chosen it as the teaching workspace, ask where to keep teaching state before writing files.
+1. Resolve the workspace root.
+   - If inside a git repo, use the repo root.
+   - If there is no repo root, search upward for an existing `.ai/teach/` and use that parent directory when found.
+   - Otherwise use the current working directory.
+2. Resolve the teaching workspace path, defaulting to `<workspace-root>/.ai/teach/`. If the user explicitly points at a dedicated non-repo teaching workspace, use that path as the teaching workspace root.
+3. Read existing `MISSION.md`, `RESOURCES.md`, `GLOSSARY.md`, `NOTES.md`, and `learning-records/*.md` in the teaching workspace when they exist. List `lessons/` and `references/` filenames, but open specific lesson or reference HTML files only when relevant to the current turn.
+4. If `MISSION.md` is missing or vague, interview the user before creating lessons. Ask for the real-world reason they want the skill, not only the topic name.
+5. Create files and directories lazily when they become useful. Do not overwrite prior lessons or records; scan existing numeric prefixes and increment the highest one.
+6. If the current directory is clearly unrelated to the user's learning topic and they have not explicitly chosen it as the teaching workspace, ask where to keep teaching state before writing files.
 
 The state of learning is captured in these files:
 
