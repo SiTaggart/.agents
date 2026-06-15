@@ -424,7 +424,7 @@ function LayerToggle(): React.ReactElement {
 
 ### RepoPrompt First
 
-- When RepoPrompt MCP is available, prefer it for codebase exploration and
+- When RepoPromptCE MCP is available, prefer it for codebase exploration and
   review.
 - Prefer `file_search` over `grep` or globbing.
 - Prefer `get_file_tree` over `ls` or `find`.
@@ -432,7 +432,8 @@ function LayerToggle(): React.ReactElement {
 - Prefer `get_code_structure` for API shape and signatures.
 - Prefer `context_builder` for deep planning, reviews, and unfamiliar code.
 - Prefer `manage_selection` and slices/codemaps before full-file context.
-- If RepoPrompt is unavailable, use `rp-cli`; then fall back to shell tools.
+- If RepoPromptCE MCP is unavailable, use `rpce-cli`; then fall back to shell
+  tools.
 
 ### Shell
 

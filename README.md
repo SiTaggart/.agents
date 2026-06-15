@@ -161,7 +161,7 @@ The shelf is organized around a few tight loops rather than standalone skills:
 
 | Skill                  | Description                                           |
 | ---------------------- | ----------------------------------------------------- |
-| `repoprompt`           | Use RepoPrompt for token-efficient codebase context   |
+| `repoprompt`           | Use RepoPromptCE / rpce-cli for token-efficient context |
 
 ### Documentation
 
