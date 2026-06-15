@@ -39,7 +39,7 @@ bun run link opencode
 | ---------- | ----- |
 | Agents     | 40    |
 | Commands   | 3     |
-| Skills     | 56    |
+| Skills     | 58    |
 | Rules      | 2     |
 
 ## Operating Loops
@@ -175,6 +175,12 @@ The shelf is organized around a few tight loops rather than standalone skills:
 | Skill       | Description                                                  |
 | ----------- | ------------------------------------------------------------ |
 | `qmd`       | Search markdown knowledge bases, notes, and documentation    |
+
+### Learning
+
+| Skill   | Description                                                  |
+| ------- | ------------------------------------------------------------ |
+| `teach` | Create stateful learning workspaces with lessons and records |
 
 ### Obsidian
 
