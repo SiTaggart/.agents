@@ -1,6 +1,6 @@
 ---
 name: repoprompt
-description: Use RepoPrompt for token-efficient codebase exploration, planning, review, refactor context, and prompt exports.
+description: Use RepoPromptCE / rpce-cli for token-efficient codebase exploration, planning, review, refactor context, and prompt exports.
 allowed-tools: [Bash, Read]
 ---
 
@@ -9,7 +9,7 @@ allowed-tools: [Bash, Read]
 Use RepoPrompt when a task needs codebase understanding across multiple files,
 large context, careful selection, or an independent context-builder read.
 
-Prefer RepoPrompt MCP tools when they are available. Use `rp-cli` as the
+Prefer RepoPromptCE MCP tools when they are available. Use `rpce-cli` as the
 fallback or when the current runtime only exposes the CLI.
 
 ## Operating Posture
@@ -23,22 +23,22 @@ fallback or when the current runtime only exposes the CLI.
 
 ## Tool Map
 
-| Need | RepoPrompt MCP | `rp-cli` fallback |
+| Need | RepoPromptCE MCP | `rpce-cli` fallback |
 | --- | --- | --- |
-| File tree | `get_file_tree` | `rp-cli -e 'tree'` |
-| Search paths/content | `file_search` | `rp-cli -e 'search "pattern"'` |
-| Signatures/codemaps | `get_code_structure` | `rp-cli -e 'structure path/'` |
-| Read slices | `read_file` | `rp-cli -e 'read path/file.ts --start-line 50 --limit 40'` |
-| Curate context | `manage_selection` | `rp-cli -e 'select add path/'` |
-| Context-builder read | `context_builder` | `rp-cli -e 'builder "task" --response-type question'` |
-| Follow-up reasoning | `oracle_send` | `rp-cli -t '<tab_id>' -e 'chat "question" --mode plan'` |
+| File tree | `get_file_tree` | `rpce-cli -e 'tree'` |
+| Search paths/content | `file_search` | `rpce-cli -e 'search "pattern"'` |
+| Signatures/codemaps | `get_code_structure` | `rpce-cli -e 'structure path/'` |
+| Read slices | `read_file` | `rpce-cli -e 'read path/file.ts --start-line 50 --limit 40'` |
+| Curate context | `manage_selection` | `rpce-cli -e 'select add path/'` |
+| Context-builder read | `context_builder` | `rpce-cli -e 'builder "task" --response-type question'` |
+| Follow-up reasoning | `oracle_send` | `rpce-cli -t '<tab_id>' -e 'chat "question" --mode plan'` |
 
 When using the CLI, find the right window first if multiple workspaces may be
-open:
+open. Pass `-w <window_id>` on later commands when the target is not implicit:
 
 ```bash
-rp-cli -e 'windows'
-rp-cli -w <window_id> -e 'tree --type roots'
+rpce-cli -e 'windows'
+rpce-cli -w <window_id> -e 'tree --type roots'
 ```
 
 ## Core Workflow
@@ -64,13 +64,13 @@ Use for "how does this work?", architecture questions, brownfield orientation,
 and unfamiliar bug reports.
 
 ```bash
-rp-cli -e 'builder "Explain how <system> works. Identify key files, data flow, and ownership boundaries." --response-type question'
+rpce-cli -e 'builder "Explain how <system> works. Identify key files, data flow, and ownership boundaries." --response-type question'
 ```
 
 Follow up only on concrete gaps:
 
 ```bash
-rp-cli -t '<tab_id>' -e 'chat "How does <file A> connect to <file B>?" --mode chat'
+rpce-cli -t '<tab_id>' -e 'chat "How does <file A> connect to <file B>?" --mode chat'
 ```
 
 ### Plan
@@ -79,7 +79,7 @@ Use for broad or risky implementation planning. The output should become a
 normal plan in the parent thread, not a second workflow competing with `ce-plan`.
 
 ```bash
-rp-cli -e 'builder "Plan <change>. Stay inside <scope>. Call out contracts, owner boundaries, tests, and rollout risk only if the diff requires it." --response-type plan'
+rpce-cli -e 'builder "Plan <change>. Stay inside <scope>. Call out contracts, owner boundaries, tests, and rollout risk only if the diff requires it." --response-type plan'
 ```
 
 ### Review
@@ -89,7 +89,7 @@ read will improve `ce-review`, or when the user explicitly asks for a
 RepoPrompt-backed review.
 
 ```bash
-rp-cli -e 'builder "Review changes against <base>. Focus on correctness, product contract, security only at real trust boundaries, and tests/proof." --response-type review'
+rpce-cli -e 'builder "Review changes against <base>. Focus on correctness, product contract, security only at real trust boundaries, and tests/proof." --response-type review'
 ```
 
 Fold the result into the main review. Do not mechanically forward findings that
@@ -108,8 +108,8 @@ First strip meta-framing and identify the real task:
 Then curate/export the relevant context:
 
 ```bash
-rp-cli -e 'builder "Prepare context for: <real task>" --response-type clarify'
-rp-cli -e 'prompt export "prompt-exports/<slug>.md" --copy-preset <standard|plan|codeReview>'
+rpce-cli -e 'builder "Prepare context for: <real task>" --response-type clarify'
+rpce-cli -e 'prompt export "prompt-exports/<slug>.md" --copy-preset <standard|plan|codeReview>'
 ```
 
 Review the exported prompt for scope drift before handing it off.
@@ -119,7 +119,7 @@ Review the exported prompt for scope drift before handing it off.
 Use when simplification spans enough files that local prior art matters.
 
 ```bash
-rp-cli -e 'builder "Analyze <scope> for simplification opportunities. Preserve exact behavior. Look for duplicate logic, dishonest boundaries, and local helpers to reuse." --response-type plan'
+rpce-cli -e 'builder "Analyze <scope> for simplification opportunities. Preserve exact behavior. Look for duplicate logic, dishonest boundaries, and local helpers to reuse." --response-type plan'
 ```
 
 For refactors where later edits depend on earlier decisions, steer one continued
@@ -131,7 +131,7 @@ Use when a task is too broad to start coding from a cold read, but the parent
 thread should still implement.
 
 ```bash
-rp-cli -e 'builder "Plan implementation of <task>. Identify exact files, sequence, tests, and behavior contracts." --response-type plan'
+rpce-cli -e 'builder "Plan implementation of <task>. Identify exact files, sequence, tests, and behavior contracts." --response-type plan'
 ```
 
 After the plan, implement in the parent thread using the repo's normal editing
@@ -144,7 +144,7 @@ Use RepoPrompt to map candidate bottlenecks and local measurement conventions,
 then keep optimization work grounded in measured baselines.
 
 ```bash
-rp-cli -e 'builder "Find likely bottlenecks for <metric> in <scope>. Include measurement hooks, tests, and the single best first experiment." --response-type plan'
+rpce-cli -e 'builder "Find likely bottlenecks for <metric> in <scope>. Include measurement hooks, tests, and the single best first experiment." --response-type plan'
 ```
 
 Do not run an open-ended optimization loop unless the user explicitly asks for
