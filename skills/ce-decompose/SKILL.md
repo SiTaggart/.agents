@@ -56,8 +56,10 @@ git diff <base> --numstat | awk '{a+=$1; d+=$2} END {print a+d " tracked lines"}
 # ...plus untracked new files, which git diff never shows:
 git ls-files --others --exclude-standard -z | xargs -0r wc -l | tail -1
 
-# Branch or PR (the committed range is the whole change):
-git diff <base>...HEAD --numstat | awk '{a+=$1; d+=$2} END {print a+d " changed lines"}'
+# Branch or PR (the committed range is the whole change). Use the requested
+# head ref — the branch name or PR head SHA — not HEAD, which measures whatever
+# happens to be checked out:
+git diff <base>...<head> --numstat | awk '{a+=$1; d+=$2} END {print a+d " changed lines"}'
 ```
 
 Note the three-dot `<base>...HEAD` form covers only committed changes; use `git diff <base>` (no dots) when uncommitted working-tree edits are part of the change. If the total is **under threshold** (after the risk adjustments above), the change is already reviewable — hand it to normal review via `ce-quality-gate` → `ce-review` and stop. There is nothing to decompose. Otherwise continue.
@@ -97,14 +99,15 @@ Carve the existing code into the units from Step 3, preserving the work. The out
 
 - **Map changes to units.** Assign each changed file (or region) to exactly one unit. Prefer **file-level grouping** — it is clean and matches the house commit convention. When a single file genuinely mixes concerns across units, split that file's changes by hunk; if the file *is* the seam, keep it as one unit.
 - **Order by dependency.** A unit that others build on lands first. Each commit/PR in the stack must build and pass its own tests on its own — no unit may depend on code that lands later.
-- **Mechanics.** Build the stack by re-applying the existing changes in grouped commits (e.g., reset soft to base, then stage and commit per unit), or as a branch/PR per unit. For **file-level** units, use `git-commit` / `git-commit-push-pr` once each unit's files are grouped. For **partial-file (hunk-split)** units, do **not** hand off to `git-commit` — it stages whole files by name and would re-stage the sibling units' hunks in the same file, collapsing the split back together. Instead stage the hunks directly (`git add -p`) and commit in place, then move to the next unit.
+- **Mechanics.** Build the stack by re-applying the existing changes in grouped commits, or as a branch/PR per unit. To group commits, `git reset --mixed <base>` first — a `--soft` reset leaves the whole diff staged in the index, so the first `git-commit` would sweep in every sibling unit's files and collapse the stack; `--mixed` keeps the changes in the working tree but unstages them, so each unit stages cleanly. For **file-level** units, use `git-commit` / `git-commit-push-pr` once each unit's files are grouped. For **partial-file (hunk-split)** units, do **not** hand off to `git-commit` — it stages whole files by name and would re-stage the sibling units' hunks in the same file, collapsing the split back together. Instead stage the hunks directly (`git add -p`) and commit in place, then move to the next unit.
+- **Base each PR on the unit below it.** When the stack is emitted as a branch/PR per unit, a dependent unit's PR must set its base to the previous unit's branch (`gh pr create --base <prev-unit-branch>`), not the repo default. Left to default, every later PR targets `main` and re-includes the earlier units, so the stack stops being independently reviewable.
 - **Recurse.** If a unit's own diff is still over threshold, it was not atomic. Run Step 3 on that unit and split again. Decomposition is recursive until every piece is reviewable.
 
 ### Step 4b: Reference & Rebuild (discard path)
 
 When the existing code isn't worth preserving, rebuild each unit cleanly.
 
-- **Snapshot before discarding.** The discarded diff is your rebuild reference, so never destroy the only copy. Before any reset or close, capture a recoverable snapshot — a WIP commit on a throwaway branch, a `git stash`, or a saved patch (`git diff <base> > /tmp/<name>.patch`) — and confirm with the user before the destructive step, especially when the change is an uncommitted working tree.
+- **Snapshot before discarding.** The discarded diff is your rebuild reference, so never destroy the only copy. Before any reset or close, capture a recoverable snapshot **that includes untracked files** — a WIP commit on a throwaway branch (`git add -A && git commit`) or `git stash -u`. Plain `git stash` and `git diff > patch` both omit untracked paths, so a bare patch must be paired with an archive of the untracked files. Confirm with the user before the destructive step, especially when the change is an uncommitted working tree.
 - **Then discard the working copy.** With the snapshot safe, reset the branch / close the throwaway so the clean rebuild starts from base. Keep only what you learned about the shape in Step 3; carrying the tangled code forward re-imports the sprawl you set out to remove.
 - **Dispatch fresh agents** on the units, each starting clean from the unit's goal and the surrounding real code — not from the discarded diff.
 - **Parallelize by the dependency graph.** Units with no dependency between them launch concurrently in one batch; dependent units run in sequence. When parallel agents would edit overlapping files, isolate each in its own worktree (`git-worktree` / `isolation: "worktree"`).
