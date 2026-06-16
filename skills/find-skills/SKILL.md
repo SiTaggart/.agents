@@ -42,11 +42,15 @@ Use when the task is clear enough to execute or already has a plan.
 2. `repoprompt` - build planning context when owner boundaries or data flow are
    broad or unfamiliar.
 3. `ce-work` - build, fix, or finish the accepted contract.
-4. `frontend-design` - fold in as guidance when the work touches UI, workflows,
+4. `ce-decompose` - when the work above produced a diff too large to review
+   (a sprawling diff, ~1500+ lines), carve it into atomic, reviewable pieces —
+   splitting the existing code into a stack, or rebuilding it in increments —
+   before review.
+5. `frontend-design` - fold in as guidance when the work touches UI, workflows,
    components, visual polish, accessibility, or responsive behavior.
-5. `ce-quality-gate` - make touched files clean for lint, format, type, and
+6. `ce-quality-gate` - make touched files clean for lint, format, type, and
    focused tests after code edits.
-6. `ce-simplify-code` - simplify recent code when the behavior is already
+7. `ce-simplify-code` - simplify recent code when the behavior is already
    correct but the shape can be cleaner.
 
 ### Review And Ship
@@ -86,6 +90,10 @@ Use when behavior is broken or unknown.
 - If the user wants to learn a topic over multiple sessions, use `teach` instead
   of routing the learning workflow through brainstorm or planning loops.
 - If the user has branchy requirements, run `ce-grill` before `ce-plan`.
+- If the work is already built but its diff is too large to review (a sprawling
+  diff, ~1500+ lines, or the user says "this is too big" / "break this down"),
+  use `ce-decompose` to carve it into atomic, reviewable pieces before review —
+  it operates on an existing diff, so reach for it after `ce-work`, not before.
 - If the user has a written requirements or plan artifact, use
   `document-review`, not `ce-review`.
 - If code has changed, use `ce-review`, not `document-review`.
