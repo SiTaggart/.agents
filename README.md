@@ -39,7 +39,7 @@ bun run link opencode
 | ---------- | ----- |
 | Agents     | 40    |
 | Commands   | 3     |
-| Skills     | 58    |
+| Skills     | 59    |
 | Rules      | 2     |
 
 ## Operating Loops
@@ -219,6 +219,7 @@ The shelf is organized around a few tight loops rather than standalone skills:
 | `ce-compound`          | Document solved problems to compound team knowledge            |
 | `ce-compound-refresh`  | Refresh stale learnings and pattern docs against current codebase |
 | `ce-debug`             | Systematic debugging with anti-patterns and investigation techniques |
+| `ce-decompose`         | Carve an oversized diff into a reviewable stack, or rebuild it in increments |
 | `find-skills`          | Route tasks to the right local skill loop                    |
 | `ce-grill`             | Clarify branchy requirements before planning                   |
 | `ce-handoff`           | Compact current work into a continuation brief                 |
