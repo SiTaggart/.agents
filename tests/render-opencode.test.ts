@@ -29,18 +29,7 @@ test("renders Claude-shaped agents into OpenCode-compatible generated files", as
       "Use ~/.claude/agents and ask compound-engineering:review:correctness-reviewer.",
     ].join("\n"),
   );
-  await writeText(
-    path.join(root, "commands", "ship.md"),
-    [
-      "---",
-      "name: ship",
-      "description: Ship the branch",
-      "allowed-tools: Bash, Read, Write",
-      "---",
-      "",
-      "Check .claude/commands before shipping.",
-    ].join("\n"),
-  );
+  await writeText(path.join(root, "hooks", "scripts", "prevent-main-commit.sh"), "#!/bin/bash\nexit 0\n");
   await writeText(
     path.join(root, "skills", "review-skill", "SKILL.md"),
     [
@@ -71,17 +60,22 @@ test("renders Claude-shaped agents into OpenCode-compatible generated files", as
   expect(agent).toContain("~/.config/opencode/agents");
   expect(agent).toContain("ask correctness-reviewer.");
 
-  const command = await readText(path.join(root, ".generated", "opencode", "commands", "ship.md"));
-  expect(command).toContain("description: Ship the branch");
-  expect(command).not.toContain("allowed-tools:");
-  expect(command).toContain(".opencode/commands before shipping.");
-
   const skill = await readText(path.join(root, ".generated", "opencode", "skills", "review-skill", "SKILL.md"));
   expect(skill).toContain("Use careful-reviewer from ~/.config/opencode/agents.");
   expect(skill).toContain("Keep mode:headless and obsidian daily:read untouched.");
+
+  const plugin = await readText(path.join(root, ".generated", "opencode", "plugins", "dotagents-hooks.js"));
+  expect(plugin).toContain("tool.execute.before");
+  expect(plugin).toContain("prevent-main-commit.sh");
+  expect(plugin).toContain("async ({ directory, worktree })");
+  expect(plugin).toContain("cwd: hookCwd");
+  expect(plugin).toContain("if (result.error)");
+  expect(plugin).toContain("if (result.signal)");
+  expect(plugin).toContain("if (result.status !== 0)");
+  expect(await Bun.file(path.join(root, ".generated", "opencode", "commands")).exists()).toBe(false);
 });
 
-test("renders Claude agents, commands, and skills in a generated target tree", async () => {
+test("renders Claude agents, skills, and hooks in a generated target tree", async () => {
   const root = await makeTempRoot("agents-render-claude-");
   tempRoots.push(root);
 
@@ -99,18 +93,7 @@ test("renders Claude agents, commands, and skills in a generated target tree", a
       "Use ~/.claude/agents and the review-skill skill.",
     ].join("\n"),
   );
-  await writeText(
-    path.join(root, "commands", "ship.md"),
-    [
-      "---",
-      "name: ship",
-      "description: Ship the branch",
-      "allowed-tools: Bash, Read, Write",
-      "---",
-      "",
-      "Run the ship checklist.",
-    ].join("\n"),
-  );
+  await writeText(path.join(root, "hooks", "scripts", "prevent-main-commit.sh"), "#!/bin/bash\nexit 0\n");
   await writeText(
     path.join(root, "skills", "review-skill", "SKILL.md"),
     [
@@ -131,25 +114,95 @@ test("renders Claude agents, commands, and skills in a generated target tree", a
   expect(agent).toContain("tools: Read, Grep");
   expect(agent).toContain("Use ~/.claude/agents and the review-skill skill.");
 
-  const command = await readText(path.join(root, ".generated", "claude", "commands", "ship.md"));
-  expect(command).toContain("description: Ship the branch");
-  expect(command).toContain("allowed-tools: Bash, Read, Write");
-  expect(command).toContain("Run the ship checklist.");
-
   const skill = await readText(path.join(root, ".generated", "claude", "skills", "review-skill", "SKILL.md"));
   expect(skill).toContain("description: Review via a helper agent");
   expect(skill).toContain("Use the careful reviewer.");
+  expect(await readText(path.join(root, ".generated", "claude", "hooks", "prevent-main-commit.sh"))).toContain(
+    "exit 0",
+  );
 });
 
-test("removes obsolete Codex generated output", async () => {
-  const root = await makeTempRoot("agents-render-codex-clean-");
+test("renders Codex agents and hooks in a generated target tree", async () => {
+  const root = await makeTempRoot("agents-render-codex-");
   tempRoots.push(root);
 
-  await writeText(path.join(root, ".generated", "codex", "agents", "stale.toml"), "stale");
+  await writeText(
+    path.join(root, "agents", "careful-reviewer.md"),
+    [
+      "---",
+      "name: careful-reviewer",
+      "description: Finds logic bugs",
+      "model: sonnet",
+      "tools: Read, Grep, Glob, Bash",
+      "---",
+      "",
+      "Use the anchored confidence rubric.",
+    ].join("\n"),
+  );
+  await writeText(path.join(root, "hooks", "scripts", "prevent-main-commit.sh"), "#!/bin/bash\nexit 0\n");
 
   await renderTarget({ root, target: "codex" });
 
-  expect(await Bun.file(path.join(root, ".generated", "codex")).exists()).toBe(false);
+  const agent = await readText(path.join(root, ".generated", "codex", "agents", "careful-reviewer.toml"));
+  expect(agent).toContain('name = "careful-reviewer"');
+  expect(agent).toContain('description = "Finds logic bugs"');
+  expect(agent).toContain('developer_instructions = "Use the anchored confidence rubric."');
+  expect(agent).toContain('sandbox_mode = "read-only"');
+  expect(agent).not.toContain("model =");
+  expect(await readText(path.join(root, ".generated", "codex", "hooks", "prevent-main-commit.sh"))).toContain(
+    "exit 0",
+  );
+});
+
+test("lets write-capable Codex agents inherit the parent sandbox", async () => {
+  const root = await makeTempRoot("agents-render-codex-write-tools-");
+  tempRoots.push(root);
+
+  await writeText(
+    path.join(root, "agents", "implementation-worker.md"),
+    [
+      "---",
+      "name: implementation-worker",
+      "description: Makes targeted edits",
+      "tools: Read, Write, Edit, Bash",
+      "---",
+      "",
+      "Make the smallest correct change.",
+    ].join("\n"),
+  );
+  await writeText(path.join(root, "hooks", "scripts", "prevent-main-commit.sh"), "#!/bin/bash\nexit 0\n");
+
+  await renderTarget({ root, target: "codex" });
+
+  const agent = await readText(path.join(root, ".generated", "codex", "agents", "implementation-worker.toml"));
+  expect(agent).not.toContain("sandbox_mode");
+});
+
+test("renders explicit Codex model overrides only", async () => {
+  const root = await makeTempRoot("agents-render-codex-model-");
+  tempRoots.push(root);
+
+  await writeText(
+    path.join(root, "agents", "careful-reviewer.md"),
+    [
+      "---",
+      "name: careful-reviewer",
+      "description: Finds logic bugs",
+      "model: sonnet",
+      "codex_model: gpt-5-codex",
+      "---",
+      "",
+      "Use the anchored confidence rubric.",
+    ].join("\n"),
+  );
+  await writeText(path.join(root, "hooks", "scripts", "prevent-main-commit.sh"), "#!/bin/bash\nexit 0\n");
+
+  await renderTarget({ root, target: "codex" });
+
+  const agent = await readText(path.join(root, ".generated", "codex", "agents", "careful-reviewer.toml"));
+  expect(agent).toContain('model = "gpt-5-codex"');
+  expect(agent).not.toContain('model = "sonnet"');
+  expect(agent).not.toContain("sandbox_mode");
 });
 
 test("skips hidden skill directories when rendering target skill shelves", async () => {
@@ -198,11 +251,13 @@ test("creates empty generated directories for linkable target sections", async (
   await renderTarget({ root, target: "claude" });
 
   expect(await isDirectory(path.join(root, ".generated", "opencode", "agents"))).toBe(true);
-  expect(await isDirectory(path.join(root, ".generated", "opencode", "commands"))).toBe(true);
+  expect(await isDirectory(path.join(root, ".generated", "opencode", "hooks"))).toBe(true);
+  expect(await isDirectory(path.join(root, ".generated", "opencode", "plugins"))).toBe(true);
   expect(await isDirectory(path.join(root, ".generated", "opencode", "skills"))).toBe(true);
-  expect(await Bun.file(path.join(root, ".generated", "codex")).exists()).toBe(false);
+  expect(await isDirectory(path.join(root, ".generated", "codex", "agents"))).toBe(true);
+  expect(await isDirectory(path.join(root, ".generated", "codex", "hooks"))).toBe(true);
   expect(await isDirectory(path.join(root, ".generated", "claude", "agents"))).toBe(true);
-  expect(await isDirectory(path.join(root, ".generated", "claude", "commands"))).toBe(true);
+  expect(await isDirectory(path.join(root, ".generated", "claude", "hooks"))).toBe(true);
   expect(await isDirectory(path.join(root, ".generated", "claude", "skills"))).toBe(true);
 });
 

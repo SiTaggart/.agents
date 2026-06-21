@@ -1,23 +1,30 @@
 #!/bin/bash
 #
-# Prevents Claude from committing directly to main/master branch.
+# Prevents coding agents from committing directly to main/master branch.
 # Blocks git commit, merge, rebase, and cherry-pick operations.
 #
 
-# Read JSON input from stdin
 input=$(cat)
 
-# Extract the command from tool_input using jq
-command=$(echo "$input" | jq -r '.tool_input.command // ""')
+if [ -z "$input" ]; then
+  exit 0
+fi
 
-# Exit early if no command or jq failed
+if ! command -v jq >/dev/null 2>&1; then
+  echo "Blocked: jq is required to parse hook input for branch protection." >&2
+  exit 2
+fi
+
+if ! command=$(printf '%s' "$input" | jq -er '.tool_input.command // ""' 2>/dev/null); then
+  echo "Blocked: Could not parse hook input for branch protection." >&2
+  exit 2
+fi
+
 if [ -z "$command" ]; then
   exit 0
 fi
 
-# Check if this is a git operation that creates commits
 if echo "$command" | grep -qE '\bgit\s+(commit|merge|rebase|cherry-pick)'; then
-  # Get current branch
   current_branch=$(git branch --show-current 2>/dev/null)
 
   if [ "$current_branch" = "main" ] || [ "$current_branch" = "master" ]; then

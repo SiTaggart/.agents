@@ -132,7 +132,7 @@ function printHelp(): void {
     "  --home <path>       Home directory override for global links",
     "  --project <path>    Project root override for project links",
     "",
-    "Codex loads .agents natively; the codex target only cleans legacy generated links.",
+    "Codex loads skills and AGENTS.md natively; the codex target syncs custom agents and hooks.",
   ].join("\n"));
 }
 
@@ -151,14 +151,14 @@ function printCompleted(action: string, targets: readonly Target[], root: string
 
 function codexCompletionMessage(action: string): string {
   if (action === "Rendered") {
-    return "Cleaned Codex generated output";
+    return "Rendered Codex custom agents and hooks";
   }
 
   if (action === "Linked") {
-    return "Cleaned Codex legacy links";
+    return "Linked Codex custom agents and hooks";
   }
 
-  return "Cleaned Codex generated output and legacy links";
+  return "Synced Codex custom agents and hooks";
 }
 
 if (import.meta.main) {

@@ -10,20 +10,24 @@ export async function renderOpenCode(root: string): Promise<void> {
   await resetDir(outputRoot);
   await ensureDirs([
     path.join(outputRoot, "agents"),
-    path.join(outputRoot, "commands"),
+    path.join(outputRoot, "hooks"),
+    path.join(outputRoot, "plugins"),
     path.join(outputRoot, "skills"),
   ]);
 
-  const [agents, commands, skills] = await Promise.all([
+  const [agents, skills] = await Promise.all([
     loadMarkdownSources(root, "agents"),
-    loadMarkdownSources(root, "commands"),
     loadSkillSources(root),
   ]);
 
   await Promise.all([
     ...agents.map((agent) => renderOpenCodeAgent(outputRoot, agent)),
-    ...commands.map((command) => renderOpenCodeCommand(outputRoot, command)),
     ...skills.map((skill) => renderOpenCodeSkill(outputRoot, skill)),
+    copyDirectory({
+      source: path.join(root, "hooks", "scripts"),
+      target: path.join(outputRoot, "hooks"),
+    }),
+    writeText(path.join(outputRoot, "plugins", "dotagents-hooks.js"), buildOpenCodeHookPlugin()),
   ]);
 }
 
@@ -33,14 +37,6 @@ async function renderOpenCodeAgent(outputRoot: string, agent: SourceMarkdownFile
     transformContentForOpenCode(agent.body.trim()),
   );
   await writeText(path.join(outputRoot, "agents", `${sanitizePathName(agent.name)}.md`), `${content}\n`);
-}
-
-async function renderOpenCodeCommand(outputRoot: string, command: SourceMarkdownFile): Promise<void> {
-  const content = formatFrontmatter(
-    buildOpenCodeCommandFrontmatter(command),
-    transformContentForOpenCode(command.body.trim()),
-  );
-  await writeText(path.join(outputRoot, "commands", `${sanitizePathName(command.name)}.md`), `${content}\n`);
 }
 
 async function renderOpenCodeSkill(outputRoot: string, skill: SourceSkill): Promise<void> {
@@ -61,13 +57,6 @@ function buildOpenCodeAgentFrontmatter(agent: SourceMarkdownFile): FrontmatterRe
   return permission ? { ...base, permission } : base;
 }
 
-function buildOpenCodeCommandFrontmatter(command: SourceMarkdownFile): FrontmatterRecord {
-  const description = readStringField(command.frontmatter, "description");
-  const model = readStringField(command.frontmatter, "model");
-  const base: FrontmatterRecord = description ? { description } : {};
-  return model && model !== "inherit" ? { ...base, model } : base;
-}
-
 function buildOpenCodePermission(value: FrontmatterValue | undefined): FrontmatterRecord | undefined {
   const tools = parseToolNames(value);
   if (tools.length === 0) {
@@ -81,4 +70,51 @@ function buildOpenCodePermission(value: FrontmatterValue | undefined): Frontmatt
     }),
     {},
   );
+}
+
+function buildOpenCodeHookPlugin(): string {
+  return [
+    'import { spawnSync } from "node:child_process";',
+    'import path from "node:path";',
+    'import { fileURLToPath } from "node:url";',
+    "",
+    "const pluginDir = path.dirname(fileURLToPath(import.meta.url));",
+    "const hookPath = path.resolve(pluginDir, '..', 'hooks', 'prevent-main-commit.sh');",
+    "",
+    "export const DotAgentsHooks = async ({ directory, worktree }) => {",
+    "  const hookCwd = typeof worktree === 'string' && worktree.length > 0",
+    "    ? worktree",
+    "    : typeof directory === 'string' && directory.length > 0 ? directory : undefined;",
+    "  return {",
+    "    'tool.execute.before': async (input, output) => {",
+    "      if (input.tool !== 'bash') return;",
+    "      const command = output.args?.command;",
+    "      if (typeof command !== 'string') return;",
+    "      const result = spawnSync('/bin/bash', [hookPath], {",
+    "        input: JSON.stringify({",
+    "          hook_event_name: 'PreToolUse',",
+    "          tool_name: 'bash',",
+    "          tool_input: { command },",
+    "        }),",
+    "        encoding: 'utf8',",
+    "        cwd: hookCwd,",
+    "      });",
+    "      const hookFailure = result.stderr?.trim() || result.error?.message || 'dot-agents hook failed';",
+    "      if (result.error) {",
+    "        throw new Error(hookFailure);",
+    "      }",
+    "      if (result.signal) {",
+    "        throw new Error(`${hookFailure}: terminated by ${result.signal}`);",
+    "      }",
+    "      if (result.status === 2) {",
+    "        throw new Error(result.stderr?.trim() || 'Blocked by dot-agents hook');",
+    "      }",
+    "      if (result.status !== 0) {",
+    "        throw new Error(hookFailure);",
+    "      }",
+    "    },",
+    "  };",
+    "};",
+    "",
+  ].join("\n");
 }

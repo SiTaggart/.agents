@@ -15,6 +15,19 @@ files add local context and override only overlapping instructions.
   prevent the bug.
 - Remove filler. Comments explain why, not what.
 
+## Repository Ownership Contract
+
+- This repo is the canonical source for sharable coding-harness configuration
+  on a machine: agents, skills, hooks, and shared instructions.
+- Do not preserve or design around custom harness files under `~/.claude`,
+  `~/.config/opencode`, or `~/.codex` for those shared surfaces. Treat them as
+  drift and move sharable config back into this repo.
+- Validate generated sources when replacing owned links, but do not add
+  transaction layers whose only job is protecting out-of-band harness config.
+- Keep sync/link behavior small and deterministic. Commands and rules are
+  obsolete sync surfaces; agents, skills, hooks, and shared instructions are the
+  owned surfaces.
+
 ## Production Outcome Contract
 
 - Before editing, identify the contract being changed: user action, UI state,
