@@ -69,6 +69,9 @@ test("renders Claude-shaped agents into OpenCode-compatible generated files", as
   expect(plugin).toContain("prevent-main-commit.sh");
   expect(plugin).toContain("async ({ directory, worktree })");
   expect(plugin).toContain("cwd: hookCwd");
+  expect(plugin).toContain("if (result.error)");
+  expect(plugin).toContain("if (result.signal)");
+  expect(plugin).toContain("if (result.status !== 0)");
   expect(await Bun.file(path.join(root, ".generated", "opencode", "commands")).exists()).toBe(false);
 });
 
@@ -130,6 +133,7 @@ test("renders Codex agents and hooks in a generated target tree", async () => {
       "name: careful-reviewer",
       "description: Finds logic bugs",
       "model: sonnet",
+      "tools: Read, Grep, Glob, Bash",
       "---",
       "",
       "Use the anchored confidence rubric.",
@@ -143,10 +147,35 @@ test("renders Codex agents and hooks in a generated target tree", async () => {
   expect(agent).toContain('name = "careful-reviewer"');
   expect(agent).toContain('description = "Finds logic bugs"');
   expect(agent).toContain('developer_instructions = "Use the anchored confidence rubric."');
+  expect(agent).toContain('sandbox_mode = "read-only"');
   expect(agent).not.toContain("model =");
   expect(await readText(path.join(root, ".generated", "codex", "hooks", "prevent-main-commit.sh"))).toContain(
     "exit 0",
   );
+});
+
+test("lets write-capable Codex agents inherit the parent sandbox", async () => {
+  const root = await makeTempRoot("agents-render-codex-write-tools-");
+  tempRoots.push(root);
+
+  await writeText(
+    path.join(root, "agents", "implementation-worker.md"),
+    [
+      "---",
+      "name: implementation-worker",
+      "description: Makes targeted edits",
+      "tools: Read, Write, Edit, Bash",
+      "---",
+      "",
+      "Make the smallest correct change.",
+    ].join("\n"),
+  );
+  await writeText(path.join(root, "hooks", "scripts", "prevent-main-commit.sh"), "#!/bin/bash\nexit 0\n");
+
+  await renderTarget({ root, target: "codex" });
+
+  const agent = await readText(path.join(root, ".generated", "codex", "agents", "implementation-worker.toml"));
+  expect(agent).not.toContain("sandbox_mode");
 });
 
 test("renders explicit Codex model overrides only", async () => {
@@ -173,6 +202,7 @@ test("renders explicit Codex model overrides only", async () => {
   const agent = await readText(path.join(root, ".generated", "codex", "agents", "careful-reviewer.toml"));
   expect(agent).toContain('model = "gpt-5-codex"');
   expect(agent).not.toContain('model = "sonnet"');
+  expect(agent).not.toContain("sandbox_mode");
 });
 
 test("skips hidden skill directories when rendering target skill shelves", async () => {

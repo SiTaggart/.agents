@@ -268,13 +268,54 @@ test("does not write partial links when link preflight fails", async () => {
   await writeText(path.join(root, ".generated", "opencode", "hooks", "prevent-main-commit.sh"), "generated");
   await writeText(path.join(root, ".generated", "opencode", "plugins", "dotagents-hooks.js"), "generated");
   await writeText(path.join(root, ".generated", "opencode", "skills", "review-skill", "SKILL.md"), "generated");
+  await Bun.$`mkdir -p ${path.join(homeDir, ".config", "opencode")}`;
+  await Bun.$`ln -s ${path.join(root, ".generated", "opencode", "commands")} ${path.join(homeDir, ".config", "opencode", "commands")}`;
+  await Bun.$`ln -s ${path.join(root, ".generated", "opencode", "hooks")} ${path.join(homeDir, ".config", "opencode", "hooks")}`;
+  await Bun.$`ln -s ${path.join(root, "rules")} ${path.join(homeDir, ".config", "opencode", "rules")}`;
 
   await expect(linkTarget({ root, target: "opencode", scope: "global", homeDir })).rejects.toThrow(
     "Expected directory source",
   );
 
-  expect(await Bun.file(path.join(homeDir, ".config", "opencode", "hooks")).exists()).toBe(false);
+  expect(await readSymlinkTarget(path.join(homeDir, ".config", "opencode", "commands"))).toBe(
+    path.join(root, ".generated", "opencode", "commands"),
+  );
+  expect(await readSymlinkTarget(path.join(homeDir, ".config", "opencode", "hooks"))).toBe(
+    path.join(root, ".generated", "opencode", "hooks"),
+  );
+  expect(await readSymlinkTarget(path.join(homeDir, ".config", "opencode", "rules"))).toBe(path.join(root, "rules"));
+  expect(await Bun.file(path.join(homeDir, ".config", "opencode", "agents")).exists()).toBe(false);
+  expect(await Bun.file(path.join(homeDir, ".config", "opencode", "plugins", "dotagents-hooks.js")).exists()).toBe(false);
   expect(await Bun.file(path.join(homeDir, ".config", "opencode", "skills")).exists()).toBe(false);
+});
+
+test("does not remove existing Claude managed links when generated preflight fails", async () => {
+  const root = await makeTempRoot("agents-link-claude-preflight-source-");
+  const homeDir = await makeTempRoot("agents-link-claude-preflight-home-");
+  tempRoots.push(root, homeDir);
+
+  await writeText(path.join(root, "AGENTS.md"), "# Shared instructions");
+  await writeText(path.join(root, ".generated", "claude", "agents"), "not a directory");
+  await writeText(path.join(root, ".generated", "claude", "hooks", "prevent-main-commit.sh"), "generated");
+  await writeText(path.join(root, ".generated", "claude", "skills", "review-skill", "SKILL.md"), "generated");
+  await Bun.$`mkdir -p ${path.join(homeDir, ".claude")}`;
+  await Bun.$`ln -s ${path.join(root, ".generated", "claude", "commands")} ${path.join(homeDir, ".claude", "commands")}`;
+  await Bun.$`ln -s ${path.join(root, ".generated", "claude", "hooks")} ${path.join(homeDir, ".claude", "hooks")}`;
+  await Bun.$`ln -s ${path.join(root, "rules")} ${path.join(homeDir, ".claude", "rules")}`;
+
+  await expect(linkTarget({ root, target: "claude", scope: "global", homeDir })).rejects.toThrow(
+    "Expected directory source",
+  );
+
+  expect(await readSymlinkTarget(path.join(homeDir, ".claude", "commands"))).toBe(
+    path.join(root, ".generated", "claude", "commands"),
+  );
+  expect(await readSymlinkTarget(path.join(homeDir, ".claude", "hooks"))).toBe(
+    path.join(root, ".generated", "claude", "hooks"),
+  );
+  expect(await readSymlinkTarget(path.join(homeDir, ".claude", "rules"))).toBe(path.join(root, "rules"));
+  expect(await Bun.file(path.join(homeDir, ".claude", "agents")).exists()).toBe(false);
+  expect(await Bun.file(path.join(homeDir, ".claude", "skills")).exists()).toBe(false);
 });
 
 async function pathIsSymlink(filePath: string): Promise<boolean> {

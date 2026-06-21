@@ -11,10 +11,10 @@ export async function linkTarget(options: LinkTargetOptions): Promise<void> {
     return;
   }
 
-  await removeObsoleteManagedLinks(options);
   const mappings = resolveLinkMappings(options);
   await Promise.all(mappings.map((mapping) => validateLinkSource(mapping)));
   await Promise.all(mappings.map((mapping) => validateLinkTarget(mapping)));
+  await removeObsoleteManagedLinks(options);
   await Promise.all(mappings.map((mapping) => replaceSymlink(mapping)));
   await configureHookTarget(options);
 }
