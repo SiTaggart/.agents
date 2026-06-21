@@ -1,6 +1,6 @@
 # .agents
 
-Shared AI agent configuration synced across projects. Contains agents, commands, skills, rules, and hooks that extend AI coding assistants.
+Shared AI agent configuration synced across projects. Contains agents, skills, and hooks that extend AI coding assistants.
 
 ## Local CLI
 
@@ -13,12 +13,11 @@ bun run sync claude
 ```
 
 Generated target trees live under `.generated/` and are intentionally ignored by
-git. Canonical source remains in `agents/`, `skills/`, `commands/`, `rules/`, and
-`hooks/`.
+git. Canonical source remains in `agents/`, `skills/`, and `hooks/`.
 
-Codex loads the canonical `.agents` repository natively. The Codex CLI target is
-kept only to clean links created by older versions of this sync tool; it does not
-render or link generated Codex outputs.
+Codex loads canonical skills and `AGENTS.md` natively. The Codex sync target
+renders custom subagent TOML files and hook adapters into Codex-native
+locations.
 
 Render without linking:
 
@@ -38,9 +37,7 @@ bun run link opencode
 | Component  | Count |
 | ---------- | ----- |
 | Agents     | 40    |
-| Commands   | 3     |
 | Skills     | 59    |
-| Rules      | 2     |
 
 ## Operating Loops
 
@@ -120,14 +117,6 @@ The shelf is organized around a few tight loops rather than standalone skills:
 | ---------------------------- | ------------------------------------------------- |
 | `pr-comment-resolver`        | Address PR comments and implement fixes           |
 | `spec-flow-analyzer`         | Analyze user flows and identify gaps in specs     |
-
-## Commands
-
-| Command                  | Description                                                  |
-| ------------------------ | ------------------------------------------------------------ |
-| `/deslop`                | Remove AI-generated code slop from current branch            |
-| `/set-custom-rules`      | Set custom rules for the project                             |
-| `/verify-custom-rules`   | Verify custom rules for the project                          |
 
 ## Skills
 
@@ -246,13 +235,6 @@ The shelf is organized around a few tight loops rather than standalone skills:
 | `imagegen`        | Generate or edit images via the OpenAI Image API         |
 
 > **Browser automation:** install the standalone `vercel-labs/agent-browser` plugin when using design workflows that still depend on it. `design-iterator`, `design-implementation-reviewer`, and `figma-design-sync` expect the `agent-browser` CLI to be on your `$PATH`.
-
-## Rules
-
-| Rule                      | Description                       |
-| ------------------------- | --------------------------------- |
-| `agent-orchestration.md`  | Rules for multi-agent coordination|
-| `git-commits.md`          | Git commit conventions            |
 
 ## Key Files
 

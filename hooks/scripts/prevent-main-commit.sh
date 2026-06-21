@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Prevents Claude from committing directly to main/master branch.
+# Prevents coding agents from committing directly to main/master branch.
 # Blocks git commit, merge, rebase, and cherry-pick operations.
 #
 
