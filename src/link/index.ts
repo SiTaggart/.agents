@@ -58,7 +58,7 @@ function resolveClaudeMappings(options: LinkTargetOptions): readonly LinkMapping
 
   return [
     { name: "claude-agents", source: path.join(generated, "agents"), target: path.join(targetRoot, "agents"), kind: "dir" },
-    { name: "claude-hooks", source: path.join(generated, "hooks"), target: path.join(targetRoot, "hooks"), kind: "dir" },
+    { name: "claude-hooks", source: path.join(generated, "hooks"), target: path.join(targetRoot, "hooks", "dotagents"), kind: "dir" },
     { name: "claude-skills", source: path.join(generated, "skills"), target: path.join(targetRoot, "skills"), kind: "dir" },
     { name: "claude-md", source: path.join(root, "AGENTS.md"), target: path.join(targetRoot, "CLAUDE.md"), kind: "file" },
   ];
@@ -175,6 +175,10 @@ async function removeObsoleteManagedLinks(options: LinkTargetOptions): Promise<v
       path.join(generated, "commands"),
       path.join(root, "commands"),
     ]),
+    removeManagedSymlink(path.join(targetRoot, "hooks"), [
+      path.join(generated, "hooks"),
+      path.join(root, "hooks"),
+    ]),
     removeManagedSymlink(path.join(targetRoot, "rules"), [
       path.join(generated, "rules"),
       path.join(root, "rules"),
@@ -196,11 +200,12 @@ async function configureHookTarget(options: LinkTargetOptions): Promise<void> {
 async function configureClaudeHook(options: LinkTargetOptions): Promise<void> {
   const targetRoot = resolveClaudeRoot(options);
   const settingsPath = path.join(targetRoot, "settings.json");
-  const command = `bash ${JSON.stringify(path.join(targetRoot, "hooks", "prevent-main-commit.sh"))}`;
+  const command = `bash ${JSON.stringify(path.join(targetRoot, "hooks", "dotagents", "prevent-main-commit.sh"))}`;
+  const legacyCommand = `bash ${JSON.stringify(path.join(targetRoot, "hooks", "prevent-main-commit.sh"))}`;
   const settings = await readJsonObject(settingsPath);
   const hooks = readObject(settings, "hooks");
   const preToolUse = readArray(hooks, "PreToolUse");
-  hooks.PreToolUse = appendCommandHook(preToolUse, {
+  hooks.PreToolUse = appendCommandHook(removeCommandHooks(preToolUse, [legacyCommand]), {
     matcher: "Bash",
     hooks: [{ type: "command", command }],
   });
@@ -262,6 +267,17 @@ function appendCommandHook(existing: readonly unknown[], group: CommandHookGroup
     : [...existing, group];
 }
 
+function removeCommandHooks(existing: readonly unknown[], commands: readonly string[]): readonly unknown[] {
+  return existing.flatMap((entry) => {
+    if (!isRecord(entry) || !Array.isArray(entry.hooks)) {
+      return [entry];
+    }
+
+    const hooks = entry.hooks.filter((hook) => !isRecord(hook) || !commands.includes(readCommand(hook)));
+    return hooks.length > 0 ? [{ ...entry, hooks }] : [];
+  });
+}
+
 function commandHookGroupHasCommand(value: unknown, command: string): boolean {
   if (!isRecord(value)) {
     return false;
@@ -269,6 +285,10 @@ function commandHookGroupHasCommand(value: unknown, command: string): boolean {
 
   const hooks = value.hooks;
   return Array.isArray(hooks) && hooks.some((hook) => isRecord(hook) && hook.command === command);
+}
+
+function readCommand(value: JsonRecord): string {
+  return typeof value.command === "string" ? value.command : "";
 }
 
 async function readJsonObject(filePath: string): Promise<JsonRecord> {

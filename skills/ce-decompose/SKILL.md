@@ -34,7 +34,7 @@ The number is a proxy. Every step returns to the real question: *can a careful h
 
 When asking the user a question, use the platform's blocking question tool: `AskUserQuestion` in Claude Code (call `ToolSearch` with `select:AskUserQuestion` first if its schema isn't loaded), `request_user_input` in Codex, `ask_user` in Gemini, `ask_user` in Pi (requires the `pi-ask-user` extension). Fall back to numbered options in chat only when no blocking tool exists in the harness or the call errors — not because a schema load is required. Never silently skip the question.
 
-Dispatch parallel work using the platform's subagent primitive: `Agent`/`Task` in Claude Code, `spawn_agent` in Codex, `subagent` in Pi. When several pieces have no dependency between them, launch their agents in a single batch so they run concurrently. See `rules/agent-orchestration.md` for the dispatch pattern, and `orchestration` when the fan-out needs structured coordination.
+Dispatch parallel work using the platform's subagent primitive: `Agent`/`Task` in Claude Code, `spawn_agent` in Codex, `subagent` in Pi. When several pieces have no dependency between them, launch their agents in a single batch so they run concurrently. Use the current harness's subagent instructions for the dispatch pattern, and `orchestration` when the fan-out needs structured coordination.
 
 This loop is **human-in-the-loop by default.** It is for feature work, which touches human boundaries (UI, API) and where net-new code can introduce architectural pathologies that violate invariants the specs and tests do not yet capture. Confirm the carve strategy and the seams before executing; do not run the full loop autonomously unless the user explicitly asks.
 

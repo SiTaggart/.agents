@@ -7,10 +7,21 @@
 # Read JSON input from stdin
 input=$(cat)
 
-# Extract the command from tool_input using jq
-command=$(echo "$input" | jq -r '.tool_input.command // ""')
+if [ -z "$input" ]; then
+  exit 0
+fi
 
-# Exit early if no command or jq failed
+if ! command -v jq >/dev/null 2>&1; then
+  echo "Blocked: jq is required to parse hook input for branch protection." >&2
+  exit 2
+fi
+
+if ! command=$(printf '%s' "$input" | jq -er '.tool_input.command // ""' 2>/dev/null); then
+  echo "Blocked: Could not parse hook input for branch protection." >&2
+  exit 2
+fi
+
+# Exit early if no command was provided for this hook event
 if [ -z "$command" ]; then
   exit 0
 fi

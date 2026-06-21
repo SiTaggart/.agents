@@ -179,14 +179,34 @@ test("links Claude to generated directories, hook config, and CLAUDE.md", async 
   await writeText(path.join(root, ".generated", "claude", "skills", "review-skill", "SKILL.md"), "generated");
   await Bun.$`mkdir -p ${path.join(homeDir, ".claude")}`;
   await Bun.$`ln -s ${path.join(root, ".generated", "claude", "commands")} ${path.join(homeDir, ".claude", "commands")}`;
+  await Bun.$`ln -s ${path.join(root, ".generated", "claude", "hooks")} ${path.join(homeDir, ".claude", "hooks")}`;
   await Bun.$`ln -s ${path.join(root, "rules")} ${path.join(homeDir, ".claude", "rules")}`;
+  await writeText(
+    path.join(homeDir, ".claude", "settings.json"),
+    JSON.stringify({
+      hooks: {
+        PreToolUse: [
+          {
+            matcher: "Bash",
+            hooks: [
+              {
+                type: "command",
+                command: `bash ${JSON.stringify(path.join(homeDir, ".claude", "hooks", "prevent-main-commit.sh"))}`,
+              },
+            ],
+          },
+        ],
+      },
+    }),
+  );
 
   await linkTarget({ root, target: "claude", scope: "global", homeDir });
 
   expect(await readSymlinkTarget(path.join(homeDir, ".claude", "agents"))).toBe(
     path.join(root, ".generated", "claude", "agents"),
   );
-  expect(await readSymlinkTarget(path.join(homeDir, ".claude", "hooks"))).toBe(
+  expect(await pathIsSymlink(path.join(homeDir, ".claude", "hooks"))).toBe(false);
+  expect(await readSymlinkTarget(path.join(homeDir, ".claude", "hooks", "dotagents"))).toBe(
     path.join(root, ".generated", "claude", "hooks"),
   );
   expect(await readSymlinkTarget(path.join(homeDir, ".claude", "skills"))).toBe(
@@ -197,9 +217,29 @@ test("links Claude to generated directories, hook config, and CLAUDE.md", async 
   );
   const settings = await readText(path.join(homeDir, ".claude", "settings.json"));
   expect(settings).toContain("PreToolUse");
-  expect(settings).toContain("prevent-main-commit.sh");
+  expect(settings).toContain("hooks/dotagents/prevent-main-commit.sh");
+  expect(settings).not.toContain("hooks/prevent-main-commit.sh");
   expect(await pathIsSymlink(path.join(homeDir, ".claude", "commands"))).toBe(false);
   expect(await pathIsSymlink(path.join(homeDir, ".claude", "rules"))).toBe(false);
+});
+
+test("links Claude hook under existing user hook directory", async () => {
+  const root = await makeTempRoot("agents-link-claude-existing-hooks-source-");
+  const homeDir = await makeTempRoot("agents-link-claude-existing-hooks-home-");
+  tempRoots.push(root, homeDir);
+
+  await writeText(path.join(root, "AGENTS.md"), "# Shared instructions");
+  await writeText(path.join(root, ".generated", "claude", "agents", "reviewer.md"), "generated");
+  await writeText(path.join(root, ".generated", "claude", "hooks", "prevent-main-commit.sh"), "generated");
+  await writeText(path.join(root, ".generated", "claude", "skills", "review-skill", "SKILL.md"), "generated");
+  await writeText(path.join(homeDir, ".claude", "hooks", "user-hook.sh"), "custom");
+
+  await linkTarget({ root, target: "claude", scope: "global", homeDir });
+
+  expect(await readText(path.join(homeDir, ".claude", "hooks", "user-hook.sh"))).toBe("custom");
+  expect(await readSymlinkTarget(path.join(homeDir, ".claude", "hooks", "dotagents"))).toBe(
+    path.join(root, ".generated", "claude", "hooks"),
+  );
 });
 
 test("rejects generated source kind mismatches before linking", async () => {
