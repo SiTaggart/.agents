@@ -77,9 +77,22 @@ test("cleans legacy Codex links and syncs generated agents and hooks", async () 
   expect(await readSymlinkTarget(path.join(homeDir, ".codex", "hooks", "dotagents"))).toBe(
     path.join(root, ".generated", "codex", "hooks"),
   );
-  const hooksConfig = await readText(path.join(homeDir, ".codex", "hooks.json"));
-  expect(hooksConfig).toContain("PreToolUse");
-  expect(hooksConfig).toContain("prevent-main-commit.sh");
+  expect(await readJson(path.join(homeDir, ".codex", "hooks.json"))).toEqual({
+    hooks: {
+      PreToolUse: [
+        {
+          matcher: "Bash",
+          hooks: [
+            {
+              type: "command",
+              command: `bash ${JSON.stringify(path.join(homeDir, ".codex", "hooks", "dotagents", "prevent-main-commit.sh"))}`,
+              statusMessage: "Checking git branch policy",
+            },
+          ],
+        },
+      ],
+    },
+  });
 });
 
 test("removes legacy Codex skills directory containing managed dotagents symlink", async () => {
@@ -198,6 +211,31 @@ test("does not remove existing Codex links when an agent target collides", async
   );
 });
 
+test("does not replace user-managed Codex agent symlinks", async () => {
+  const root = await makeTempRoot("agents-link-codex-custom-symlink-source-");
+  const homeDir = await makeTempRoot("agents-link-codex-custom-symlink-home-");
+  tempRoots.push(root, homeDir);
+
+  await writeText(path.join(root, ".generated", "codex", "agents", "careful-reviewer.toml"), "generated");
+  await writeText(path.join(root, ".generated", "codex", "hooks", "prevent-main-commit.sh"), "generated");
+  await writeText(path.join(homeDir, "custom-agents", "careful-reviewer.toml"), "custom");
+  await Bun.$`mkdir -p ${path.join(homeDir, ".codex", "agents")} ${path.join(homeDir, ".codex", "hooks")}`;
+  await Bun.$`ln -s ${path.join(homeDir, "custom-agents", "careful-reviewer.toml")} ${path.join(homeDir, ".codex", "agents", "careful-reviewer.toml")}`;
+  await Bun.$`ln -s ${path.join(root, ".generated", "codex", "hooks")} ${path.join(homeDir, ".codex", "hooks", "dotagents")}`;
+
+  await expect(linkTarget({ root, target: "codex", scope: "global", homeDir })).rejects.toThrow(
+    "Refusing to replace unmanaged symlink target",
+  );
+
+  expect(await readSymlinkTarget(path.join(homeDir, ".codex", "agents", "careful-reviewer.toml"))).toBe(
+    path.join(homeDir, "custom-agents", "careful-reviewer.toml"),
+  );
+  expect(await readText(path.join(homeDir, "custom-agents", "careful-reviewer.toml"))).toBe("custom");
+  expect(await readSymlinkTarget(path.join(homeDir, ".codex", "hooks", "dotagents"))).toBe(
+    path.join(root, ".generated", "codex", "hooks"),
+  );
+});
+
 test("does not register Codex hook config when the generated hook script is missing", async () => {
   const root = await makeTempRoot("agents-link-codex-missing-hook-source-");
   const homeDir = await makeTempRoot("agents-link-codex-missing-hook-home-");
@@ -212,6 +250,50 @@ test("does not register Codex hook config when the generated hook script is miss
   );
 
   expect(await readText(path.join(homeDir, ".codex", "hooks.json"))).toBe(JSON.stringify({ hooks: { PreToolUse: [] } }));
+});
+
+test("does not replace Codex links when hooks config is malformed", async () => {
+  const root = await makeTempRoot("agents-link-codex-bad-config-source-");
+  const homeDir = await makeTempRoot("agents-link-codex-bad-config-home-");
+  tempRoots.push(root, homeDir);
+
+  await writeText(path.join(root, ".generated", "codex", "agents", "careful-reviewer.toml"), "generated");
+  await writeText(path.join(root, ".generated", "codex", "hooks", "prevent-main-commit.sh"), "generated");
+  await writeText(path.join(homeDir, ".codex", "hooks.json"), "{not json");
+  await Bun.$`mkdir -p ${path.join(homeDir, ".codex", "hooks")}`;
+  await Bun.$`ln -s ${path.join(root, ".generated", "codex", "hooks")} ${path.join(homeDir, ".codex", "hooks", "dotagents")}`;
+
+  await expect(linkTarget({ root, target: "codex", scope: "global", homeDir })).rejects.toThrow();
+
+  expect(await readText(path.join(homeDir, ".codex", "hooks.json"))).toBe("{not json");
+  expect(await readSymlinkTarget(path.join(homeDir, ".codex", "hooks", "dotagents"))).toBe(
+    path.join(root, ".generated", "codex", "hooks"),
+  );
+  expect(await Bun.file(path.join(homeDir, ".codex", "agents", "careful-reviewer.toml")).exists()).toBe(false);
+});
+
+test("does not replace Claude links when settings config is not an object", async () => {
+  const root = await makeTempRoot("agents-link-claude-array-config-source-");
+  const homeDir = await makeTempRoot("agents-link-claude-array-config-home-");
+  tempRoots.push(root, homeDir);
+
+  await writeText(path.join(root, "AGENTS.md"), "# Shared instructions");
+  await writeText(path.join(root, ".generated", "claude", "agents", "reviewer.md"), "generated");
+  await writeText(path.join(root, ".generated", "claude", "hooks", "prevent-main-commit.sh"), "generated");
+  await writeText(path.join(root, ".generated", "claude", "skills", "review-skill", "SKILL.md"), "generated");
+  await writeText(path.join(homeDir, ".claude", "settings.json"), "[]");
+  await Bun.$`mkdir -p ${path.join(homeDir, ".claude")}`;
+  await Bun.$`ln -s ${path.join(root, ".generated", "claude", "hooks")} ${path.join(homeDir, ".claude", "hooks")}`;
+
+  await expect(linkTarget({ root, target: "claude", scope: "global", homeDir })).rejects.toThrow(
+    "Expected JSON object",
+  );
+
+  expect(await readText(path.join(homeDir, ".claude", "settings.json"))).toBe("[]");
+  expect(await readSymlinkTarget(path.join(homeDir, ".claude", "hooks"))).toBe(
+    path.join(root, ".generated", "claude", "hooks"),
+  );
+  expect(await Bun.file(path.join(homeDir, ".claude", "agents")).exists()).toBe(false);
 });
 
 test("leaves unmanaged Codex skills directory untouched", async () => {
@@ -276,10 +358,21 @@ test("links Claude to generated directories, hook config, and CLAUDE.md", async 
   expect(await readSymlinkTarget(path.join(homeDir, ".claude", "CLAUDE.md"))).toBe(
     path.join(root, "AGENTS.md"),
   );
-  const settings = await readText(path.join(homeDir, ".claude", "settings.json"));
-  expect(settings).toContain("PreToolUse");
-  expect(settings).toContain("hooks/dotagents/prevent-main-commit.sh");
-  expect(settings).not.toContain("hooks/prevent-main-commit.sh");
+  expect(await readJson(path.join(homeDir, ".claude", "settings.json"))).toEqual({
+    hooks: {
+      PreToolUse: [
+        {
+          matcher: "Bash",
+          hooks: [
+            {
+              type: "command",
+              command: `bash ${JSON.stringify(path.join(homeDir, ".claude", "hooks", "dotagents", "prevent-main-commit.sh"))}`,
+            },
+          ],
+        },
+      ],
+    },
+  });
   expect(await pathIsSymlink(path.join(homeDir, ".claude", "commands"))).toBe(false);
   expect(await pathIsSymlink(path.join(homeDir, ".claude", "rules"))).toBe(false);
 });
@@ -350,6 +443,35 @@ test("does not write partial links when link preflight fails", async () => {
   expect(await Bun.file(path.join(homeDir, ".config", "opencode", "skills")).exists()).toBe(false);
 });
 
+test("does not remove existing OpenCode links when the generated hook script is missing", async () => {
+  const root = await makeTempRoot("agents-link-opencode-missing-hook-source-");
+  const homeDir = await makeTempRoot("agents-link-opencode-missing-hook-home-");
+  tempRoots.push(root, homeDir);
+
+  await writeText(path.join(root, "AGENTS.md"), "# Shared instructions");
+  await writeText(path.join(root, ".generated", "opencode", "agents", "reviewer.md"), "generated");
+  await Bun.$`mkdir -p ${path.join(root, ".generated", "opencode", "hooks")}`;
+  await writeText(path.join(root, ".generated", "opencode", "plugins", "dotagents-hooks.js"), "generated");
+  await writeText(path.join(root, ".generated", "opencode", "skills", "review-skill", "SKILL.md"), "generated");
+  await Bun.$`mkdir -p ${path.join(homeDir, ".config", "opencode")}`;
+  await Bun.$`ln -s ${path.join(root, ".generated", "opencode", "hooks")} ${path.join(homeDir, ".config", "opencode", "hooks")}`;
+  await Bun.$`ln -s ${path.join(root, ".generated", "opencode", "commands")} ${path.join(homeDir, ".config", "opencode", "commands")}`;
+  await Bun.$`ln -s ${path.join(root, "rules")} ${path.join(homeDir, ".config", "opencode", "rules")}`;
+
+  await expect(linkTarget({ root, target: "opencode", scope: "global", homeDir })).rejects.toThrow(
+    "Cannot link missing source",
+  );
+
+  expect(await readSymlinkTarget(path.join(homeDir, ".config", "opencode", "hooks"))).toBe(
+    path.join(root, ".generated", "opencode", "hooks"),
+  );
+  expect(await readSymlinkTarget(path.join(homeDir, ".config", "opencode", "commands"))).toBe(
+    path.join(root, ".generated", "opencode", "commands"),
+  );
+  expect(await readSymlinkTarget(path.join(homeDir, ".config", "opencode", "rules"))).toBe(path.join(root, "rules"));
+  expect(await Bun.file(path.join(homeDir, ".config", "opencode", "agents")).exists()).toBe(false);
+});
+
 test("does not remove existing Claude managed links when generated preflight fails", async () => {
   const root = await makeTempRoot("agents-link-claude-preflight-source-");
   const homeDir = await makeTempRoot("agents-link-claude-preflight-home-");
@@ -379,10 +501,44 @@ test("does not remove existing Claude managed links when generated preflight fai
   expect(await Bun.file(path.join(homeDir, ".claude", "skills")).exists()).toBe(false);
 });
 
+test("does not remove existing Claude links when the generated hook script is missing", async () => {
+  const root = await makeTempRoot("agents-link-claude-missing-hook-source-");
+  const homeDir = await makeTempRoot("agents-link-claude-missing-hook-home-");
+  tempRoots.push(root, homeDir);
+
+  await writeText(path.join(root, "AGENTS.md"), "# Shared instructions");
+  await writeText(path.join(root, ".generated", "claude", "agents", "reviewer.md"), "generated");
+  await Bun.$`mkdir -p ${path.join(root, ".generated", "claude", "hooks")}`;
+  await writeText(path.join(root, ".generated", "claude", "skills", "review-skill", "SKILL.md"), "generated");
+  await Bun.$`mkdir -p ${path.join(homeDir, ".claude")}`;
+  await Bun.$`ln -s ${path.join(root, ".generated", "claude", "hooks")} ${path.join(homeDir, ".claude", "hooks")}`;
+  await Bun.$`ln -s ${path.join(root, ".generated", "claude", "commands")} ${path.join(homeDir, ".claude", "commands")}`;
+  await Bun.$`ln -s ${path.join(root, "rules")} ${path.join(homeDir, ".claude", "rules")}`;
+  await writeText(path.join(homeDir, ".claude", "settings.json"), JSON.stringify({ hooks: { PreToolUse: [] } }));
+
+  await expect(linkTarget({ root, target: "claude", scope: "global", homeDir })).rejects.toThrow(
+    "Cannot link missing source",
+  );
+
+  expect(await readSymlinkTarget(path.join(homeDir, ".claude", "hooks"))).toBe(
+    path.join(root, ".generated", "claude", "hooks"),
+  );
+  expect(await readSymlinkTarget(path.join(homeDir, ".claude", "commands"))).toBe(
+    path.join(root, ".generated", "claude", "commands"),
+  );
+  expect(await readSymlinkTarget(path.join(homeDir, ".claude", "rules"))).toBe(path.join(root, "rules"));
+  expect(await readJson(path.join(homeDir, ".claude", "settings.json"))).toEqual({ hooks: { PreToolUse: [] } });
+  expect(await Bun.file(path.join(homeDir, ".claude", "agents")).exists()).toBe(false);
+});
+
 async function pathIsSymlink(filePath: string): Promise<boolean> {
   try {
     return (await lstat(filePath)).isSymbolicLink();
   } catch {
     return false;
   }
+}
+
+async function readJson(filePath: string): Promise<unknown> {
+  return JSON.parse(await readText(filePath));
 }

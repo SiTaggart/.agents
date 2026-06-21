@@ -4,7 +4,6 @@
 # Blocks git commit, merge, rebase, and cherry-pick operations.
 #
 
-# Read JSON input from stdin
 input=$(cat)
 
 if [ -z "$input" ]; then
@@ -21,14 +20,11 @@ if ! command=$(printf '%s' "$input" | jq -er '.tool_input.command // ""' 2>/dev/
   exit 2
 fi
 
-# Exit early if no command was provided for this hook event
 if [ -z "$command" ]; then
   exit 0
 fi
 
-# Check if this is a git operation that creates commits
 if echo "$command" | grep -qE '\bgit\s+(commit|merge|rebase|cherry-pick)'; then
-  # Get current branch
   current_branch=$(git branch --show-current 2>/dev/null)
 
   if [ "$current_branch" = "main" ] || [ "$current_branch" = "master" ]; then

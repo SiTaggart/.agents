@@ -12,11 +12,12 @@ export async function linkTarget(options: LinkTargetOptions): Promise<void> {
   }
 
   const mappings = resolveLinkMappings(options);
-  await Promise.all(mappings.map((mapping) => validateLinkSource(mapping)));
-  await Promise.all(mappings.map((mapping) => validateLinkTarget(mapping)));
+  await validateLinkSources([...mappings, ...resolveHookScriptSourceMappings(options)]);
+  await validateLinkTargets(mappings);
+  const hookConfig = await prepareHookTarget(options);
   await removeObsoleteManagedLinks(options);
   await Promise.all(mappings.map((mapping) => replaceSymlink(mapping)));
-  await configureHookTarget(options);
+  await writeHookConfig(hookConfig);
 }
 
 export function resolveLinkMappings(options: LinkTargetOptions): readonly LinkMapping[] {
@@ -67,42 +68,24 @@ function resolveClaudeMappings(options: LinkTargetOptions): readonly LinkMapping
 async function linkCodexTarget(options: LinkTargetOptions): Promise<void> {
   const root = path.resolve(options.root);
   const generated = path.join(root, ".generated", "codex");
-  const targetRoot = (options.scope ?? "global") === "global"
-    ? path.join(resolveHome(options.homeDir), ".codex")
-    : path.join(resolveProjectRoot(options), ".codex");
-  await preflightCodexGeneratedSources(generated, targetRoot);
-
+  const targetRoot = resolveCodexRoot(options);
   const agentMappings = await resolveCodexAgentMappings(generated, targetRoot);
   const mappings: readonly LinkMapping[] = [
     ...agentMappings,
     { name: "codex-hooks", source: path.join(generated, "hooks"), target: path.join(targetRoot, "hooks", "dotagents"), kind: "dir" },
   ];
 
-  await Promise.all(mappings.map((mapping) => validateLinkSource(mapping)));
-  await Promise.all(mappings.map((mapping) => validateLinkTarget(mapping)));
+  await validateLinkSources([
+    { name: "codex-agents", source: path.join(generated, "agents"), target: path.join(targetRoot, "agents"), kind: "dir" },
+    ...mappings,
+    ...resolveHookScriptSourceMappings(options),
+  ]);
+  await validateLinkTargets(mappings);
+  await validateManagedSymlinkTargets(agentMappings);
+  const hookConfig = await prepareHookTarget(options);
   await removeManagedCodexLinks(options);
   await Promise.all(mappings.map((mapping) => replaceSymlink(mapping)));
-  await configureHookTarget(options);
-}
-
-async function preflightCodexGeneratedSources(generated: string, targetRoot: string): Promise<void> {
-  await Promise.all([
-    validateLinkSource({
-      source: path.join(generated, "agents"),
-      target: path.join(targetRoot, "agents"),
-      kind: "dir",
-    }),
-    validateLinkSource({
-      source: path.join(generated, "hooks"),
-      target: path.join(targetRoot, "hooks", "dotagents"),
-      kind: "dir",
-    }),
-    validateLinkSource({
-      source: path.join(generated, "hooks", "prevent-main-commit.sh"),
-      target: path.join(targetRoot, "hooks", "dotagents", "prevent-main-commit.sh"),
-      kind: "file",
-    }),
-  ]);
+  await writeHookConfig(hookConfig);
 }
 
 async function resolveCodexAgentMappings(generated: string, targetRoot: string): Promise<readonly LinkMapping[]> {
@@ -135,12 +118,71 @@ async function validateLinkTarget(mapping: LinkMapping): Promise<void> {
   throw new Error(`Refusing to replace non-symlink target: ${mapping.target}`);
 }
 
+function resolveHookScriptSourceMappings(options: LinkTargetOptions): readonly LinkMapping[] {
+  if (options.target === "opencode") {
+    const root = path.resolve(options.root);
+    const targetRoot = resolveOpenCodeRoot(options);
+    return [{
+      name: "opencode-hook-script",
+      source: path.join(root, ".generated", "opencode", "hooks", "prevent-main-commit.sh"),
+      target: path.join(targetRoot, "hooks", "prevent-main-commit.sh"),
+      kind: "file",
+    }];
+  }
+
+  if (options.target === "claude") {
+    const root = path.resolve(options.root);
+    const targetRoot = resolveClaudeRoot(options);
+    return [{
+      name: "claude-hook-script",
+      source: path.join(root, ".generated", "claude", "hooks", "prevent-main-commit.sh"),
+      target: path.join(targetRoot, "hooks", "dotagents", "prevent-main-commit.sh"),
+      kind: "file",
+    }];
+  }
+
+  if (options.target === "codex") {
+    const root = path.resolve(options.root);
+    const targetRoot = resolveCodexRoot(options);
+    return [{
+      name: "codex-hook-script",
+      source: path.join(root, ".generated", "codex", "hooks", "prevent-main-commit.sh"),
+      target: path.join(targetRoot, "hooks", "dotagents", "prevent-main-commit.sh"),
+      kind: "file",
+    }];
+  }
+
+  return [];
+}
+
+async function validateLinkSources(mappings: readonly LinkMapping[]): Promise<void> {
+  await Promise.all(mappings.map((mapping) => validateLinkSource(mapping)));
+}
+
+async function validateLinkTargets(mappings: readonly LinkMapping[]): Promise<void> {
+  await Promise.all(mappings.map((mapping) => validateLinkTarget(mapping)));
+}
+
+async function validateManagedSymlinkTargets(mappings: readonly LinkMapping[]): Promise<void> {
+  await Promise.all(mappings.map((mapping) => validateManagedSymlinkTarget(mapping)));
+}
+
+async function validateManagedSymlinkTarget(mapping: LinkMapping): Promise<void> {
+  const existing = await lstatSafe(mapping.target);
+  if (!existing || !existing.isSymbolicLink()) {
+    return;
+  }
+
+  const target = await resolveSymlink(mapping.target);
+  if (target !== path.resolve(mapping.source)) {
+    throw new Error(`Refusing to replace unmanaged symlink target: ${mapping.target}`);
+  }
+}
+
 async function removeManagedCodexLinks(options: LinkTargetOptions): Promise<void> {
   const root = path.resolve(options.root);
   const generated = path.join(root, ".generated", "codex");
-  const targetRoot = (options.scope ?? "global") === "global"
-    ? path.join(resolveHome(options.homeDir), ".codex")
-    : path.join(resolveProjectRoot(options), ".codex");
+  const targetRoot = resolveCodexRoot(options);
 
   await Promise.all([
     removeManagedSymlink(path.join(targetRoot, "AGENTS.md"), [path.join(root, "AGENTS.md")]),
@@ -192,22 +234,28 @@ async function removeObsoleteManagedLinks(options: LinkTargetOptions): Promise<v
   ]);
 }
 
-async function configureHookTarget(options: LinkTargetOptions): Promise<void> {
+interface HookConfigWrite {
+  path: string;
+  data: JsonRecord;
+}
+
+async function prepareHookTarget(options: LinkTargetOptions): Promise<HookConfigWrite | null> {
   if (options.target === "claude") {
-    await configureClaudeHook(options);
-    return;
+    return await prepareClaudeHook(options);
   }
 
   if (options.target === "codex") {
-    await configureCodexHook(options);
+    return await prepareCodexHook(options);
   }
+
+  return null;
 }
 
-async function configureClaudeHook(options: LinkTargetOptions): Promise<void> {
+async function prepareClaudeHook(options: LinkTargetOptions): Promise<HookConfigWrite> {
   const targetRoot = resolveClaudeRoot(options);
   const settingsPath = path.join(targetRoot, "settings.json");
-  const command = `bash ${JSON.stringify(path.join(targetRoot, "hooks", "dotagents", "prevent-main-commit.sh"))}`;
-  const legacyCommand = `bash ${JSON.stringify(path.join(targetRoot, "hooks", "prevent-main-commit.sh"))}`;
+  const command = buildHookCommand(path.join(targetRoot, "hooks", "dotagents", "prevent-main-commit.sh"));
+  const legacyCommand = buildHookCommand(path.join(targetRoot, "hooks", "prevent-main-commit.sh"));
   const settings = await readJsonObject(settingsPath);
   const hooks = readObject(settings, "hooks");
   const preToolUse = readArray(hooks, "PreToolUse");
@@ -216,15 +264,13 @@ async function configureClaudeHook(options: LinkTargetOptions): Promise<void> {
     hooks: [{ type: "command", command }],
   });
   settings.hooks = hooks;
-  await writeJson(settingsPath, settings);
+  return { path: settingsPath, data: settings };
 }
 
-async function configureCodexHook(options: LinkTargetOptions): Promise<void> {
-  const targetRoot = (options.scope ?? "global") === "global"
-    ? path.join(resolveHome(options.homeDir), ".codex")
-    : path.join(resolveProjectRoot(options), ".codex");
+async function prepareCodexHook(options: LinkTargetOptions): Promise<HookConfigWrite> {
+  const targetRoot = resolveCodexRoot(options);
   const hooksPath = path.join(targetRoot, "hooks.json");
-  const command = `bash ${JSON.stringify(path.join(targetRoot, "hooks", "dotagents", "prevent-main-commit.sh"))}`;
+  const command = buildHookCommand(path.join(targetRoot, "hooks", "dotagents", "prevent-main-commit.sh"));
   const config = await readJsonObject(hooksPath);
   const hooks = readObject(config, "hooks");
   const preToolUse = readArray(hooks, "PreToolUse");
@@ -239,7 +285,19 @@ async function configureCodexHook(options: LinkTargetOptions): Promise<void> {
     ],
   });
   config.hooks = hooks;
-  await writeJson(hooksPath, config);
+  return { path: hooksPath, data: config };
+}
+
+async function writeHookConfig(write: HookConfigWrite | null): Promise<void> {
+  if (!write) {
+    return;
+  }
+
+  await writeJson(write.path, write.data);
+}
+
+function buildHookCommand(scriptPath: string): string {
+  return `bash ${JSON.stringify(scriptPath)}`;
 }
 
 function resolveOpenCodeRoot(options: LinkTargetOptions): string {
@@ -252,6 +310,12 @@ function resolveClaudeRoot(options: LinkTargetOptions): string {
   return (options.scope ?? "global") === "global"
     ? path.join(resolveHome(options.homeDir), ".claude")
     : path.join(resolveProjectRoot(options), ".claude");
+}
+
+function resolveCodexRoot(options: LinkTargetOptions): string {
+  return (options.scope ?? "global") === "global"
+    ? path.join(resolveHome(options.homeDir), ".codex")
+    : path.join(resolveProjectRoot(options), ".codex");
 }
 
 interface CommandHookGroup {
@@ -300,7 +364,11 @@ function readCommand(value: JsonRecord): string {
 async function readJsonObject(filePath: string): Promise<JsonRecord> {
   try {
     const parsed: unknown = JSON.parse(await readFile(filePath, "utf8"));
-    return isRecord(parsed) ? parsed : {};
+    if (!isRecord(parsed)) {
+      throw new Error(`Expected JSON object in ${filePath}`);
+    }
+
+    return parsed;
   } catch (error) {
     if (isNodeError(error) && error.code === "ENOENT") {
       return {};
