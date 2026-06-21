@@ -153,6 +153,67 @@ test("does not remove existing Codex agent links when generated preflight fails"
   );
 });
 
+test("does not remove existing Codex links when a generated agent file is invalid", async () => {
+  const root = await makeTempRoot("agents-link-codex-agent-preflight-source-");
+  const homeDir = await makeTempRoot("agents-link-codex-agent-preflight-home-");
+  tempRoots.push(root, homeDir);
+
+  await writeText(path.join(root, ".generated", "codex", "agents", "careful-reviewer.toml"), "generated");
+  await Bun.$`mkdir -p ${path.join(root, ".generated", "codex", "agents", "bad-render.toml")}`;
+  await writeText(path.join(root, ".generated", "codex", "hooks", "prevent-main-commit.sh"), "generated");
+  await Bun.$`mkdir -p ${path.join(homeDir, ".codex", "agents")} ${path.join(homeDir, ".codex", "hooks")}`;
+  await Bun.$`ln -s ${path.join(root, ".generated", "codex", "agents", "careful-reviewer.toml")} ${path.join(homeDir, ".codex", "agents", "careful-reviewer.toml")}`;
+  await Bun.$`ln -s ${path.join(root, ".generated", "codex", "hooks")} ${path.join(homeDir, ".codex", "hooks", "dotagents")}`;
+
+  await expect(linkTarget({ root, target: "codex", scope: "global", homeDir })).rejects.toThrow(
+    "Expected file source",
+  );
+
+  expect(await readSymlinkTarget(path.join(homeDir, ".codex", "agents", "careful-reviewer.toml"))).toBe(
+    path.join(root, ".generated", "codex", "agents", "careful-reviewer.toml"),
+  );
+  expect(await readSymlinkTarget(path.join(homeDir, ".codex", "hooks", "dotagents"))).toBe(
+    path.join(root, ".generated", "codex", "hooks"),
+  );
+});
+
+test("does not remove existing Codex links when an agent target collides", async () => {
+  const root = await makeTempRoot("agents-link-codex-collision-source-");
+  const homeDir = await makeTempRoot("agents-link-codex-collision-home-");
+  tempRoots.push(root, homeDir);
+
+  await writeText(path.join(root, ".generated", "codex", "agents", "careful-reviewer.toml"), "generated");
+  await writeText(path.join(root, ".generated", "codex", "hooks", "prevent-main-commit.sh"), "generated");
+  await writeText(path.join(homeDir, ".codex", "agents", "careful-reviewer.toml"), "custom");
+  await Bun.$`mkdir -p ${path.join(homeDir, ".codex", "hooks")}`;
+  await Bun.$`ln -s ${path.join(root, ".generated", "codex", "hooks")} ${path.join(homeDir, ".codex", "hooks", "dotagents")}`;
+
+  await expect(linkTarget({ root, target: "codex", scope: "global", homeDir })).rejects.toThrow(
+    "Refusing to replace non-symlink target",
+  );
+
+  expect(await readText(path.join(homeDir, ".codex", "agents", "careful-reviewer.toml"))).toBe("custom");
+  expect(await readSymlinkTarget(path.join(homeDir, ".codex", "hooks", "dotagents"))).toBe(
+    path.join(root, ".generated", "codex", "hooks"),
+  );
+});
+
+test("does not register Codex hook config when the generated hook script is missing", async () => {
+  const root = await makeTempRoot("agents-link-codex-missing-hook-source-");
+  const homeDir = await makeTempRoot("agents-link-codex-missing-hook-home-");
+  tempRoots.push(root, homeDir);
+
+  await writeText(path.join(root, ".generated", "codex", "agents", "careful-reviewer.toml"), "generated");
+  await Bun.$`mkdir -p ${path.join(root, ".generated", "codex", "hooks")}`;
+  await writeText(path.join(homeDir, ".codex", "hooks.json"), JSON.stringify({ hooks: { PreToolUse: [] } }));
+
+  await expect(linkTarget({ root, target: "codex", scope: "global", homeDir })).rejects.toThrow(
+    "Cannot link missing source",
+  );
+
+  expect(await readText(path.join(homeDir, ".codex", "hooks.json"))).toBe(JSON.stringify({ hooks: { PreToolUse: [] } }));
+});
+
 test("leaves unmanaged Codex skills directory untouched", async () => {
   const root = await makeTempRoot("agents-link-codex-unmanaged-source-");
   const homeDir = await makeTempRoot("agents-link-codex-unmanaged-home-");

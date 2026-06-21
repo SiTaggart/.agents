@@ -78,8 +78,9 @@ async function linkCodexTarget(options: LinkTargetOptions): Promise<void> {
     { name: "codex-hooks", source: path.join(generated, "hooks"), target: path.join(targetRoot, "hooks", "dotagents"), kind: "dir" },
   ];
 
-  await removeManagedCodexLinks(options);
+  await Promise.all(mappings.map((mapping) => validateLinkSource(mapping)));
   await Promise.all(mappings.map((mapping) => validateLinkTarget(mapping)));
+  await removeManagedCodexLinks(options);
   await Promise.all(mappings.map((mapping) => replaceSymlink(mapping)));
   await configureHookTarget(options);
 }
@@ -95,6 +96,11 @@ async function preflightCodexGeneratedSources(generated: string, targetRoot: str
       source: path.join(generated, "hooks"),
       target: path.join(targetRoot, "hooks", "dotagents"),
       kind: "dir",
+    }),
+    validateLinkSource({
+      source: path.join(generated, "hooks", "prevent-main-commit.sh"),
+      target: path.join(targetRoot, "hooks", "dotagents", "prevent-main-commit.sh"),
+      kind: "file",
     }),
   ]);
 }
