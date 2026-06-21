@@ -65,23 +65,38 @@ function resolveClaudeMappings(options: LinkTargetOptions): readonly LinkMapping
 }
 
 async function linkCodexTarget(options: LinkTargetOptions): Promise<void> {
-  await removeManagedCodexLinks(options);
-
   const root = path.resolve(options.root);
   const generated = path.join(root, ".generated", "codex");
   const targetRoot = (options.scope ?? "global") === "global"
     ? path.join(resolveHome(options.homeDir), ".codex")
     : path.join(resolveProjectRoot(options), ".codex");
+  await preflightCodexGeneratedSources(generated, targetRoot);
+
   const agentMappings = await resolveCodexAgentMappings(generated, targetRoot);
   const mappings: readonly LinkMapping[] = [
     ...agentMappings,
     { name: "codex-hooks", source: path.join(generated, "hooks"), target: path.join(targetRoot, "hooks", "dotagents"), kind: "dir" },
   ];
 
-  await Promise.all(mappings.map((mapping) => validateLinkSource(mapping)));
+  await removeManagedCodexLinks(options);
   await Promise.all(mappings.map((mapping) => validateLinkTarget(mapping)));
   await Promise.all(mappings.map((mapping) => replaceSymlink(mapping)));
   await configureHookTarget(options);
+}
+
+async function preflightCodexGeneratedSources(generated: string, targetRoot: string): Promise<void> {
+  await Promise.all([
+    validateLinkSource({
+      source: path.join(generated, "agents"),
+      target: path.join(targetRoot, "agents"),
+      kind: "dir",
+    }),
+    validateLinkSource({
+      source: path.join(generated, "hooks"),
+      target: path.join(targetRoot, "hooks", "dotagents"),
+      kind: "dir",
+    }),
+  ]);
 }
 
 async function resolveCodexAgentMappings(generated: string, targetRoot: string): Promise<readonly LinkMapping[]> {

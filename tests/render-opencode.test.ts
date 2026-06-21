@@ -67,6 +67,8 @@ test("renders Claude-shaped agents into OpenCode-compatible generated files", as
   const plugin = await readText(path.join(root, ".generated", "opencode", "plugins", "dotagents-hooks.js"));
   expect(plugin).toContain("tool.execute.before");
   expect(plugin).toContain("prevent-main-commit.sh");
+  expect(plugin).toContain("async ({ directory, worktree })");
+  expect(plugin).toContain("cwd: hookCwd");
   expect(await Bun.file(path.join(root, ".generated", "opencode", "commands")).exists()).toBe(false);
 });
 
@@ -127,7 +129,7 @@ test("renders Codex agents and hooks in a generated target tree", async () => {
       "---",
       "name: careful-reviewer",
       "description: Finds logic bugs",
-      "model: inherit",
+      "model: sonnet",
       "---",
       "",
       "Use the anchored confidence rubric.",
@@ -145,6 +147,32 @@ test("renders Codex agents and hooks in a generated target tree", async () => {
   expect(await readText(path.join(root, ".generated", "codex", "hooks", "prevent-main-commit.sh"))).toContain(
     "exit 0",
   );
+});
+
+test("renders explicit Codex model overrides only", async () => {
+  const root = await makeTempRoot("agents-render-codex-model-");
+  tempRoots.push(root);
+
+  await writeText(
+    path.join(root, "agents", "careful-reviewer.md"),
+    [
+      "---",
+      "name: careful-reviewer",
+      "description: Finds logic bugs",
+      "model: sonnet",
+      "codex_model: gpt-5-codex",
+      "---",
+      "",
+      "Use the anchored confidence rubric.",
+    ].join("\n"),
+  );
+  await writeText(path.join(root, "hooks", "scripts", "prevent-main-commit.sh"), "#!/bin/bash\nexit 0\n");
+
+  await renderTarget({ root, target: "codex" });
+
+  const agent = await readText(path.join(root, ".generated", "codex", "agents", "careful-reviewer.toml"));
+  expect(agent).toContain('model = "gpt-5-codex"');
+  expect(agent).not.toContain('model = "sonnet"');
 });
 
 test("skips hidden skill directories when rendering target skill shelves", async () => {

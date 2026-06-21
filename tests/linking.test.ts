@@ -111,6 +111,7 @@ test("removes managed Codex skill link written through canonical skills symlink"
 
   await writeText(path.join(root, "AGENTS.md"), "# Shared instructions");
   await writeText(path.join(root, "skills", "source-only", "SKILL.md"), "source");
+  await writeText(path.join(root, ".generated", "codex", "agents", "careful-reviewer.toml"), "generated");
   await writeText(path.join(root, ".generated", "codex", "hooks", "prevent-main-commit.sh"), "generated");
   await writeText(path.join(root, ".generated", "codex", "skills", "review-skill", "SKILL.md"), "generated");
 
@@ -134,12 +135,31 @@ test("requires generated Codex hooks before linking", async () => {
   );
 });
 
+test("does not remove existing Codex agent links when generated preflight fails", async () => {
+  const root = await makeTempRoot("agents-link-codex-preflight-source-");
+  const homeDir = await makeTempRoot("agents-link-codex-preflight-home-");
+  tempRoots.push(root, homeDir);
+
+  await writeText(path.join(root, ".generated", "codex", "agents", "careful-reviewer.toml"), "generated");
+  await Bun.$`mkdir -p ${path.join(homeDir, ".codex", "agents")}`;
+  await Bun.$`ln -s ${path.join(root, ".generated", "codex", "agents", "careful-reviewer.toml")} ${path.join(homeDir, ".codex", "agents", "careful-reviewer.toml")}`;
+
+  await expect(linkTarget({ root, target: "codex", scope: "global", homeDir })).rejects.toThrow(
+    "Cannot link missing source",
+  );
+
+  expect(await readSymlinkTarget(path.join(homeDir, ".codex", "agents", "careful-reviewer.toml"))).toBe(
+    path.join(root, ".generated", "codex", "agents", "careful-reviewer.toml"),
+  );
+});
+
 test("leaves unmanaged Codex skills directory untouched", async () => {
   const root = await makeTempRoot("agents-link-codex-unmanaged-source-");
   const homeDir = await makeTempRoot("agents-link-codex-unmanaged-home-");
   tempRoots.push(root, homeDir);
 
   await writeText(path.join(root, "AGENTS.md"), "# Shared instructions");
+  await writeText(path.join(root, ".generated", "codex", "agents", "careful-reviewer.toml"), "generated");
   await writeText(path.join(root, ".generated", "codex", "hooks", "prevent-main-commit.sh"), "generated");
   await writeText(path.join(homeDir, ".codex", "skills", "custom", "SKILL.md"), "custom");
 

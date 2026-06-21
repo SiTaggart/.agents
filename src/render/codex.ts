@@ -36,7 +36,7 @@ async function renderCodexAgent(outputRoot: string, agent: SourceMarkdownFile): 
 }
 
 function codexOptionalModelLines(agent: SourceMarkdownFile): readonly string[] {
-  const model = readStringField(agent.frontmatter, "model");
+  const model = readStringField(agent.frontmatter, "codex_model");
   return model && model !== "inherit" ? [`model = ${formatTomlString(model)}`] : [];
 }
 
