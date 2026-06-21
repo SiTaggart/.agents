@@ -1,4 +1,4 @@
-import { copyFile, lstat, mkdir, readFile, readdir, readlink, rm, symlink, unlink, writeFile } from "fs/promises";
+import { copyFile, lstat, mkdir, readFile, readdir, rm, symlink, writeFile } from "fs/promises";
 import type { Dirent, Stats } from "fs";
 import path from "path";
 import type { SourceKind } from "./types";
@@ -54,21 +54,9 @@ export async function copyDirectory(options: CopyDirectoryOptions): Promise<void
 }
 
 export async function replaceSymlink(options: LinkOptions): Promise<void> {
-  await validateSymlink(options);
-
+  await validateLinkSource(options);
+  await rm(options.target, { recursive: true, force: true });
   await mkdir(path.dirname(options.target), { recursive: true });
-
-  const existing = await statSafe(options.target);
-  if (existing?.isSymbolicLink()) {
-    const existingTarget = await resolveSymlink(options.target);
-    if (existingTarget === path.resolve(options.source)) {
-      return;
-    }
-    await unlink(options.target);
-  } else if (existing) {
-    throw new Error(`Refusing to replace non-symlink target: ${options.target}`);
-  }
-
   const link = path.relative(path.dirname(options.target), options.source) || ".";
   await symlink(link, options.target, options.kind);
 }
@@ -80,15 +68,6 @@ export async function validateLinkSource(options: LinkOptions): Promise<void> {
   }
 
   validateSourceKind(options, sourceStat);
-}
-
-export async function validateSymlink(options: LinkOptions): Promise<void> {
-  await validateLinkSource(options);
-
-  const existing = await statSafe(options.target);
-  if (existing && !existing.isSymbolicLink()) {
-    throw new Error(`Refusing to replace non-symlink target: ${options.target}`);
-  }
 }
 
 async function listEntryFiles(
@@ -150,15 +129,6 @@ async function statSafe(filePath: string): Promise<Stats | null> {
       return null;
     }
     throw error;
-  }
-}
-
-async function resolveSymlink(linkPath: string): Promise<string | null> {
-  try {
-    const linkTarget = await readlink(linkPath);
-    return path.resolve(path.dirname(linkPath), linkTarget);
-  } catch {
-    return null;
   }
 }
 

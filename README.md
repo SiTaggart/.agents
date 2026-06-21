@@ -10,6 +10,7 @@ those generated outputs:
 ```bash
 bun run sync opencode
 bun run sync claude
+bun run sync codex
 ```
 
 Generated target trees live under `.generated/` and are intentionally ignored by
@@ -19,17 +20,32 @@ Codex loads canonical skills and `AGENTS.md` natively. The Codex sync target
 renders custom subagent TOML files and hook adapters into Codex-native
 locations.
 
+## Configuration Ownership
+
+This repository is the source of truth for sharable coding-harness
+configuration on a machine. Agents, skills, hooks, and the shared instructions
+file come from this repo; do not maintain parallel custom versions under
+`~/.claude`, `~/.config/opencode`, or `~/.codex`. Move sharable config here,
+then run sync.
+
+The sync step may replace harness links and hook config for those owned
+surfaces. It also removes obsolete repo-managed `commands` and `rules` links;
+those are no longer synchronized surfaces.
+
 Render without linking:
 
 ```bash
 bun run render opencode
 bun run render claude
+bun run render codex
 ```
 
 Link previously rendered outputs:
 
 ```bash
 bun run link opencode
+bun run link claude
+bun run link codex
 ```
 
 ## Components
