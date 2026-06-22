@@ -188,7 +188,7 @@ Look for:
 - over-generalization for hypothetical future cases
 - duplicate logic that should share an existing local helper
 - verbose patterns with an obvious idiomatic alternative
-- broad refactors hiding inside a narrow product change
+- undisclosed broad refactors hiding inside a narrow product change (a deliberate, surfaced restructure that produces a simpler result is not this)
 
 This is the taste pass. It should improve the shape of the implementation, not make it clever.
 
