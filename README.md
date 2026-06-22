@@ -85,7 +85,7 @@ npx skills add vercel-labs/agent-skills \
 | Component  | Count |
 | ---------- | ----- |
 | Agents     | 40    |
-| Skills     | 61    |
+| Skills     | 55    |
 
 ## Operating Loops
 
@@ -94,7 +94,7 @@ The shelf is organized around a few tight loops rather than standalone skills:
 | Loop | Route |
 | ---- | ----- |
 | Explore and decide | `qmd` / Obsidian / `repoprompt` when broad codebase context matters -> `ce-brainstorm` -> `ce-grill` when branchy -> `document-review` when a requirements doc needs polish -> `ce-plan` |
-| Plan and build | `ce-plan` with `repoprompt` when broad -> `document-review` for markdown plans -> `ce-work` -> `ce-quality-gate`; fold in `code-taste` for implementation shape and `frontend-design` for UI work |
+| Plan and build | `ce-plan` with `repoprompt` when broad -> `document-review` for markdown plans -> `ce-work` with early `code-taste` routing for TypeScript/React/code shape -> `ce-quality-gate`; fold in `frontend-design` for UI work |
 | Review and ship | `ce-review` on changed work -> `ce-simplify-code` when shape needs cleanup -> git skills for ops; fold in `code-taste` for maintainability judgment; `pr-review-canvas` for an interactive walkthrough of someone else's PR; `ce-thermo-nuclear-code-quality-review` when the change needs an unusually strict maintainability pass |
 | Remember and reuse | `ce-compound` / `ce-compound-refresh` -> Obsidian or QMD for durable knowledge |
 | Debug and investigate | `ce-debug` -> `repoprompt` when broad context is needed -> `ce-work` -> `ce-review` |
@@ -191,7 +191,6 @@ The shelf is organized around a few tight loops rather than standalone skills:
 
 | Skill                       | Description                                          |
 | --------------------------- | ---------------------------------------------------- |
-| `claude-settings-audit`     | Generate recommended Claude Code settings.json       |
 | `onboarding`                | Generate ONBOARDING.md for new contributors          |
 | `repo-research-analyst`     | Analyze repository structure and patterns            |
 | `typescript-advanced-types` | Master TypeScript's advanced type system             |
@@ -240,15 +239,6 @@ The shelf is organized around a few tight loops rather than standalone skills:
 | `git-commit-push-pr`         | Commit, push, and open a PR with a conventional title    |
 | `git-worktree`               | Manage Git worktrees for parallel development            |
 | `resolve-pr-feedback`        | Resolve PR review feedback by evaluating and fixing in parallel |
-| `standup-skill`              | Generate a summary of work from the previous workday     |
-
-### Task Management
-
-| Skill              | Description                                                    |
-| ------------------ | -------------------------------------------------------------- |
-| `todo-create`      | Create durable work items and track findings across sessions   |
-| `todo-resolve`     | Batch-resolve approved todos after code review or triage       |
-| `todo-triage`      | Review pending todos for approval and prioritization           |
 
 ### Workflow Skills
 
@@ -270,7 +260,6 @@ The shelf is organized around a few tight loops rather than standalone skills:
 | `ce-sessions`          | Cross-platform session history analysis                        |
 | `ce-slack-research`    | Research organizational context from Slack                     |
 | `ce-work`              | Execute work efficiently while maintaining quality             |
-| `changelog`            | Write source-backed changelogs from recent merges              |
 
 ### Integrations
 

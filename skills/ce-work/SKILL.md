@@ -79,10 +79,12 @@ Use this decision order:
 
 Pause before crossing into adjacent UX, validation, focus behavior, styling, data modeling, persistence, or infrastructure. Ask the user if that broader contract is actually desired.
 
-For TypeScript, React, and implementation-shape decisions, use `code-taste`
-inside this loop when the change involves typed contracts, helper boundaries,
-schemas, reducers, selectors, adapters, JSX business logic, effect structure, or
-maintainability tradeoffs.
+Before implementation, decide whether the change touches TypeScript contracts,
+React/Next behavior, helper boundaries, schemas, reducers, selectors, adapters,
+JSX business logic, effect structure, or maintainability tradeoffs. If it does,
+use `code-taste` now, before writing code. Let `code-taste` route to
+`typescript-advanced-types` or `vercel-react-best-practices` only when that
+extra context is relevant. Do not defer this judgment to `ce-quality-gate`.
 
 For frontend work, use `frontend-design` as a guide inside this loop. Match the
 existing design system first, then verify the changed route, story, or preview
@@ -127,7 +129,8 @@ file list. Completion requires this gate.
 
 It must make the touched lint, format, type, test, and `code-taste` surface
 clean, or report the exact blocker and narrower proof that passed. This gate
-does not replace product proof, browser proof, or review of substantial work.
+does not replace product proof, browser proof, early code-shape routing, or
+review of substantial work.
 
 ## Step 7: Review The Diff
 
@@ -138,6 +141,8 @@ Before calling the task done, review your own diff with the same taste bar as `c
 - Is there less code that would do the same thing as clearly?
 - Did the fix stay inside the right owner boundary?
 - Are tests and real-surface proof proportional to risk?
+- If TypeScript, React, or code-shape mattered, did `code-taste` shape the
+  approach before implementation rather than only at the gate?
 - Is the touched implementation `code-taste` clean, with no speculative guards,
   casts, wrappers, effects, or abstractions outside the accepted contract?
 - Did you avoid adding support, migration, deployment, or residual-work process unless the diff actually needed it?
@@ -163,7 +168,8 @@ Finish with a concise report:
 - what changed
 - what product contract is now true
 - what checks or proof passed
-- `code-taste` gate status: passed, fixed, or necessary exception
+- `code-taste` route and gate status: applied early, fixed late, not relevant,
+  or necessary exception
 - what was not verified and why
 - any narrow follow-up that is genuinely outside the accepted contract
 

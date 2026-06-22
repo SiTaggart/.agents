@@ -73,8 +73,8 @@ files add local context and override only overlapping instructions.
   fetches, saves, invalidation, or backend shaping through UI components.
 - Pass honest dependencies into helpers. Avoid broad courier objects unless the
   function owns a broad transition or invariant.
-- Use `code-taste` for tactical TypeScript, React, helper-boundary, and
-  code-shape examples.
+- Use `code-taste` before implementation for tactical TypeScript, React,
+  helper-boundary, and code-shape decisions.
 
 ## Non-Negotiables
 
@@ -107,16 +107,17 @@ files add local context and override only overlapping instructions.
   ambiguity; use `document-review` for requirements docs.
 - Plan: use `ce-plan`; layer in `repoprompt` for broad codebase context and
   `document-review` for markdown plans.
-- Work: use `ce-work`; fold in `code-taste` for TypeScript, React, or code-shape
-  decisions; fold in `frontend-design` for UI; run `ce-quality-gate` after code
-  edits. Code-taste cleanliness is part of the completion gate for touched code.
+- Work: use `ce-work`; route TypeScript, React, or code-shape decisions through
+  `code-taste` before implementation; fold in `frontend-design` for UI; run
+  `ce-quality-gate` after code edits. Code-taste cleanliness is part of the
+  completion gate for touched code.
 - Review: use `ce-review` for built work; use `code-taste` for maintainability
   and implementation-shape judgment; use `ce-simplify-code` for cleanup; use
   `security-review` only for real trust-boundary or security asks.
 - Ship/feedback: use `git-commit`, `git-commit-push-pr`, `gh-fix-ci`, and
   `resolve-pr-feedback` for git and PR ops.
-- Remember: use `ce-compound`, `ce-compound-refresh`, QMD/Obsidian, and todo
-  skills for durable knowledge.
+- Remember: use `ce-compound`, `ce-compound-refresh`, QMD, and Obsidian for
+  durable knowledge.
 
 ## Tooling
 

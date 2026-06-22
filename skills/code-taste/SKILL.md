@@ -16,6 +16,31 @@ language-specific preferences.
 - Apply these rules harder to new code than to old code around it.
 - Prefer the smallest change that improves correctness, traceability, or safety.
 
+## Early Routing
+
+Use this skill before choosing the implementation approach when a change touches
+TypeScript contracts, React/Next behavior, helper boundaries, effect structure,
+data loading, state transitions, schemas, adapters, or maintainability tradeoffs.
+Do not save code-shape thinking for the quality gate.
+
+Route to supporting skills only when the surface justifies the extra context:
+
+- Use `typescript-advanced-types` when the change centers on real compile-time
+  contracts: discriminated unions, state-machine actions, generic APIs, schema
+  inference, endpoint contracts, reusable typed helpers, or typed configuration.
+  Do not use it to invent clever type machinery, hide casts, or encode
+  hypothetical edge cases.
+- Use `vercel-react-best-practices` when touching React or Next rendering,
+  server/client boundaries, data loading, async waterfalls, effects, memoization,
+  bundle shape, hydration, or performance-sensitive UI.
+- Skip supporting skills for trivial copy edits, simple renames, styling-only
+  tweaks, one-line prop plumbing, or code where the local convention already
+  makes the right move obvious.
+
+When a supporting skill applies, consult the smallest relevant part of it and
+carry the decision into implementation. The quality gate should verify this
+route happened, not discover the architecture for the first time.
+
 ## Smallest Change Bias
 
 - Prefer the direct edit that satisfies the current contract.

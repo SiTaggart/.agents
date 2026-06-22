@@ -103,12 +103,18 @@ Review the changed code for local taste:
 
 - use `code-taste` for TypeScript, React, helper-boundary, effect, test-shape,
   and maintainability smells when those concerns are relevant to the touched code
+- for TypeScript or React changes, verify `ce-work` used `code-taste` before or
+  during implementation and that `typescript-advanced-types` or
+  `vercel-react-best-practices` was consulted when the surface justified it
 - no dead code, duplicate branches, or speculative abstractions
 - behavior still lives at the owner boundary accepted by `ce-work`
 - comments explain why, not what
 
 The gate is not complete while relevant `code-taste` violations remain. Fix
 them, or report a necessary exception with the accepted-contract reason.
+If the relevant taste route was skipped earlier, do a narrow pass now, fix only
+issues in the accepted contract, and report the status as `fixed late`. Do not
+turn the quality gate into the main architecture phase.
 
 Use `ce-simplify-code` only when simplification is non-trivial or the user asks
 for it. Do not turn simplification into a mandatory ritual.
@@ -119,7 +125,8 @@ Return a compact status:
 
 - touched files checked
 - commands run and results
-- `code-taste` status: passed, fixed, or necessary exception
+- `code-taste` route and gate status: applied early, fixed late, not relevant,
+  or necessary exception
 - code-shape issues fixed or still present
 - unrelated baseline failures, if any
 - what this gate did not prove, especially product/browser behavior
