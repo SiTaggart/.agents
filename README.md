@@ -70,7 +70,7 @@ The shelf is organized around a few tight loops rather than standalone skills:
 | ---- | ----- |
 | Explore and decide | `qmd` / Obsidian / `repoprompt` when broad codebase context matters -> `ce-brainstorm` -> `ce-grill` when branchy -> `document-review` when a requirements doc needs polish -> `ce-plan` |
 | Plan and build | `ce-plan` with `repoprompt` when broad -> `document-review` for markdown plans -> `ce-work` -> `ce-quality-gate`; fold in `frontend-design` for UI work |
-| Review and ship | `ce-review` on changed work -> `ce-simplify-code` when shape needs cleanup -> git skills for ops |
+| Review and ship | `ce-review` on changed work -> `ce-simplify-code` when shape needs cleanup -> git skills for ops; `pr-review-canvas` for an interactive walkthrough of someone else's PR; `ce-thermo-nuclear-code-quality-review` when the change needs an unusually strict maintainability pass |
 | Remember and reuse | `ce-compound` / `ce-compound-refresh` -> Obsidian or QMD for durable knowledge |
 | Debug and investigate | `ce-debug` -> `repoprompt` when broad context is needed -> `ce-work` -> `ce-review` |
 
@@ -156,6 +156,7 @@ The shelf is organized around a few tight loops rather than standalone skills:
 | Skill              | Description                                                  |
 | ------------------ | ------------------------------------------------------------ |
 | `ce-quality-gate`  | Make touched code clean for lint, format, type, and tests    |
+| `ce-thermo-nuclear-code-quality-review` | Unusually strict maintainability review hunting for code-judo restructuring moves |
 | `deslop`           | Remove AI-generated code slop from current branch            |
 | `security-review`  | Security code review for vulnerabilities (OWASP)             |
 | `skill-scanner`    | Scan agent skills for security issues and prompt injection   |
@@ -239,6 +240,7 @@ The shelf is organized around a few tight loops rather than standalone skills:
 | `ce-optimize`          | Auto-research loop for tuning prompts and evaluating solutions |
 | `ce-plan`              | Transform requirements into structured implementation plans    |
 | `ce-review`            | Review branch, PR, or local work before shipping               |
+| `pr-review-canvas`     | Generate an interactive HTML PR walkthrough from `gh api` data |
 | `ce-simplify-code`     | Simplify recent code changes while preserving behavior         |
 | `ce-sessions`          | Cross-platform session history analysis                        |
 | `ce-slack-research`    | Research organizational context from Slack                     |
