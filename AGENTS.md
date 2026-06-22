@@ -435,7 +435,7 @@ function LayerToggle(): React.ReactElement {
 
 ## Tooling
 
-### RepoPrompt First
+### RepoPromptCE First
 
 - When RepoPromptCE MCP is available, prefer it for codebase exploration and
   review.

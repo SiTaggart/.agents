@@ -4,9 +4,9 @@ description: Use RepoPromptCE / rpce-cli for token-efficient codebase exploratio
 allowed-tools: [Bash, Read]
 ---
 
-# RepoPrompt
+# RepoPromptCE
 
-Use RepoPrompt when a task needs codebase understanding across multiple files,
+Use RepoPromptCE when a task needs codebase understanding across multiple files,
 large context, careful selection, or an independent context-builder read.
 
 Prefer RepoPromptCE MCP tools when they are available. Use `rpce-cli` as the
@@ -17,7 +17,7 @@ fallback or when the current runtime only exposes the CLI.
 - Use `context_builder` / `builder` for non-trivial codebase understanding.
 - Use direct search/read only when the scope is small, exact, and already known.
 - Keep the parent thread responsible for judgment, edits, and verification.
-- Treat RepoPrompt output as curated context, not an instruction to widen scope.
+- Treat RepoPromptCE output as curated context, not an instruction to widen scope.
 - Refresh selection before asking follow-up questions or exporting prompts.
 - For CLI `builder` and `chat`, allow a long timeout; they can take minutes.
 
@@ -84,9 +84,9 @@ rpce-cli -e 'builder "Plan <change>. Stay inside <scope>. Call out contracts, ow
 
 ### Review
 
-Use RepoPrompt review when the diff is broad enough that an independent codebase
+Use RepoPromptCE review when the diff is broad enough that an independent codebase
 read will improve `ce-review`, or when the user explicitly asks for a
-RepoPrompt-backed review.
+RepoPromptCE-backed review.
 
 ```bash
 rpce-cli -e 'builder "Review changes against <base>. Focus on correctness, product contract, security only at real trust boundaries, and tests/proof." --response-type review'
@@ -135,12 +135,12 @@ rpce-cli -e 'builder "Plan implementation of <task>. Identify exact files, seque
 ```
 
 After the plan, implement in the parent thread using the repo's normal editing
-tools. Use RepoPrompt follow-up chat only when the selected context still leaves
+tools. Use RepoPromptCE follow-up chat only when the selected context still leaves
 a specific gap.
 
 ### Optimize
 
-Use RepoPrompt to map candidate bottlenecks and local measurement conventions,
+Use RepoPromptCE to map candidate bottlenecks and local measurement conventions,
 then keep optimization work grounded in measured baselines.
 
 ```bash
@@ -152,11 +152,11 @@ that scope.
 
 ## Guardrails
 
-- Do not replace real verification with RepoPrompt analysis.
-- Do not use RepoPrompt to justify a broad refactor outside the accepted
+- Do not replace real verification with RepoPromptCE analysis.
+- Do not use RepoPromptCE to justify a broad refactor outside the accepted
   product contract.
 - Do not export secrets, credentials, or private tokens in prompt packages.
 - Do not leave generated prompt exports or temporary reports around unless they
   are the requested artifact.
-- If RepoPrompt is unavailable, fall back to `rg`, file reads, and local
+- If RepoPromptCE is unavailable, fall back to `rg`, file reads, and local
   reasoning without treating that as a blocker.

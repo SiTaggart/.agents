@@ -32,6 +32,13 @@ The sync step may replace harness links and hook config for those owned
 surfaces. It also removes obsolete repo-managed `commands` and `rules` links;
 those are no longer synchronized surfaces.
 
+**Edit only the canonical sources** (`agents/`, `skills/`, `hooks/`, and the
+root `AGENTS.md`). Generated target trees under `.generated/` and any mirrored
+copies under `~/.config/opencode`, `~/.claude`, or `~/.codex` are overwritten
+by `bun run sync` — edits made there are lost. Make the change in the
+canonical file, then run `bun run sync` (or `bun run sync opencode claude codex`
+to target specific harnesses) to propagate.
+
 Render without linking:
 
 ```bash

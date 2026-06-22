@@ -1,6 +1,6 @@
 ---
 name: ce-review
-description: First-principles code review of recent changes. Balances correctness, product intent, traceability, elegance, minimalism, project conventions, performance, security, and blast radius. Use when reviewing a branch, PR, or local changes before shipping. Report only grounded findings with file and line references; do not apply fixes, commit, push, file tickets, or run downstream workflow.
+description: Review recent code changes for bugs, regressions, product fit, conventions, performance, security, and blast radius.
 argument-hint: "[quick] [base:<ref>] [plan:<path>] [PR number, PR URL, branch name, or blank for current branch]"
 ---
 
@@ -83,6 +83,8 @@ Read changed files in full when they are reasonably sized. Use the diff to disti
 For exported functions, public components, API handlers, hooks, schemas, commands, or shared utilities, inspect the nearest callers/importers when the changed contract may affect them.
 
 Do not let caller spelunking become an unrelated repo audit. Follow blast radius only as far as needed to decide whether this change is correct.
+
+When the diff is broad enough that an independent codebase read would improve the review, use `repoprompt` review mode to map blast radius and cross-module impact. Fold the result into the main review; do not mechanically forward findings that lack file/line evidence.
 
 ## Step 3: Review Passes
 

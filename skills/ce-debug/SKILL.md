@@ -1,6 +1,6 @@
 ---
 name: ce-debug
-description: 'Systematically find root causes and fix bugs. Use when debugging errors, investigating test failures, reproducing bugs from issue trackers (GitHub, Linear, Jira), or when stuck on a problem after failed fix attempts. Also use when the user says ''debug this'', ''why is this failing'', ''fix this bug'', ''trace this error'', or pastes stack traces, error messages, or issue references.'
+description: 'Find root causes and fix bugs. Use for errors, failing tests, issue repros, stack traces, "debug this", or "why is this failing".'
 argument-hint: "[issue reference, error message, test path, or description of broken behavior]"
 ---
 

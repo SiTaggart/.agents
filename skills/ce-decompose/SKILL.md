@@ -1,6 +1,6 @@
 ---
 name: ce-decompose
-description: "Take over an oversized diff and carve it into atomic, incremental, reviewable pieces. Use when your normal build loop (ideate → brainstorm → plan → work) has produced a change too large to review with confidence — rule of thumb ~1500+ changed lines — and you want it split into a reviewable stack, or rebuilt cleanly in increments. Triggers on 'this diff is too big', 'break this down', 'decompose this', 'split this up', 'too big to review'. Assesses the diff, then either splits the existing code into ordered commits/PRs or discards it and rebuilds each piece. Pairs with ce-plan for the unit breakdown, ce-work to build each piece, ce-review to gate each one."
+description: "Split or rebuild oversized diffs into reviewable pieces. Use for 'too big to review', 'break this down', 'decompose this', or 'split this up'."
 argument-hint: "[optional: branch/PR/path to the diff] [optional: threshold:<lines>]"
 ---
 
