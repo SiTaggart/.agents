@@ -1,5 +1,6 @@
 backup/
 .generated/
+.claude/
 node_modules/
 **/.system
 .cass/

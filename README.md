@@ -55,12 +55,37 @@ bun run link claude
 bun run link codex
 ```
 
+## Installing External Skills
+
+Use `npx skills` for third-party skills that should retain skills.sh update
+provenance. Current `skills` writes project provenance to `skills-lock.json`.
+The older `.skill-lock.json` is legacy installer state and is not updated by
+current `npx skills` commands.
+
+To install into only the shared `.agents/skills` project surface, target one of
+the universal agents such as `codex`, `opencode`, `cursor`, `cline`,
+`gemini-cli`, `github-copilot`, `warp`, `zed`, or `universal`. Do not use
+`claude-code`, `--agent '*'`, or `--all` when the goal is to avoid
+harness-specific project folders such as `.claude/skills`.
+
+This repository is itself `~/.agents`, so running a universal project install
+from this directory would create `~/.agents/.agents/skills`. To update this
+repo's canonical `skills/` shelf from inside the repo, target `openclaw`:
+
+```bash
+npx skills add vercel-labs/agent-skills \
+  --skill vercel-react-best-practices \
+  --agent openclaw \
+  --copy \
+  -y
+```
+
 ## Components
 
 | Component  | Count |
 | ---------- | ----- |
 | Agents     | 40    |
-| Skills     | 62    |
+| Skills     | 61    |
 
 ## Operating Loops
 
@@ -234,7 +259,6 @@ The shelf is organized around a few tight loops rather than standalone skills:
 | `ce-compound-refresh`  | Refresh stale learnings and pattern docs against current codebase |
 | `ce-debug`             | Systematic debugging with anti-patterns and investigation techniques |
 | `ce-decompose`         | Carve an oversized diff into a reviewable stack, or rebuild it in increments |
-| `find-skills`          | Route tasks to the right local skill loop                    |
 | `ce-grill`             | Clarify branchy requirements before planning                   |
 | `ce-handoff`           | Compact current work into a continuation brief                 |
 | `ce-ideate`            | Generate and evaluate grounded improvement ideas for a project |
