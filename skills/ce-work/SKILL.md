@@ -33,6 +33,46 @@ Do not do these from this skill unless the user explicitly asks:
 - split a narrow product fix into broad process stages
 - route work to many subagents when the parent agent can reason through it directly
 
+## Context Delegation
+
+`ce-work` owns the accepted product contract, scope control, final integration,
+proof surface, and final report. Use subagents to keep bulky specialist context
+out of the parent thread, not to outsource product judgment.
+
+Delegate when a subtask is independently bounded, has low file overlap with
+other slices, and would require loading substantial specialty context. Keep the
+handoff narrow: product contract, owner boundary, allowed files or slice, local
+patterns to preserve, expected proof, and what to return. The parent integrates
+the result, reads changed lines, runs the quality gate, and decides whether the
+contract is complete.
+
+Use this dispatch map when the criteria above are met:
+
+- **Frontend implementation:** dispatch `frontend-implementation-expert` for
+  non-trivial React or UI implementation slices. It owns the implementation
+  pass and uses `frontend-design`, `code-taste`, and
+  `vercel-react-best-practices` inside its own context. The parent keeps final
+  visual/browser proof and quality-gate ownership.
+- **React test strategy:** dispatch `react-test-architect` when the main work is
+  designing or reshaping a React test suite, or when test-context exploration
+  would distract from implementation.
+- **Repo reconnaissance:** dispatch `repo-research-analyst` with a scoped
+  prompt when unfamiliar codebase structure, conventions, or implementation
+  patterns need a compact handoff. Use `repoprompt` instead when the parent
+  needs curated file context to reason directly.
+- **External implementation docs:** dispatch `framework-docs-researcher` or
+  `best-practices-researcher` when current framework/API behavior materially
+  affects the implementation approach.
+- **Documentation artifacts:** dispatch `documentation-specialist` when writing
+  or refreshing substantial docs would load source-reading and writing context
+  that is separable from the parent contract.
+- **Bug root-cause loops:** use `ce-debug` as the canonical workflow for bugs,
+  failing tests, regressions, stack traces, and "why is this failing" work. Do
+  not recreate that full loop inside `ce-work`.
+
+Skip delegation for tiny edits, single obvious files, product decisions, final
+integration, and proof that must be interpreted against the accepted contract.
+
 ## Step 1: Understand The Task
 
 Read the prompt, relevant plan or issue, recent conversation, and current repository state.
@@ -61,8 +101,9 @@ When the task depends on product memory, search QMD or Obsidian notes for
 interviews, transcripts, research summaries, PRDs, kickoff docs, or prior agent
 sessions before inventing context.
 
-When repo context is broad, unfamiliar, or crosses many files, use `repoprompt`
-to build codebase context before choosing an approach. Treat its output as
+When repo context is broad, unfamiliar, or crosses many files, use
+`repo-research-analyst` for a compact research handoff or `repoprompt` to build
+curated codebase context before choosing an approach. Treat either output as
 context for owner boundaries, data flow, and tests, not as permission to expand
 scope.
 
@@ -86,9 +127,12 @@ use `code-taste` now, before writing code. Let `code-taste` route to
 `typescript-advanced-types` or `vercel-react-best-practices` only when that
 extra context is relevant. Do not defer this judgment to `ce-quality-gate`.
 
-For frontend work, use `frontend-design` as a guide inside this loop. Match the
-existing design system first, then verify the changed route, story, or preview
-surface visually when one exists.
+For frontend work done in the parent thread, use `frontend-design` as a guide
+inside this loop. For non-trivial React or UI implementation slices, prefer
+delegating to `frontend-implementation-expert` so the visual, React, and
+code-shape context stays out of the orchestrator. Match the existing design
+system first, then verify the changed route, story, or preview surface visually
+when one exists.
 
 ## Step 4: Implement In Tight Loops
 
@@ -103,7 +147,9 @@ For each meaningful edit:
 
 Use a task list only when it reduces risk: multiple files, dependencies, or several behavioral slices. For one- or two-file work, skip ceremony and implement directly.
 
-Use subagents only for clearly independent investigation or large implementation slices with low file overlap. Prefer the parent agent for product reasoning and final integration.
+Use subagents only for clearly independent investigation or implementation
+slices with low file overlap. Prefer the parent agent for product reasoning and
+final integration.
 
 ## Step 5: Test The Right Seam
 

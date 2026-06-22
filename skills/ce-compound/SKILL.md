@@ -379,7 +379,7 @@ Based on problem type, optionally invoke specialized agents to review the docume
 
 - **performance_issue** -> capture the measured hot path, scale assumption, and verification in the learning; use `performance-reviewer` only for code-backed follow-up review.
 - **security_issue** -> route explicit vulnerability or secure-default follow-up through the `security-review` / `security-best-practices` skills.
-- **database_issue** -> use `data-migration-reviewer` only when the learning includes migrations, backfills, schema snapshots, or persistent data transformations.
+- **database_issue** -> keep migration, backfill, schema snapshot, and persistent data transformation follow-up in the orchestrator unless a current migration specialist agent exists in the active agent shelf.
 - Any code-heavy issue -> always run `code-simplicity-reviewer` for minimal, clear examples. Structural concerns in the diff are already covered when the same work goes through `/ce-review` (maintainability persona).
 
 </parallel_tasks>
@@ -612,7 +612,7 @@ Based on problem type, these agents can enhance documentation:
 ### Specific Domain Experts
 - **performance-reviewer**: Reviews code-backed performance_issue follow-ups
 - **security-review / security-best-practices**: Review security_issue follow-ups
-- **data-migration-reviewer**: Reviews database_issue migrations, backfills, schema snapshots, and persistent data transforms
+- **Migration specialist agent when present**: Reviews database_issue migrations, backfills, schema snapshots, and persistent data transforms
 
 ### Enhancement & Research
 - **best-practices-researcher**: Enriches solution with industry best practices

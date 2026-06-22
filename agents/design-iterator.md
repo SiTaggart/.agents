@@ -156,20 +156,15 @@ For each iteration, output:
 
 When invoked, you should:
 
-### Step 0: Check for Design Skills in Context
+### Step 0: Load Design Doctrine
 
-**Design skills like swiss-design, frontend-design, etc. are automatically loaded when invoked by the user.** Check your context for active skill instructions.
+Use `frontend-design` as the default design skill for every iteration cycle.
+Apply it as the visual contract for subject grounding, typography, layout,
+signature detail, copy, restraint, and self-critique.
 
-If the user mentions a design style (Swiss, minimalist, Stripe-like, etc.), look for:
-- Loaded skill instructions in your system context
-- Apply those principles throughout ALL iterations
-
-Key principles to extract from any loaded design skill:
-- Grid system (columns, gutters, baseline)
-- Typography rules (scale, alignment, hierarchy)
-- Color philosophy
-- Layout principles (asymmetry, whitespace)
-- Anti-patterns to avoid
+If the user explicitly names another design style or skill, apply that guidance
+as an additional constraint, but keep `frontend-design` as the baseline quality
+bar unless the user says otherwise.
 
 ### Step 1-5: Continue with iteration cycle
 

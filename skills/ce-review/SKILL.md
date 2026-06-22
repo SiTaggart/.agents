@@ -102,6 +102,52 @@ Every pass uses this shared bar:
 - Give a specific fix direction.
 - Suppress anything that is merely preference, unsupported speculation, or a duplicate of another pass.
 
+### Context-Isolated Agent Routing
+
+For medium or large reviews, delegate the context-heavy passes to existing
+reviewer agents instead of loading every lens into the parent thread. The parent
+keeps review intent, severity, deduplication, and final verdict ownership.
+
+Dispatch the smallest useful set:
+
+- `correctness-reviewer` for product intent, logic, state transitions, async
+  ordering, error propagation, and edge cases.
+- `maintainability-reviewer` for traceability, data flow, coupling, naming,
+  abstraction debt, and broad code-shape concerns.
+- `code-simplicity-reviewer` when the implementation looks over-built, includes
+  scaffolding, or needs a final minimalism pass.
+- `project-standards-reviewer` for AGENTS.md/CLAUDE.md and local instruction
+  compliance.
+- `testing-reviewer` for changed-code test gaps, weak assertions, brittle
+  tests, and missing proof.
+- `react-test-architect` only when the review needs a broader React test
+  strategy, suite reshaping, or CI test-performance assessment.
+- `kieran-typescript-reviewer` for TypeScript diffs where type safety,
+  compile-time contracts, casts, nullability, helper boundaries, or TS-specific
+  maintainability are material.
+- `kieran-python-reviewer` for Python diffs.
+- `api-contract-reviewer` for API routes, request/response schemas,
+  serialization, versioning, exported type signatures, and public contracts.
+- `reliability-reviewer` for retries, timeouts, async handlers, background jobs,
+  health checks, circuit breakers, and failure modes.
+- `performance-reviewer` for query shapes, caching, I/O volume, hot paths,
+  loops over large data, bundle impact, or frequently rendered UI.
+- `previous-comments-reviewer` when an open PR has prior review comments or
+  review threads.
+- `julik-frontend-races-reviewer` for JavaScript, Stimulus, Turbo, DOM
+  lifecycle, or timing-sensitive frontend diffs.
+- `architecture-strategist` when the diff changes boundaries, service shape,
+  shared interfaces, module layering, or architectural direction.
+- `design-implementation-reviewer` when the task includes matching a Figma
+  design or visual implementation fidelity.
+- `adversarial-reviewer` for large or high-risk diffs where constructing
+  failure scenarios is likely to find issues the normal passes miss.
+
+Do not dispatch an agent solely because it exists. If a concern is small enough
+to evaluate in the parent context, run it inline. If an agent returns findings,
+deduplicate and re-check them against this skill's evidence bar before
+including them in the final review.
+
 ### Pass 1: Product Intent And Correctness
 
 Ask whether the implementation actually satisfies the intended product contract.

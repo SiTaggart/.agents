@@ -84,8 +84,8 @@ npx skills add vercel-labs/agent-skills \
 
 | Component  | Count |
 | ---------- | ----- |
-| Agents     | 40    |
-| Skills     | 55    |
+| Agents     | 30    |
+| Skills     | 60    |
 
 ## Operating Loops
 
@@ -94,25 +94,41 @@ The shelf is organized around a few tight loops rather than standalone skills:
 | Loop | Route |
 | ---- | ----- |
 | Explore and decide | `qmd` / Obsidian / `repoprompt` when broad codebase context matters -> `ce-brainstorm` -> `ce-grill` when branchy -> `document-review` when a requirements doc needs polish -> `ce-plan` |
-| Plan and build | `ce-plan` with `repoprompt` when broad -> `document-review` for markdown plans -> `ce-work` with early `code-taste` routing for TypeScript/React/code shape -> `ce-quality-gate`; fold in `frontend-design` for UI work |
-| Review and ship | `ce-review` on changed work -> `ce-simplify-code` when shape needs cleanup -> git skills for ops; fold in `code-taste` for maintainability judgment; `pr-review-canvas` for an interactive walkthrough of someone else's PR; `ce-thermo-nuclear-code-quality-review` when the change needs an unusually strict maintainability pass |
+| Plan and build | `ce-plan` with `repo-research-analyst` / `repoprompt` when broad -> `document-review` for markdown plans -> `ce-work` with early `code-taste` routing; delegate non-trivial frontend slices to `frontend-implementation-expert`; finish with `ce-quality-gate` |
+| Review and ship | `ce-review` on changed work, delegating medium/large passes to reviewer agents -> `ce-simplify-code` when shape needs cleanup -> git skills for ops; `pr-review-canvas` for an interactive walkthrough of someone else's PR; `ce-thermo-nuclear-code-quality-review` when the change needs an unusually strict maintainability pass |
 | Remember and reuse | `ce-compound` / `ce-compound-refresh` -> Obsidian or QMD for durable knowledge |
 | Debug and investigate | `ce-debug` -> `repoprompt` when broad context is needed -> `ce-work` -> `ce-review` |
 
+## Context Delegation
+
+Skills own loops. Agents own bounded, context-heavy phase work. Supporting
+skills provide specialist doctrine inside the delegated agent when that keeps
+the orchestrator smaller.
+
+Examples:
+
+- `ce-work` owns product contract, scope, final integration, proof, and final
+  report.
+- `frontend-implementation-expert` owns delegated React/UI implementation
+  slices and uses `frontend-design`, `code-taste`, and
+  `vercel-react-best-practices` inside its own context.
+- `ce-plan` owns the plan artifact and delegates codebase, Slack, web,
+  documentation, and flow research to specialist agents.
+- `ce-review` owns severity, deduplication, and verdict, while reviewer agents
+  isolate correctness, TypeScript, testing, reliability, performance, API, and
+  standards context for medium/large diffs.
+
 ## Agents
 
-### Review (18)
+### Review (15)
 
 | Agent                            | Description                                                     |
 | -------------------------------- | --------------------------------------------------------------- |
 | `adversarial-reviewer`           | Construct failure scenarios for large or high-risk diffs        |
 | `api-contract-reviewer`          | Review diffs touching API routes, types, or versioning for breaking changes |
 | `architecture-strategist`        | Analyze architectural decisions and compliance                  |
-| `cli-agent-readiness-reviewer`   | Review CLI source for AI agent readiness using severity rubric  |
-| `cli-readiness-reviewer`         | Review CLI command diffs for agent optimization                 |
 | `code-simplicity-reviewer`       | Final pass for simplicity and minimalism                        |
 | `correctness-reviewer`           | Review code for logic errors, edge cases, and state management bugs |
-| `data-migration-reviewer`        | Review migrations, schema changes, backfills, and data transforms |
 | `design-implementation-reviewer` | Verify UI implementations match Figma designs                   |
 | `julik-frontend-races-reviewer`  | Review JavaScript/Stimulus code for race conditions             |
 | `kieran-python-reviewer`         | Python code review with strict conventions                      |
@@ -124,38 +140,31 @@ The shelf is organized around a few tight loops rather than standalone skills:
 | `project-standards-reviewer`     | Audit changes against CLAUDE.md and AGENTS.md standards         |
 | `reliability-reviewer`           | Review error handling, retries, and failure modes for production reliability |
 
-### Research (9)
+### Research (8)
 
 | Agent                       | Description                                         |
 | --------------------------- | --------------------------------------------------- |
 | `best-practices-researcher` | Gather external best practices and examples         |
 | `framework-docs-researcher` | Research framework documentation and best practices |
 | `git-history-analyzer`      | Analyze git history and code evolution              |
-| `issue-intelligence-analyst`| Analyze GitHub issues for recurring themes and pain patterns |
 | `learnings-researcher`      | Search past solutions in .ai/solutions/ for institutional knowledge |
 | `repo-research-analyst`     | Research repository structure and conventions       |
 | `session-historian`         | Analyze past agent sessions across Claude Code / Codex / Cursor |
 | `slack-researcher`          | Research organizational context from Slack workspaces |
 | `web-researcher`            | Research external documentation and web references  |
 
-### Design (4)
+### Design (2)
 
 | Agent                            | Description                                                |
 | -------------------------------- | ---------------------------------------------------------- |
 | `design-iterator`                | Iteratively refine UI through systematic design iterations |
-| `figma-design-sync`              | Synchronize web implementations with Figma designs         |
 | `frontend-implementation-expert` | Implement frontend code changes in React applications      |
-| `ankane-readme-writer`           | Create READMEs following Ankane-style template             |
 
-### Development (7)
+### Development (3)
 
 | Agent                            | Description                                            |
 | -------------------------------- | ------------------------------------------------------ |
-| `codebase-pattern-finder`        | Find similar implementations and patterns in codebase  |
-| `debug-specialist`               | Troubleshoot errors, test failures, unexpected behavior|
-| `deployment-verification-agent`  | Produce Go/No-Go deployment checklists with rollback procedures |
 | `documentation-specialist`       | Create, update, and improve documentation              |
-| `implementation-architect`       | Break down requirements into technical plans           |
 | `react-test-architect`           | Design and implement React test strategies             |
 | `testing-reviewer`               | Review code for test coverage gaps and weak assertions  |
 
@@ -273,7 +282,7 @@ The shelf is organized around a few tight loops rather than standalone skills:
 | ----------------- | -------------------------------------------------------- |
 | `imagegen`        | Generate or edit images via the OpenAI Image API         |
 
-> **Browser automation:** install the standalone `vercel-labs/agent-browser` plugin when using design workflows that still depend on it. `design-iterator`, `design-implementation-reviewer`, and `figma-design-sync` expect the `agent-browser` CLI to be on your `$PATH`.
+> **Browser automation:** install the standalone `vercel-labs/agent-browser` plugin when using design workflows that still depend on it. `design-iterator` and `design-implementation-reviewer` expect the `agent-browser` CLI to be on your `$PATH`.
 
 ## Key Files
 
