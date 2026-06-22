@@ -110,28 +110,36 @@ function renderDiff(target, diffInput) {
 
   var dels = [], adds = [], parsed = [];
   var oL = 0, nL = 0, pD = false, pA = false;
+  var oldRemaining = 0, newRemaining = 0;
   for (var pi = 0; pi < wsOut.length; pi++) {
     var line = wsOut[pi];
-    if (line.startsWith('--- ') || line.startsWith('+++ ') || line.startsWith('diff ')) continue;
+    var inHunk = oldRemaining > 0 || newRemaining > 0;
+    if (!inHunk && (line.startsWith('--- ') || line.startsWith('+++ ') || line.startsWith('diff '))) continue;
     if (line.startsWith('@@')) {
-      var hm = line.match(/@@ -(\d+)(?:,\d+)? \+(\d+)/);
-      if (hm) { oL = parseInt(hm[1]); nL = parseInt(hm[2]); }
+      var hm = line.match(/@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))?/);
+      if (hm) {
+        oL = parseInt(hm[1]);
+        oldRemaining = parseInt(hm[2] || '1');
+        nL = parseInt(hm[3]);
+        newRemaining = parseInt(hm[4] || '1');
+      }
       parsed.push({ type: 'hunk', text: line }); pD = false; pA = false; continue;
     }
     var hidden = isImport(line);
     if (line.startsWith('+')) {
       var ae = { type:'add', code:line.slice(1), newLine:nL, consecutive:pA, idx:parsed.length, hidden:hidden };
       if (!hidden) adds.push(ae);
-      parsed.push(ae); nL++;
+      parsed.push(ae); nL++; if (newRemaining > 0) newRemaining--;
       if (!hidden) { pA = true; pD = false; }
     } else if (line.startsWith('-')) {
       var de = { type:'del', code:line.slice(1), oldLine:oL, consecutive:pD, idx:parsed.length, hidden:hidden };
       if (!hidden) dels.push(de);
-      parsed.push(de); oL++;
+      parsed.push(de); oL++; if (oldRemaining > 0) oldRemaining--;
       if (!hidden) { pD = true; pA = false; }
     } else {
       var c = line.startsWith(' ') ? line.slice(1) : line;
       parsed.push({ type:'ctx', code:c, oldLine:oL, newLine:nL, hidden:hidden }); oL++; nL++;
+      if (oldRemaining > 0) oldRemaining--; if (newRemaining > 0) newRemaining--;
       if (!hidden) { pD = false; pA = false; }
     }
   }
