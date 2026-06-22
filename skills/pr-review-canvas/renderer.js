@@ -12,8 +12,8 @@ function isImport(line) {
   return s.startsWith('import ') || s.startsWith('import{') || s.startsWith('} from ');
 }
 
-function isWhitespaceOnly(del, add) {
-  return del.replace(/^-/, '').replace(/\s/g, '') === add.replace(/^\+/, '').replace(/\s/g, '');
+function isTrailingWhitespaceOnly(del, add) {
+  return del.replace(/^-/, '').replace(/[ \t]+$/, '') === add.replace(/^\+/, '').replace(/[ \t]+$/, '');
 }
 
 function esc(s) {
@@ -92,25 +92,20 @@ function renderDiff(target, diffInput) {
   var lines = toLines(diffInput);
   if (!lines.length) { el.innerHTML = '<div style="padding:12px;color:#777;font-size:12px;">No diff data</div>'; return; }
 
-  var filtered = lines.filter(function(l) {
-    if (l.startsWith('--- ') || l.startsWith('+++ ') || l.startsWith('@@') || l.startsWith('diff ')) return true;
-    return !isImport(l);
-  });
-
   var wsOut = [];
-  for (var wi = 0; wi < filtered.length; wi++) {
-    if (filtered[wi].startsWith('-')) {
-      var dr = [filtered[wi]], wj = wi+1;
-      while (wj < filtered.length && filtered[wj].startsWith('-')) { dr.push(filtered[wj]); wj++; }
+  for (var wi = 0; wi < lines.length; wi++) {
+    if (lines[wi].startsWith('-')) {
+      var dr = [lines[wi]], wj = wi+1;
+      while (wj < lines.length && lines[wj].startsWith('-')) { dr.push(lines[wj]); wj++; }
       var ar = [], wk = wj;
-      while (wk < filtered.length && filtered[wk].startsWith('+')) { ar.push(filtered[wk]); wk++; }
+      while (wk < lines.length && lines[wk].startsWith('+')) { ar.push(lines[wk]); wk++; }
       if (dr.length === ar.length && dr.length > 0) {
         var allWs = true;
-        for (var wc = 0; wc < dr.length; wc++) { if (!isWhitespaceOnly(dr[wc], ar[wc])) { allWs = false; break; } }
+        for (var wc = 0; wc < dr.length; wc++) { if (!isTrailingWhitespaceOnly(dr[wc], ar[wc])) { allWs = false; break; } }
         if (allWs) { for (var wx = 0; wx < ar.length; wx++) wsOut.push(' ' + ar[wx].slice(1)); wi = wk-1; continue; }
       }
     }
-    wsOut.push(filtered[wi]);
+    wsOut.push(lines[wi]);
   }
 
   var dels = [], adds = [], parsed = [];
@@ -123,15 +118,21 @@ function renderDiff(target, diffInput) {
       if (hm) { oL = parseInt(hm[1]); nL = parseInt(hm[2]); }
       parsed.push({ type: 'hunk', text: line }); pD = false; pA = false; continue;
     }
+    var hidden = isImport(line);
     if (line.startsWith('+')) {
-      var ae = { type:'add', code:line.slice(1), newLine:nL, consecutive:pA, idx:parsed.length };
-      adds.push(ae); parsed.push(ae); nL++; pA = true; pD = false;
+      var ae = { type:'add', code:line.slice(1), newLine:nL, consecutive:pA, idx:parsed.length, hidden:hidden };
+      if (!hidden) adds.push(ae);
+      parsed.push(ae); nL++;
+      if (!hidden) { pA = true; pD = false; }
     } else if (line.startsWith('-')) {
-      var de = { type:'del', code:line.slice(1), oldLine:oL, consecutive:pD, idx:parsed.length };
-      dels.push(de); parsed.push(de); oL++; pD = true; pA = false;
+      var de = { type:'del', code:line.slice(1), oldLine:oL, consecutive:pD, idx:parsed.length, hidden:hidden };
+      if (!hidden) dels.push(de);
+      parsed.push(de); oL++;
+      if (!hidden) { pD = true; pA = false; }
     } else {
       var c = line.startsWith(' ') ? line.slice(1) : line;
-      parsed.push({ type:'ctx', code:c, oldLine:oL, newLine:nL }); oL++; nL++; pD = false; pA = false;
+      parsed.push({ type:'ctx', code:c, oldLine:oL, newLine:nL, hidden:hidden }); oL++; nL++;
+      if (!hidden) { pD = false; pA = false; }
     }
   }
 
@@ -139,7 +140,9 @@ function renderDiff(target, diffInput) {
   var rows = [];
   for (var ri = 0; ri < parsed.length; ri++) {
     var p = parsed[ri];
-    if (p.type === 'hunk') {
+    if (p.hidden) {
+      continue;
+    } else if (p.type === 'hunk') {
       rows.push('<tr class="diff-hunk"><td class="diff-ln"></td><td class="diff-ln"></td><td class="diff-code">' + esc(p.text) + '</td></tr>');
     } else if (p.type === 'add') {
       var ai2 = -1; for (var fa=0;fa<adds.length;fa++) if(adds[fa].idx===p.idx){ai2=fa;break;}

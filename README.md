@@ -36,8 +36,8 @@ those are no longer synchronized surfaces.
 root `AGENTS.md`). Generated target trees under `.generated/` and any mirrored
 copies under `~/.config/opencode`, `~/.claude`, or `~/.codex` are overwritten
 by `bun run sync` — edits made there are lost. Make the change in the
-canonical file, then run `bun run sync` (or `bun run sync opencode claude codex`
-to target specific harnesses) to propagate.
+canonical file, then run `bun run sync` to propagate all targets, or
+`bun run sync opencode` for one target.
 
 Render without linking:
 

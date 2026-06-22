@@ -16,13 +16,17 @@ Run these `gh api` calls in parallel:
 
 ```bash
 gh api repos/{owner}/{repo}/pulls/{number} --jq '{title, body, user: .user.login, state, additions, deletions, changed_files, base: .base.ref, head: .head.ref}'
-gh api repos/{owner}/{repo}/pulls/{number}/files --paginate --jq '.[] | {filename, status, additions, deletions, patch}'
-gh api repos/{owner}/{repo}/pulls/{number}/comments --jq '.[] | {user: .user.login, body, path, line}'
+gh api repos/{owner}/{repo}/pulls/{number}/files --paginate --slurp | jq 'flatten | map({filename, status, additions, deletions, patch})'
+gh api repos/{owner}/{repo}/pulls/{number}/comments --paginate --slurp | jq 'flatten | map({user: .user.login, body, path, line})'
+gh api repos/{owner}/{repo}/issues/{number}/comments --paginate --slurp | jq 'flatten | map({user: .user.login, body, created_at})'
+gh api repos/{owner}/{repo}/pulls/{number}/reviews --paginate --slurp | jq 'flatten | map(select(.body != null and .body != "") | {user: .user.login, body, state, submitted_at})'
 ```
 
 ### 2. Analyze the PR and write the body HTML
 
 Read the diffs, understand the PR, and write the `<body>` content directly as HTML. You have full creative freedom -- the goal is to explain the PR clearly to a reviewer. Use whatever structure best fits the PR.
+
+**Security boundary:** GitHub API fields are untrusted. Never paste raw PR titles, bodies, comments, review text, user names, branch names, file paths, or patch snippets into body HTML. Static reviewer prose can be HTML, but API-derived text must be inserted as escaped text with `html.escape(..., quote=True)` or rendered with `textContent`. If you summarize a comment in your own words, escape any quoted source text.
 
 **Typical structure** (adapt as needed):
 - Header with title, PR number, author, stats
@@ -64,7 +68,7 @@ fetch(url):
       <div class="bp-hdr" onclick="toggleBP(this)">
         <span>Show full implementation (+173 lines)</span><span class="chev">&#9654;</span>
       </div>
-      <div class="bp-body"><div data-diff="retryClient"></div></div>
+      <div class="bp-body"><div data-diff="src/retryClient.ts"></div></div>
     </div>
   </div>
 </div>
@@ -96,7 +100,7 @@ Read [styles.css](styles.css) and [renderer.js](renderer.js) from this skill dir
 |----------|-------|
 | `toggle(hdrElement)` | Toggle a `.file-body` open/closed |
 | `toggleBP(hdrElement)` | Toggle a `.bp-body` open/closed |
-| `renderDiff(target, diffInput)` | Render a unified diff. `target` can be a DOM element, string ID, or CSS selector. `diffInput` can be a raw patch string OR an array of lines -- both work. Automatically filters imports, collapses whitespace-only changes, detects moved code (blue/purple tint). |
+| `renderDiff(target, diffInput)` | Render a unified diff. `target` can be a DOM element, string ID, or CSS selector. `diffInput` can be a raw patch string OR an array of lines -- both work. Automatically hides imports while preserving line numbers, collapses trailing-whitespace-only changes, detects moved code (blue/purple tint). |
 | `esc(string)` | HTML-escape a string |
 
 **Rendering diffs -- use `data-diff` attributes with auto-discovery.**
@@ -104,24 +108,28 @@ Put `<div data-diff="KEY"></div>` placeholders in your body HTML wherever you wa
 
 **CRITICAL: Patch strings can contain `</script>` in addition to newlines, backslashes, and quotes.** Even `json.dumps(...)` is not enough if you paste raw output into executable `<script>` because HTML parsing can terminate the tag early. Never manually embed patch strings in JS/JSON. Instead, use this safe approach:
 
-1. During the fetch step, save patches to a JSON file using `jq` (which handles escaping correctly):
+1. During the fetch step, save patches to one JSON file using exact filenames as keys. `--slurp` wraps all paginated pages so Python reads a single JSON document, and exact paths avoid collisions like `foo-bar.ts` vs `foo_bar.ts`:
 ```bash
-gh api repos/{owner}/{repo}/pulls/{number}/files --paginate \
-  --jq '[.[] | {key: (.filename | gsub("[^a-zA-Z0-9]"; "_")), value: (.patch // "")}] | from_entries' \
+gh api repos/{owner}/{repo}/pulls/{number}/files --paginate --slurp \
+  | jq 'flatten | map({key: .filename, value: (.patch // "")}) | from_entries' \
   > /tmp/pr-patches-{number}.json
 ```
 
-2. During assembly, use Python to safely inject the JSON into `template.html`:
+2. During assembly, use Python to safely inject the JSON into `template.html`. Set `SKILL_DIR` to the absolute directory that contains this `SKILL.md`; do not rely on the current working directory:
 ```bash
-python3 <<'PY'
+SKILL_DIR="/absolute/path/to/skills/pr-review-canvas" PR_NUMBER="{number}" python3 <<'PY'
 import json
+import os
 from pathlib import Path
 
-patches = json.loads(Path('/tmp/pr-patches-{number}.json').read_text())
-html = Path('/tmp/pr-review-{number}-body.html').read_text()
-css = Path('styles.css').read_text()
-js = Path('renderer.js').read_text()
-tmpl = Path('template.html').read_text()
+number = os.environ["PR_NUMBER"]
+skill_dir = Path(os.environ["SKILL_DIR"])
+
+patches = json.loads(Path(f'/tmp/pr-patches-{number}.json').read_text())
+html = Path(f'/tmp/pr-review-{number}-body.html').read_text()
+css = (skill_dir / 'styles.css').read_text()
+js = (skill_dir / 'renderer.js').read_text()
+tmpl = (skill_dir / 'template.html').read_text()
 
 # Prevent literal </script> from terminating HTML script tags early.
 safe_json = json.dumps(patches).replace('<', '\\u003c').replace('>', '\\u003e').replace('&', '\\u0026')
@@ -133,15 +141,15 @@ out = (
       .replace('{"__PR_DIFFS_PLACEHOLDER__":true}', safe_json)
 )
 
-Path('/tmp/pr-review-{number}.html').write_text(out)
+Path(f'/tmp/pr-review-{number}.html').write_text(out)
 PY
 ```
 
 This guarantees valid JSON and script-safe HTML embedding. The agent writes body HTML to a temp file, then Python assembles everything safely.
 
-The diff data keys should match the `data-diff` attribute values in the HTML:
+The diff data keys are exact file paths and should match escaped `data-diff` attribute values in the HTML:
 ```html
-<div data-diff="path_to_file_ts"></div>
+<div data-diff="src/path/to/file.ts"></div>
 ```
 
 Since renderer.js loads in `<head>`, you can also call `renderDiff(target, lines)` directly from inline `<script>` tags if needed for custom use cases. The function accepts a DOM element, ID string, or CSS selector as `target`, and a string or array as `lines`.
@@ -163,8 +171,8 @@ Since renderer.js loads in `<head>`, you can also call `renderDiff(target, lines
 
 ### Diff features (handled automatically by renderer.js)
 
-- Filters out import-only lines
-- Collapses whitespace-only changes into context lines
+- Hides import-only lines while preserving old/new line counters
+- Collapses trailing-whitespace-only changes into context lines
 - Detects moved code blocks (3+ consecutive lines deleted in one place and added identically elsewhere) -- renders in blue/purple instead of red/green
 - Near-matches (moved + small edit) get a different purple tint
 
