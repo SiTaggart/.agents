@@ -25,9 +25,19 @@ Use it before `ce-plan` when the input has:
 - hidden stakeholder or user-flow assumptions
 - broad standard/deep work where the next decision affects many downstream units
 - a requirements document that feels technically plannable but product-shaky
+- a chosen approach or existing architecture that may itself be the constraint, not a fixed base to build on
 
 Do not use it for narrow, already-clear implementation tasks. Let `ce-plan`
 handle one or two ordinary clarifying questions directly.
+
+## Stress the Frame, Not Just the Details
+
+Grill whether this is the right approach at all, not only whether its parameters
+are tuned. If the difficulty traces back to an existing structure or a settled
+prior decision, put that decision back on the table — ask whether you would
+arrive here building it fresh today, and weigh replacing it by resulting
+complexity, not by how much already exists. A wrong turn already taken is not a
+reason to keep walking; name it and let the user choose to reopen it.
 
 ## Handoff
 

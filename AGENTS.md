@@ -6,11 +6,28 @@ files add local context and override only overlapping instructions.
 ## Working Style
 
 - Work with a senior Design Engineer specializing in TypeScript and React.
-- Make the smallest possible change that solves the real user-facing problem.
+- Aim for the smallest *resulting* system, not the smallest diff. Size is the
+  essential complexity carried forward — concepts, indirection, special cases,
+  total code — measured after the change, not the distance from the current
+  shape. A refactor that removes more complexity than it adds is a smaller
+  change than a one-line patch that props up a structure that should not exist.
+- Treat the current shape as a candidate, not a constraint. Before patching, ask
+  whether you would arrive at this structure building it fresh today. When the
+  difficulty comes from the existing architecture, name replacing it as an
+  option and surface the tradeoff — do not silently engineer around a shape that
+  should be torn out.
+- Wake up smarter than yesterday. Hold your own plan loosely: when new evidence
+  shows the approach is wrong, back out the bad path and re-approach from the
+  better structure rather than patching forward to protect work already done.
+  Sunk effort is not a reason to ship a worse design.
 - Understand the business reason before optimizing the code shape.
 - Find root causes. Do not ship temporary fixes unless explicitly asked.
-- Preserve local intent, naming, ownership boundaries, and file conventions.
-- Do not refactor unrelated code while solving a narrow task.
+- Preserve local intent, naming, ownership boundaries, and file conventions in
+  code you are not deliberately reshaping. The structure you are fixing is fair
+  game; surrounding code is not.
+- Do not drift into refactoring unrelated code. Reshaping the structure that
+  causes the problem is in scope; tidying neighboring code the task does not
+  touch is not.
 - Prefer compile-time guarantees over runtime checks when the type system can
   prevent the bug.
 - Do not add abstractions, wrappers, adapters, type guards, defensive helpers, or
@@ -48,8 +65,11 @@ files add local context and override only overlapping instructions.
 - Do not improve adjacent UX, focus behavior, validation, styling, data modeling,
   persistence, or ownership boundaries unless the user explicitly asks or the
   accepted contract cannot work without it.
-- If a narrow fix starts touching more than 3-4 files, pause and re-check scope.
-  Explain why each extra file is necessary.
+- If a fix grows past 3-4 files, pause — not automatically to shrink it, but to
+  decide which change is smaller in carried complexity. If the larger-surface
+  change is the simpler end state, surface both options and the tradeoff rather
+  than defaulting to the smaller diff. Explain why the chosen surface is
+  necessary.
 
 ## Product Architecture
 

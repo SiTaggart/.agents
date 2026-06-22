@@ -39,6 +39,7 @@ This skill does not implement code. It explores, clarifies, and documents decisi
 4. **Keep implementation out of the requirements doc by default** - Do not include libraries, schemas, endpoints, file layouts, or code-level design unless the brainstorm itself is inherently about a technical or architectural change.
 5. **Right-size the artifact** - Simple work gets a compact requirements document or brief alignment. Larger work gets a fuller document. Do not add ceremony that does not help planning.
 6. **Apply YAGNI to carrying cost, not coding effort** - Prefer the simplest approach that delivers meaningful value. Avoid speculative complexity and hypothetical future-proofing, but low-cost polish or delight is worth including when its ongoing cost is small and easy to maintain.
+7. **Question the frame, not just fill it in** - When the idea builds on an existing system or a prior decision, treat that base as a candidate, not a fixed constraint. If the existing shape is the source of the difficulty, put replacing it on the table and weigh it by resulting complexity, not by how much already exists. A prior decision — even one the user or an earlier session made — can be reopened when evidence says it was wrong. Surface the reframe; do not quietly plan around a base you suspect is broken.
 
 ## Interaction Rules
 

@@ -14,7 +14,8 @@ language-specific preferences.
 - Follow local project conventions first.
 - Follow explicit user instructions when they conflict with these defaults.
 - Apply these rules harder to new code than to old code around it.
-- Prefer the smallest change that improves correctness, traceability, or safety.
+- Prefer the change that yields the smallest resulting system — least complexity
+  carried forward — over the one with the smallest diff.
 
 ## Early Routing
 
@@ -43,6 +44,11 @@ route happened, not discover the architecture for the first time.
 
 ## Smallest Change Bias
 
+"Smallest" means the smallest resulting system — least complexity carried
+forward — not the smallest diff against the current shape. The bullets below
+guard against over-building; the last guards against the opposite failure:
+propping up a structure that should be replaced.
+
 - Prefer the direct edit that satisfies the current contract.
 - Do not introduce a helper, wrapper, adapter, lookup, config layer, type guard,
   or defensive branch unless it removes current duplication, names a real
@@ -58,6 +64,11 @@ route happened, not discover the architecture for the first time.
   typed values inward.
 - Inline simple one-use logic unless extracting it makes the owner boundary,
   invariant, or test seam clearer.
+- Do not prop up a shape that should be replaced. When a fix only fits by adding
+  a special case, a flag, or a workaround to structure that is itself the
+  problem, replacing that structure is the smaller change even when the diff is
+  larger. Name it and surface the tradeoff rather than patching the local
+  minimum.
 
 ## TypeScript And React
 

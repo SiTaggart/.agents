@@ -118,6 +118,8 @@ Use this decision order:
 3. Does this need UI behavior, backend/request behavior, URL/persistence behavior, or test harness changes?
 4. Would a proposed abstraction remove real complexity, or is it only packaging?
 
+Weigh the clean-slate option alongside the direct fix: would building this fresh produce a simpler result than fitting the change into the current shape? When the existing structure is the source of the difficulty, treat replacing it as a real candidate and compare by resulting complexity — concepts, indirection, special cases, total code carried forward — not by diff size. If the larger-surface change is the simpler end state, surface both options and the tradeoff before committing.
+
 Pause before crossing into adjacent UX, validation, focus behavior, styling, data modeling, persistence, or infrastructure. Ask the user if that broader contract is actually desired.
 
 Before implementation, decide whether the change touches TypeScript contracts,
@@ -144,6 +146,8 @@ For each meaningful edit:
 2. Apply the narrow change.
 3. Read back the changed lines.
 4. Run the most relevant focused check before moving far away from the file.
+
+If a loop reveals the approach is wrong — the seam fights you, the fix needs growing special cases, or a simpler structure becomes visible — stop and back out rather than patching forward. Abandoning a half-built path is cheaper than shipping around it. Re-approach from the better structure; work already done is not a reason to keep a worse design.
 
 Use a task list only when it reduces risk: multiple files, dependencies, or several behavioral slices. For one- or two-file work, skip ceremony and implement directly.
 
