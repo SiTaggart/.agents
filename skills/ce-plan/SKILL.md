@@ -41,7 +41,7 @@ as an assumption.
 
 For broad, unfamiliar, or cross-module software work, use `repoprompt` context
 building before finalizing the plan. Fold the result into owner boundaries,
-existing patterns, data flow, and tests. Do not let RepoPrompt widen the
+existing patterns, data flow, and tests. Do not let RepoPromptCE widen the
 accepted product contract.
 
 ## Interaction Method

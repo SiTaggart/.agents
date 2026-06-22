@@ -1,6 +1,6 @@
 ---
 name: ce-compound-refresh
-description: Refresh stale learning and pattern docs under .ai/solutions/ by reviewing them against the current codebase, then updating, consolidating, or deleting drifted ones. Use when the user asks to "refresh my learnings", "audit .ai/solutions/", "clean up stale learnings", or "consolidate overlapping docs", or when ce-compound flags an older doc as superseded. Do not trigger for general refactor, debugging, or code-review work unless the user has explicitly pointed at .ai/solutions/.
+description: Refresh stale .ai/solutions learnings against current code. Use for "refresh my learnings", audit stale learnings, or consolidate overlapping docs.
 argument-hint: "[optional: scope hint — directory, filename, module, or keyword] [mode:headless] "
 ---
 

@@ -1,272 +1,55 @@
 ---
 name: frontend-design
-description: 'Build web interfaces with genuine design quality, not AI slop. Use for any frontend work - landing pages, web apps, dashboards, admin panels, components, interactive experiences. Activates for both greenfield builds and modifications to existing applications. Detects existing design systems and respects them. Covers composition, typography, color, motion, and copy. Verifies results via screenshots before declaring done.'
+description: Guidance for distinctive, intentional visual design when building new UI or reshaping an existing one. Helps with aesthetic direction, typography, and making choices that don't read as templated defaults.
+license: Complete terms in LICENSE.txt
 ---
 
 # Frontend Design
 
-Guide creation of distinctive, production-grade frontend interfaces that avoid generic AI aesthetics. This skill covers the full lifecycle: detect what exists, plan the design, build with intention, and verify visually.
+Approach this as the design lead at a small studio known for giving every client a visual identity that could not be mistaken for anyone else's. This client has already rejected proposals that felt templated, and is paying for a distinctive point of view: make deliberate, opinionated choices about palette, typography, and layout that are specific to this brief, and take one real aesthetic risk you can justify.
 
-## Loop Role
+## Ground it in the subject
 
-`frontend-design` is the canonical design guide, not a separate process island.
-Fold it into:
+If the brief does not pin down what the product or subject is, pin it yourself before designing: name one concrete subject, its audience, and the page's single job, and state your choice. If there's any information in your memory about the human's preferences, context about what they're building, or designs you've made before – use that as a hint. The subject's own world, its materials, instruments, artifacts, and vernacular, is where distinctive choices come from. Build with the brief's real content and subject matter throughout.
 
-- `ce-brainstorm` when product shape, workflow, or UI states are being decided
-- `ce-plan` when implementation units touch screens, components, responsive
-  behavior, accessibility, or browser proof
-- `ce-work` while building frontend changes
-- `ce-review` when reviewing UI diffs for taste and product fit
+## Design principles
 
-In existing apps, match the product's design system before applying this skill's
-greenfield defaults.
+For web designs, the hero is a thesis. Open with the most characteristic thing in the subject's world, in whatever form makes sense for it: a headline, an image, an animation, a live demo, an interactive moment. Be deliberate with your choice: a big number with a small label, supporting stats, and a gradient accent is the template answer, only use if that's truly the best option.
 
-## Authority Hierarchy
+Typography carries the personality of the page. Pair the display and body faces deliberately, not the same families you would reach for on any other project, and set a clear type scale with intentional weights, widths, and spacing. Make the type treatment itself a memorable part of the design, not a neutral delivery vehicle for the content.
 
-Every rule in this skill is a default, not a mandate.
+Structure is information. Structural devices, numbering, eyebrows, dividers, labels, should encode something true about the content, not decorate it. Many generic designs use numbered markers (01 / 02 / 03), but that's only appropriate if the content actually is a sequence - like a real process or a typed timeline where order carries information the reader needs. Question if choices like numbered markers actually make sense before incorporating them.
 
-1. **Existing design system / codebase patterns** -- highest priority, always respected
-2. **User's explicit instructions** -- override skill defaults
-3. **Skill defaults** -- apply in greenfield work or when the user asks for design guidance
+Leverage motion deliberately. Think about where and if animation can serve the subject: a page-load sequence, a scroll-triggered reveal, hover micro-interactions, ambient atmosphere. An orchestrated moment usually lands harder than scattered effects; choose what the direction calls for. However, sometimes less is more, and extra animation contributes to the feeling that the design is AI-generated.
 
-When working in an existing codebase with established patterns, follow those patterns. When the user specifies a direction that contradicts a default, follow the user.
+Match complexity to the vision. Maximalist directions need elaborate execution; minimal directions need precision in spacing, type, and detail. Elegance is executing the chosen vision well.
 
-## Workflow
+Consider written content carefully. Often a design brief may not contain real content, and it's up to you to come up with copy. Copy can make a design feel as templated as the design itself. See the below section on writing for more guidance.
 
-```
-Detect context -> Plan the design -> Build -> Verify visually
-```
+## Process: brainstorm, explore, plan, critique, build, critique again
 
----
+For calibration: AI-generated design right now clusters around three looks: (1) a warm cream background (near #F4F1EA) with a high-contrast serif display and a terracotta accent; (2) a near-black background with a single bright acid-green or vermilion accent; (3) a broadsheet-style layout with hairline rules, zero border-radius, and dense newspaper-like columns. All three are legitimate for some briefs, but they are defaults rather than choices, and they appear regardless of subject. Where the brief pins down a visual direction, follow it exactly — the brief's own words always win, including when it asks for one of these looks. Where it leaves an axis free, don't spend that freedom on one of these defaults. Just like a human designer who's hired, there's often a careful balance between doing what you're good at and taking each project as a chance to experiment and learn.
 
-## Layer 0: Context Detection
+Work in two passes. First, brainstorm a short design plan based on the human's design brief: create a compact token system with color, type, layout, and signature. Color: describe the palette as 4–6 named hex values. Type: the typefaces for 2+ roles (a characterful display face that's used with restraint, a complementary body face, and a utility face for captions or data if needed). Layout: a layout concept, using one-sentence prose descriptions and ASCII wireframes to ideate and compare. Signature: the single unique element this page will be remembered by that embodies the brief in an appropriate way.
 
-Before any design work, examine the codebase for existing design signals. This determines how much of the skill's opinionated guidance applies.
+Then review that plan against the brief before building: if any part of it reads like the generic default you would produce for any similar page (work through a similar prompt to see if you arrive somewhere similar) rather than a choice made for this specific brief — revise that part, say what you changed and why. Only after you've confirmed the relative uniqueness of your design plan should you start to write the code, following the revised plan exactly and deriving every color and type decision from it.
 
-### What to Look For
+When writing the code, be careful of structuring your CSS selector specificities. It's easy to generate CSS classes that cancel each other out (especially with a type-based selector like .section and a element-based selector like .cta). This can happen often with paddings/margins between sections.
 
-- **Design tokens / CSS variables**: `--color-*`, `--spacing-*`, `--font-*` custom properties, theme files
-- **Component libraries**: shadcn/ui, Material UI, Chakra, Ant Design, Radix, or project-specific component directories
-- **CSS frameworks**: `tailwind.config.*`, `styled-components` theme, Bootstrap imports, CSS modules with consistent naming
-- **Typography**: Font imports in HTML/CSS, `@font-face` declarations, Google Fonts links
-- **Color palette**: Defined color scales, brand color files, design token exports
-- **Animation libraries**: Framer Motion, GSAP, anime.js, Motion One, Vue Transition imports
-- **Spacing / layout patterns**: Consistent spacing scale usage, grid systems, layout components
+Try to do a lot of this planning and iteration in your thinking, and only show ideas to the user when you have higher confidence it'll delight them.
 
-Use the platform's native file-search and content-search tools (e.g., Glob/Grep in Claude Code) to scan for these signals. Do not use shell commands for routine file exploration.
+## Restraint and self-critique
 
-### Mode Classification
+Spend your boldness in one place. Let the signature element be the one memorable thing, keep everything around it quiet and disciplined, and cut any decoration that does not serve the brief. Not taking a risk can be a risk itself! Build to a quality floor without announcing it: responsive down to mobile, visible keyboard focus, reduced motion respected. Critique your own work as you build, taking screenshots if your environment supports it – a picture is worth 1000 tokens. Consider Chanel's advice: before leaving the house, take a look in the mirror and remove one accessory. Human creators have memory and always try to do something new, so if you have a space to quickly jot down notes about what you've tried, it can help you in future passes.
 
-Based on detected signals, choose a mode:
+## More on writing in design
 
-- **Existing system** (4+ signals across multiple categories): Defer to it. The skill's aesthetic opinions (typography, color, motion) yield to the established system. Structural guidance (composition, copy, accessibility, verification) still applies.
-- **Partial system** (1-3 signals): Follow what exists; apply skill defaults only for areas where no convention was detected. For example, if Tailwind is configured but no component library exists, follow the Tailwind tokens and apply skill guidance for component structure.
-- **Greenfield** (no signals detected): Full skill guidance applies.
-- **Ambiguous** (signals are contradictory or unclear): Ask the user before proceeding.
+Words appear in a design for one reason: to make it easier to understand, and therefore easier to use. They are design material, not decoration. Bring the same intentionality to copy that you would bring to spacing and color. Before writing anything, ask what the design needs to say, and how it can best be said to help the person navigate the experience.
 
-### Asking the User
+Write from the end user's side of the screen. Name things by what people control and recognize, never by how the system is built. A person manages notifications, not webhook config. Describe what something does in plain terms rather than selling it. Being specific is always better than being clever.
 
-When context is ambiguous, use the platform's blocking question tool: `AskUserQuestion` in Claude Code (call `ToolSearch` with `select:AskUserQuestion` first if its schema isn't loaded), `request_user_input` in Codex, `ask_user` in Gemini, `ask_user` in Pi (requires the `pi-ask-user` extension). Fall back to presenting options in chat only when no blocking tool exists in the harness or the call errors (e.g., Codex edit modes) — not because a schema load is required. Never silently skip. If the user declines to pick, assume "partial" mode and proceed conservatively.
+Use active voice as default. A control should say exactly what happens when it's used: "Save changes," not "Submit." An action keeps the same name through the whole flow, so the button that says "Publish" produces a toast that says "Published." The vocabulary of an interface is the signposting for someone navigating the product. Cohesion and consistency are how people learn their way around.
 
-Example question: "I found [detected signals]. Should I follow your existing design patterns or create something distinctive?"
+Treat failure and emptiness as moments for direction, not mood. Explain what went wrong and how to fix it, in the interface's voice rather than a person's. Errors don't apologize, and they are never vague about what happened. An empty screen is an invitation to act.
 
----
-
-## Layer 1: Pre-Build Planning
-
-Before writing code, write three short statements. These create coherence and give the user a checkpoint to redirect before code is written.
-
-1. **Visual thesis** -- one sentence describing the mood, material, and energy
-   - Greenfield examples: "Clean editorial feel, lots of whitespace, serif headlines, muted earth tones" or "Dense data-forward dashboard, monospace accents, dark surface hierarchy"
-   - Existing codebase: Describe the *existing* aesthetic and how the new work will extend it
-
-2. **Content plan** -- what goes on the page and in what order
-   - Landing page: hero, support, detail, CTA
-   - App: primary workspace, nav, secondary context
-   - Component: what states it has, what it communicates
-
-3. **Interaction plan** -- 2-3 specific motion ideas that change the feel
-   - Not "add animations" but "staggered fade-in on hero load, parallax on scroll between sections, scale-up on card hover"
-   - In an existing codebase, describe only the interactions being added, using the existing motion library
-
----
-
-## Layer 2: Design Guidance Core
-
-These principles apply across all context types. Each yields to existing design systems and user instructions per the authority hierarchy.
-
-### Typography
-
-- Choose distinctive, characterful fonts. Avoid the usual suspects (Inter, Roboto, Arial, system defaults) unless the existing codebase uses them.
-- Two typefaces maximum without a clear reason for more. Pair a display/headline font with a body font.
-- *Yields to existing font choices when detected in Layer 0.*
-
-### Color & Theme
-
-- Commit to a cohesive palette using CSS variables. A dominant color with sharp accents outperforms timid, evenly-distributed palettes.
-- No purple-on-white bias, no dark-mode bias. Vary between light and dark based on context.
-- One accent color by default unless the product already has a multi-color system.
-- *Yields to existing color tokens when detected.*
-
-### Composition
-
-- Start with composition, not components. Treat the first viewport as a poster, not a document.
-- Use whitespace, alignment, scale, cropping, and contrast before adding chrome (borders, shadows, cards).
-- Default to cardless layouts. Cards are allowed when they serve as the container for a user interaction (clickable item, draggable unit, selectable option). If removing the card styling would not hurt comprehension, it should not be a card.
-- *All composition rules are defaults. The user can override them.*
-
-### Motion
-
-- Ship 2-3 intentional motions for visually-led work: one entrance sequence, one scroll-linked or depth effect, one hover/reveal transition.
-- Use the project's existing animation library if one is present.
-- When no existing library is found, use framework-conditional defaults:
-  - **CSS animations** as the universal baseline
-  - **Framer Motion** for React projects
-  - **Vue Transition / Motion One** for Vue projects
-  - **Svelte transitions** for Svelte projects
-- Motion should be noticeable in a quick recording, smooth on mobile, and consistent across the page. Remove if purely ornamental.
-
-### Accessibility
-
-- Semantic HTML by default: `nav`, `main`, `section`, `article`, `button` -- not divs for everything.
-- Color contrast meeting WCAG AA minimum.
-- Focus states on all interactive elements.
-- Accessibility and aesthetics are not in tension when done well.
-
-### Imagery
-
-- When images are needed, prefer real or realistic photography over abstract gradients or fake 3D objects.
-- Choose or generate images with a stable tonal area for text overlay.
-- If image generation tools are available in the environment, use them to create contextually appropriate visuals rather than placeholder stock.
-
----
-
-## Context Modules
-
-Select the module that fits what is being built. When working inside an existing application, default to Module C regardless of what the feature is.
-
-### Module A: Landing Pages & Marketing (Greenfield)
-
-**Default section sequence:**
-1. Hero -- brand/product, promise, CTA, one dominant visual
-2. Support -- one concrete feature, offer, or proof point
-3. Detail -- atmosphere, workflow, product depth, or story
-4. Final CTA -- convert, start, visit, or contact
-
-**Hero rules (defaults):**
-- One composition, not a dashboard. Full-bleed image or dominant visual plane.
-- Brand first, headline second, body third, CTA fourth.
-- Keep the text column narrow and anchored to a calm area of the image.
-- No more than 6 sections total without a clear reason.
-- One H1 headline. One primary CTA above the fold.
-
-**Copy:**
-- Let the headline carry the meaning. Supporting copy is usually one short sentence.
-- Write in product language, not design commentary. No prompt language or AI commentary in the UI.
-- Each section gets one job: explain, prove, deepen, or convert.
-- Every sentence should earn its place. Default to less copy, not more.
-
-### Module B: Apps & Dashboards (Greenfield)
-
-**Default patterns:**
-- Calm surface hierarchy, strong typography and spacing, few colors, dense but readable information, minimal chrome.
-- Organize around: primary workspace, navigation, secondary context/inspector, one clear accent for action or state.
-- Cards only when the card is the interaction (clickable item, draggable unit, selectable option). If a panel can become plain layout without losing meaning, remove the card treatment.
-
-**Copy (utility, not marketing):**
-- Prioritize orientation, status, and action over promise, mood, or brand voice.
-- Section headings should say what the area is or what the user can do there. Good: "Plan status", "Search metrics". Bad: "Unlock Your Potential".
-- If a sentence could appear in a homepage hero, rewrite it until it sounds like product UI.
-- Litmus: if an operator scans only headings, labels, and numbers, can they understand the page immediately?
-
-### Module C: Components & Features (Default in Existing Apps)
-
-For adding to an existing application:
-
-- Match the existing visual language. This module is about making something that belongs, not something that stands out.
-- Inherit spacing scale, border radius, color tokens, and typography from surrounding code.
-- Focus on interaction quality: clear states (default, hover, active, disabled, loading, error), smooth transitions between states, obvious affordances.
-- One new component should not introduce a new design system. If the existing app uses 4px border radius, do not add a component with 8px.
-
----
-
-## Hard Rules & Anti-Patterns
-
-### Default Against (Overridable)
-
-These are the skill being opinionated. The user can override any of them.
-
-- Generic SaaS card grid as the first impression
-- Purple-on-white color schemes, dark-mode bias
-- Overused fonts (Inter, Roboto, Arial, Space Grotesk, system defaults) in greenfield work
-- Hero sections cluttered with stats, schedules, pill clusters, logo clouds
-- Sections that repeat the same mood statement in different words
-- Carousel with no narrative purpose
-- Multiple competing accent colors
-- Decorative gradients or abstract backgrounds standing in for real visual content
-- Copy that sounds like design commentary ("Experience the seamless integration")
-- Split-screen heroes where text sits on the busy side of an image
-
-### Always Avoid (Quality Floor)
-
-These are genuine quality failures no user would want.
-
-- Prompt language or AI commentary leaking into the UI
-- Broken contrast -- text unreadable over images or backgrounds
-- Interactive elements without visible focus states
-- Semantic div soup when proper HTML elements exist
-
----
-
-## Litmus Checks
-
-Quick self-review before moving to visual verification. Not all checks apply in every context -- apply judgment about which are relevant.
-
-- Is the brand or product unmistakable in the first screen?
-- Is there one strong visual anchor?
-- Can the page be understood by scanning headlines only?
-- Does each section have one job?
-- Are cards actually necessary where they are used?
-- Does motion improve hierarchy or atmosphere, or is it just there?
-- Would the design feel premium if all decorative shadows were removed?
-- Does the copy sound like the product, not like a prompt?
-- Does the new work match the existing design system? (Module C)
-
----
-
-## Visual Verification
-
-After implementing, verify visually. This is a sanity check, not a pixel-perfect review. One pass. If there is a glaring issue, fix it. If it looks solid, move on.
-
-### Tool Preference Cascade
-
-Use the first available option:
-
-1. **Existing project browser tooling** -- if a browser test or automation tool is already in the project's dependencies, use it. Do not introduce new dependencies just for verification.
-2. **Browser MCP tools** -- if browser automation tools (e.g., claude-in-chrome) are available in the agent's environment, use them.
-3. **agent-browser CLI** -- if nothing else is available and `agent-browser` is installed, use it. If not installed, note that browser verification could not use `agent-browser`, then skip to the next option.
-4. **Mental review** -- if no browser access is possible (headless CI, no permissions to install), apply the litmus checks as a self-review and note that visual verification was skipped.
-
-### What to Assess
-
-- Does the output match the visual thesis from the pre-build plan?
-- Are there obvious visual problems (broken layout, unreadable text, missing images)?
-- Does it look like the context module intended (landing page feels like a landing page, dashboard feels like a dashboard, component fits its surroundings)?
-
-### Scope Control
-
-One iteration. Take a screenshot, assess against the litmus checks, fix any glaring issues, and move on. Include the screenshot in the deliverable (PR description, conversation output, etc.).
-
-For iterative refinement beyond a single pass (multiple rounds of screenshot-assess-fix), see the `design-iterator` agent.
-
----
-
-## Creative Energy
-
-This skill provides structure, but the goal is distinctive work that avoids AI slop -- not formulaic output.
-
-For greenfield work, commit to a bold aesthetic direction. Consider the tone: brutally minimal, maximalist, retro-futuristic, organic/natural, luxury/refined, playful, editorial, brutalist, art deco, soft/pastel, industrial -- or invent something that fits the context. There are endless flavors. Use these for inspiration but design one that is true to the project.
-
-Ask: what makes this unforgettable? What is the one thing someone will remember?
-
-Match implementation complexity to the aesthetic vision. Maximalist designs need elaborate code with extensive animations and effects. Minimalist designs need restraint, precision, and careful attention to spacing, typography, and subtle details. Elegance comes from executing the vision well, not from intensity.
+Keep the register conversational and tuned: plain verbs, sentence case, no filler, with tone matched to the brand and the audience. Let each element do exactly one job. A label labels, an example demonstrates, and nothing quietly does double duty.

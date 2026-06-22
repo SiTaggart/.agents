@@ -1,6 +1,6 @@
 ---
 name: ce-optimize
-description: "Run metric-driven iterative optimization loops -- define a measurable goal, run parallel experiments, measure each against hard gates or LLM-as-judge scores, keep improvements, and converge on the best solution. Use when optimizing clustering quality, search relevance, build performance, prompt quality, or any measurable outcome that benefits from systematic experimentation."
+description: "Run metric-driven optimization loops with experiments and hard gates. Use for search, clustering, build, prompt, or measurable quality tuning."
 argument-hint: "[path to optimization spec YAML, or describe the optimization goal]"
 ---
 

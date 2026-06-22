@@ -48,7 +48,6 @@
     }
   },
   "lastSelectedAgents": [
-    "amp",
     "antigravity",
     "antigravity-cli",
     "cline",
@@ -61,8 +60,5 @@
     "opencode",
     "warp",
     "zed"
-  ],
-  "dismissed": {
-    "findSkillsPrompt": true
-  }
+  ]
 }

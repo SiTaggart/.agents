@@ -1,6 +1,6 @@
 ---
 name: ce-review
-description: First-principles code review of recent changes. Balances correctness, product intent, traceability, elegance, minimalism, project conventions, performance, security, and blast radius. Use when reviewing a branch, PR, or local changes before shipping. Report only grounded findings with file and line references; do not apply fixes, commit, push, file tickets, or run downstream workflow.
+description: Review recent code changes for bugs, regressions, product fit, conventions, performance, security, and blast radius.
 argument-hint: "[quick] [base:<ref>] [plan:<path>] [PR number, PR URL, branch name, or blank for current branch]"
 ---
 
@@ -26,6 +26,8 @@ docs. Use `document-review` for those artifacts.
 - Thoroughness is not noise. A strong review catches what matters and suppresses what does not.
 - Good code should be easy to trace, easy to test, easy to delete, and hard to misuse.
 - Taste matters. If the implementation works but is needlessly tangled, indirect, broad, or hard to read, say so with a concrete simpler direction.
+- Use `code-taste` for TypeScript, React, helper-boundary, effect, test-shape,
+  and maintainability smells when those concerns are relevant to the diff.
 - Guardrail concerns are conditional. Migration, deployment, rollout, support, and observability issues matter only when the diff actually touches those surfaces or creates a concrete product risk.
 
 ## Non-Goals
@@ -84,6 +86,8 @@ For exported functions, public components, API handlers, hooks, schemas, command
 
 Do not let caller spelunking become an unrelated repo audit. Follow blast radius only as far as needed to decide whether this change is correct.
 
+When the diff is broad enough that an independent codebase read would improve the review, use `repoprompt` review mode to map blast radius and cross-module impact. Fold the result into the main review; do not mechanically forward findings that lack file/line evidence.
+
 ## Step 3: Review Passes
 
 For small changes, run these passes yourself. For medium or large changes, use parallel read-only sub-agents when the platform supports them, one pass per agent. If sub-agents are unavailable, run the passes sequentially.
@@ -97,6 +101,52 @@ Every pass uses this shared bar:
 - Explain the concrete consequence.
 - Give a specific fix direction.
 - Suppress anything that is merely preference, unsupported speculation, or a duplicate of another pass.
+
+### Context-Isolated Agent Routing
+
+For medium or large reviews, delegate the context-heavy passes to existing
+reviewer agents instead of loading every lens into the parent thread. The parent
+keeps review intent, severity, deduplication, and final verdict ownership.
+
+Dispatch the smallest useful set:
+
+- `correctness-reviewer` for product intent, logic, state transitions, async
+  ordering, error propagation, and edge cases.
+- `maintainability-reviewer` for traceability, data flow, coupling, naming,
+  abstraction debt, and broad code-shape concerns.
+- `code-simplicity-reviewer` when the implementation looks over-built, includes
+  scaffolding, or needs a final minimalism pass.
+- `project-standards-reviewer` for AGENTS.md/CLAUDE.md and local instruction
+  compliance.
+- `testing-reviewer` for changed-code test gaps, weak assertions, brittle
+  tests, and missing proof.
+- `react-test-architect` only when the review needs a broader React test
+  strategy, suite reshaping, or CI test-performance assessment.
+- `kieran-typescript-reviewer` for TypeScript diffs where type safety,
+  compile-time contracts, casts, nullability, helper boundaries, or TS-specific
+  maintainability are material.
+- `kieran-python-reviewer` for Python diffs.
+- `api-contract-reviewer` for API routes, request/response schemas,
+  serialization, versioning, exported type signatures, and public contracts.
+- `reliability-reviewer` for retries, timeouts, async handlers, background jobs,
+  health checks, circuit breakers, and failure modes.
+- `performance-reviewer` for query shapes, caching, I/O volume, hot paths,
+  loops over large data, bundle impact, or frequently rendered UI.
+- `previous-comments-reviewer` when an open PR has prior review comments or
+  review threads.
+- `julik-frontend-races-reviewer` for JavaScript, Stimulus, Turbo, DOM
+  lifecycle, or timing-sensitive frontend diffs.
+- `architecture-strategist` when the diff changes boundaries, service shape,
+  shared interfaces, module layering, or architectural direction.
+- `design-implementation-reviewer` when the task includes matching a Figma
+  design or visual implementation fidelity.
+- `adversarial-reviewer` for large or high-risk diffs where constructing
+  failure scenarios is likely to find issues the normal passes miss.
+
+Do not dispatch an agent solely because it exists. If a concern is small enough
+to evaluate in the parent context, run it inline. If an agent returns findings,
+deduplicate and re-check them against this skill's evidence bar before
+including them in the final review.
 
 ### Pass 1: Product Intent And Correctness
 

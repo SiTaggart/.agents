@@ -128,13 +128,12 @@ Use fully-qualified agent names inside Task calls.
 - Add the specific review surface that matches the risk:
   - Use the `performance-reviewer` persona only when the plan names concrete hot paths, query shapes, caching behavior, or I/O volume that would be reviewed against code.
   - Use the `security-review` or `security-best-practices` skill for explicit auth, validation, exploit-surface, or secure-default guidance.
-  - Use `data-migration-reviewer` only for migrations, backfills, schema snapshots, and persistent data transformations.
+  - For migrations, backfills, schema snapshots, and persistent data transformations, keep the analysis in the parent plan unless a current migration specialist agent exists in the active agent shelf.
 
 **Risks & Dependencies / Operational Notes**
 - Use the review surface that matches the actual risk:
   - `security-review` or `security-best-practices` for security, auth, privacy, and exploit risk
-  - `data-migration-reviewer` for migrations, backfills, persistent data safety, constraints, transaction boundaries, and production data transformation risk
-  - `deployment-verification-agent` for rollout checklists, rollback planning, and launch verification
+  - parent-owned planning for migrations, backfills, persistent data safety, constraints, transaction boundaries, production data transformation risk, rollout checklists, rollback planning, and launch verification
   - `performance-reviewer` for concrete capacity, latency, and scaling concerns visible in implementation or verification plans
 
 **Agent Prompt Shape:**

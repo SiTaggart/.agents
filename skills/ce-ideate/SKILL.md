@@ -1,6 +1,6 @@
 ---
 name: ce-ideate
-description: "Generate and critically evaluate grounded ideas about a topic. Use when asking what to improve, requesting idea generation, exploring surprising directions, or wanting the AI to proactively suggest strong options before brainstorming one in depth. Triggers on phrases like 'what should I improve', 'give me ideas', 'ideate on X', 'surprise me', 'what would you change', or any request for AI-generated suggestions rather than refining the user's own idea."
+description: "Generate and evaluate grounded ideas. Use for 'what should I improve', 'give me ideas', 'ideate', 'surprise me', or 'what would you change'."
 argument-hint: "[feature, focus area, or constraint]"
 
 ---
@@ -265,7 +265,7 @@ Run grounding agents in parallel in the **foreground** (do not background — re
 
 3. **Web research** (always-on; see "Web research" subsection below for skip-phrase and V15 cache handling).
 
-4. **Issue intelligence** (conditional) — if issue-tracker intent was detected in Phase 0.3, dispatch `issue-intelligence-analyst` with the focus hint. Run in parallel with the other agents.
+4. **Issue intelligence** (conditional) — if issue-tracker intent was detected in Phase 0.3 and the active agent shelf includes an issue-intelligence agent, dispatch it with the focus hint. Run in parallel with the other agents. If no such agent exists, skip this dispatch and note the unavailable issue-intelligence surface in the grounding summary.
 
    If the agent returns an error (gh not installed, no remote, auth failure), log a warning to the user ("Issue analysis unavailable: {reason}. Proceeding with standard ideation.") and continue with the remaining grounding.
 

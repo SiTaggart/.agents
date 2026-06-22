@@ -33,6 +33,46 @@ Do not do these from this skill unless the user explicitly asks:
 - split a narrow product fix into broad process stages
 - route work to many subagents when the parent agent can reason through it directly
 
+## Context Delegation
+
+`ce-work` owns the accepted product contract, scope control, final integration,
+proof surface, and final report. Use subagents to keep bulky specialist context
+out of the parent thread, not to outsource product judgment.
+
+Delegate when a subtask is independently bounded, has low file overlap with
+other slices, and would require loading substantial specialty context. Keep the
+handoff narrow: product contract, owner boundary, allowed files or slice, local
+patterns to preserve, expected proof, and what to return. The parent integrates
+the result, reads changed lines, runs the quality gate, and decides whether the
+contract is complete.
+
+Use this dispatch map when the criteria above are met:
+
+- **Frontend implementation:** dispatch `frontend-implementation-expert` for
+  non-trivial React or UI implementation slices. It owns the implementation
+  pass and uses `frontend-design`, `code-taste`, and
+  `vercel-react-best-practices` inside its own context. The parent keeps final
+  visual/browser proof and quality-gate ownership.
+- **React test strategy:** dispatch `react-test-architect` when the main work is
+  designing or reshaping a React test suite, or when test-context exploration
+  would distract from implementation.
+- **Repo reconnaissance:** dispatch `repo-research-analyst` with a scoped
+  prompt when unfamiliar codebase structure, conventions, or implementation
+  patterns need a compact handoff. Use `repoprompt` instead when the parent
+  needs curated file context to reason directly.
+- **External implementation docs:** dispatch `framework-docs-researcher` or
+  `best-practices-researcher` when current framework/API behavior materially
+  affects the implementation approach.
+- **Documentation artifacts:** dispatch `documentation-specialist` when writing
+  or refreshing substantial docs would load source-reading and writing context
+  that is separable from the parent contract.
+- **Bug root-cause loops:** use `ce-debug` as the canonical workflow for bugs,
+  failing tests, regressions, stack traces, and "why is this failing" work. Do
+  not recreate that full loop inside `ce-work`.
+
+Skip delegation for tiny edits, single obvious files, product decisions, final
+integration, and proof that must be interpreted against the accepted contract.
+
 ## Step 1: Understand The Task
 
 Read the prompt, relevant plan or issue, recent conversation, and current repository state.
@@ -61,8 +101,9 @@ When the task depends on product memory, search QMD or Obsidian notes for
 interviews, transcripts, research summaries, PRDs, kickoff docs, or prior agent
 sessions before inventing context.
 
-When repo context is broad, unfamiliar, or crosses many files, use `repoprompt`
-to build codebase context before choosing an approach. Treat its output as
+When repo context is broad, unfamiliar, or crosses many files, use
+`repo-research-analyst` for a compact research handoff or `repoprompt` to build
+curated codebase context before choosing an approach. Treat either output as
 context for owner boundaries, data flow, and tests, not as permission to expand
 scope.
 
@@ -79,17 +120,19 @@ Use this decision order:
 
 Pause before crossing into adjacent UX, validation, focus behavior, styling, data modeling, persistence, or infrastructure. Ask the user if that broader contract is actually desired.
 
-For TypeScript and React:
+Before implementation, decide whether the change touches TypeScript contracts,
+React/Next behavior, helper boundaries, schemas, reducers, selectors, adapters,
+JSX business logic, effect structure, or maintainability tradeoffs. If it does,
+use `code-taste` now, before writing code. Let `code-taste` route to
+`typescript-advanced-types` or `vercel-react-best-practices` only when that
+extra context is relevant. Do not defer this judgment to `ce-quality-gate`.
 
-- Prefer explicit object shapes with `interface` and unions/utilities with `type`
-- Prefer function declarations for React components
-- Avoid `any` and non-null assertions
-- Pass honest helper arguments instead of broad courier objects
-- Keep JSX from carrying business rules when a pure helper would make the contract clearer
-
-For frontend work, use `frontend-design` as a guide inside this loop. Match the
-existing design system first, then verify the changed route, story, or preview
-surface visually when one exists.
+For frontend work done in the parent thread, use `frontend-design` as a guide
+inside this loop. For non-trivial React or UI implementation slices, prefer
+delegating to `frontend-implementation-expert` so the visual, React, and
+code-shape context stays out of the orchestrator. Match the existing design
+system first, then verify the changed route, story, or preview surface visually
+when one exists.
 
 ## Step 4: Implement In Tight Loops
 
@@ -104,7 +147,9 @@ For each meaningful edit:
 
 Use a task list only when it reduces risk: multiple files, dependencies, or several behavioral slices. For one- or two-file work, skip ceremony and implement directly.
 
-Use subagents only for clearly independent investigation or large implementation slices with low file overlap. Prefer the parent agent for product reasoning and final integration.
+Use subagents only for clearly independent investigation or implementation
+slices with low file overlap. Prefer the parent agent for product reasoning and
+final integration.
 
 ## Step 5: Test The Right Seam
 
@@ -126,11 +171,12 @@ If full-repo checks are noisy, make the touched surface clean and report unrelat
 ## Step 6: Run The Quality Gate
 
 After code edits, use `ce-quality-gate` on the current diff or explicit touched
-file list.
+file list. Completion requires this gate.
 
-It must make the touched lint, format, type, and test surface clean, or report
-the exact blocker and narrower proof that passed. This gate does not replace
-product proof, browser proof, or review of substantial work.
+It must make the touched lint, format, type, test, and `code-taste` surface
+clean, or report the exact blocker and narrower proof that passed. This gate
+does not replace product proof, browser proof, early code-shape routing, or
+review of substantial work.
 
 ## Step 7: Review The Diff
 
@@ -141,6 +187,10 @@ Before calling the task done, review your own diff with the same taste bar as `c
 - Is there less code that would do the same thing as clearly?
 - Did the fix stay inside the right owner boundary?
 - Are tests and real-surface proof proportional to risk?
+- If TypeScript, React, or code-shape mattered, did `code-taste` shape the
+  approach before implementation rather than only at the gate?
+- Is the touched implementation `code-taste` clean, with no speculative guards,
+  casts, wrappers, effects, or abstractions outside the accepted contract?
 - Did you avoid adding support, migration, deployment, or residual-work process unless the diff actually needed it?
 
 Invoke `ce-review` only when the change is substantial, risky, or the user asks for a review. Treat its output as advice to reason about, not a machine queue to apply blindly.
@@ -164,6 +214,8 @@ Finish with a concise report:
 - what changed
 - what product contract is now true
 - what checks or proof passed
+- `code-taste` route and gate status: applied early, fixed late, not relevant,
+  or necessary exception
 - what was not verified and why
 - any narrow follow-up that is genuinely outside the accepted contract
 

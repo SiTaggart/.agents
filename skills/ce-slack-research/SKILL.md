@@ -1,6 +1,6 @@
 ---
 name: ce-slack-research
-description: "Search Slack for interpreted organizational context -- decisions, constraints, and discussion arcs -- and produce a synthesized research digest with cross-cutting analysis. Use when the user says 'search slack for', 'what did we discuss about', 'slack context for', or 'what does the team think about'. Differs from slack:find-discussions, which returns raw message results without synthesis."
+description: "Search Slack for interpreted org context and synthesize decisions, constraints, and discussion arcs."
 ---
 
 # /ce-slack-research

@@ -162,7 +162,7 @@ agent sessions, search `qmd` and/or the Obsidian vault before asking the model t
 infer product context. Keep this bounded: pull only the notes that can change
 scope, user framing, constraints, or success criteria.
 
-*RepoPrompt Context* — For Standard and Deep software brainstorms where the
+*RepoPromptCE Context* — For Standard and Deep software brainstorms where the
 frame depends on broad codebase ownership, cross-module flows, or unfamiliar
 implementation shape, use `repoprompt` context building to map the current
 system. Use the result to constrain product framing and success criteria, not to

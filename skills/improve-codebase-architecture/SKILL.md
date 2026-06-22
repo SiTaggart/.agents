@@ -1,6 +1,6 @@
 ---
 name: improve-codebase-architecture
-description: Find deepening opportunities in a codebase using the project's existing AI artifacts, plans, decisions, and source code. Use when the user wants to improve architecture, find refactoring opportunities, consolidate tightly coupled modules, make code more testable, or make a repo easier for AI agents to navigate. Ground the review in `.ai/plans/`, `.ai/solutions/`, `.ai/reviews/`, `.ai/brainstorms/`, QMD or Obsidian context when available, and optional `CONCEPTS.md` or ADRs only when the target repo already uses them.
+description: Find architecture deepening opportunities. Use to improve structure, testability, module boundaries, or agent navigability.
 ---
 
 # Improve Codebase Architecture
@@ -73,7 +73,7 @@ When no glossary exists, infer domain language from instructions, plans, source 
 
 ### 3. Explore The Codebase
 
-Use RepoPrompt or parallel exploration agents when available for broad unfamiliar areas. Otherwise use `rg`, targeted file reads, tests, and git history.
+Use RepoPromptCE or parallel exploration agents when available for broad unfamiliar areas. Otherwise use `rg`, targeted file reads, tests, and git history.
 
 Explore organically and note where you experience friction:
 
