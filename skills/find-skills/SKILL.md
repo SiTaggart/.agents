@@ -48,8 +48,8 @@ Use when the task is clear enough to execute or already has a plan.
    before review.
 5. `frontend-design` - fold in as guidance when the work touches UI, workflows,
    components, visual polish, accessibility, or responsive behavior.
-6. `ce-quality-gate` - make touched files clean for lint, format, type, and
-   focused tests after code edits.
+6. `ce-quality-gate` - make touched files clean for lint, format, type, focused
+   tests, and `code-taste` after code edits.
 7. `ce-simplify-code` - simplify recent code when the behavior is already
    correct but the shape can be cleaner.
 
@@ -97,7 +97,8 @@ Use when behavior is broken or unknown.
 - If the user has a written requirements or plan artifact, use
   `document-review`, not `ce-review`.
 - If code has changed, use `ce-review`, not `document-review`.
-- If code has been written, run `ce-quality-gate` before review or shipping.
+- If code has been written, run `ce-quality-gate` before review or shipping;
+  `code-taste` cleanliness is part of that completion gate.
 - If the work touches UI, use `frontend-design` as a guide inside the active
   loop rather than as a separate destination.
 - If the answer depends on notes, meetings, transcripts, PRDs, prior sessions,

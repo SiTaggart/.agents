@@ -6,74 +6,75 @@ files add local context and override only overlapping instructions.
 ## Working Style
 
 - Work with a senior Design Engineer specializing in TypeScript and React.
-- Prefer the smallest correct change that solves the real user-facing problem.
+- Make the smallest possible change that solves the real user-facing problem.
 - Understand the business reason before optimizing the code shape.
 - Find root causes. Do not ship temporary fixes unless explicitly asked.
 - Preserve local intent, naming, ownership boundaries, and file conventions.
 - Do not refactor unrelated code while solving a narrow task.
 - Prefer compile-time guarantees over runtime checks when the type system can
   prevent the bug.
+- Do not add abstractions, wrappers, adapters, type guards, defensive helpers, or
+  edge-case handling for hypothetical future needs. Add them only when the
+  current contract, a real runtime boundary, or existing duplication requires it.
+- Rely on TypeScript inference and existing typed boundaries. Parse or guard once
+  at actual untyped or untrusted boundaries, then keep the interior code direct.
 - Remove filler. Comments explain why, not what.
 
-## Repository Ownership Contract
-
-- This repo is the canonical source for sharable coding-harness configuration
-  on a machine: agents, skills, hooks, and shared instructions.
-- Do not preserve or design around custom harness files under `~/.claude`,
-  `~/.config/opencode`, or `~/.codex` for those shared surfaces. Treat them as
-  drift and move sharable config back into this repo.
-- Validate generated sources when replacing owned links, but do not add
-  transaction layers whose only job is protecting out-of-band harness config.
-- Keep sync/link behavior small and deterministic. Commands and rules are
-  obsolete sync surfaces; agents, skills, hooks, and shared instructions are the
-  owned surfaces.
-
-## Production Outcome Contract
+## Product Contract
 
 - Before editing, identify the contract being changed: user action, UI state,
-  backend payload, URL state, persisted state, rendered output, or published
-  artifact.
-- Done means that contract is proven at the closest real surface:
+  backend payload, URL state, persisted state, rendered output, command behavior,
+  or published artifact.
+- Identify the owner boundary that should contain the change.
+- Prove the changed contract at the closest real surface:
   - UI state and rendered output agree.
   - UI changes are checked in a real browser or local browser automation when a
     route, story, or preview surface exists.
-  - Backend/request contracts are exercised with real or representative data.
+  - Backend and request contracts are exercised with real or representative data.
   - Docs are updated in the canonical destination and read back.
-  - Touched files are clean for relevant lint, format, type, and test gates.
+  - Touched files are clean for relevant lint, format, type, test, and
+    `code-taste` gates.
 - State what was proven and what was not. Do not let passing commands stand in
   for user-facing verification.
 
-## Scoped Completeness
+## Scope
 
 - Completeness means fully solving the accepted product contract, not expanding
   the contract.
-- Before editing, state the exact user-action -> product-state contract being
-  changed and the ownership boundary that should contain the fix.
-- Do not improve adjacent UX, focus behavior, validation, styling, data
-  modeling, or ownership boundaries unless the user explicitly asks or the
+- Boil the ocean inside the agreed boundary: finish the accepted task, with tests
+  and proof, without drifting into neighboring workflows.
+- Prefer direct edits over new abstractions. Stop when the accepted contract is
+  proven.
+- Do not improve adjacent UX, focus behavior, validation, styling, data modeling,
+  persistence, or ownership boundaries unless the user explicitly asks or the
   accepted contract cannot work without it.
-- When acceptance criteria mention adjacent behavior, first check whether the
-  existing owner component already provides it. Let that component do its job.
-- Prefer the narrowest fix that satisfies the contract, even when broader
-  improvements are tempting.
-- If a narrow bug fix starts touching more than 3-4 files, pause and re-check
-  scope before continuing. Explain why each extra file is necessary.
+- If a narrow fix starts touching more than 3-4 files, pause and re-check scope.
+  Explain why each extra file is necessary.
 
-## Boil the Ocean
+## Product Architecture
 
-- Boil the ocean within the agreed boundary. Do the whole accepted task, with
-  tests and proof, but do not expand into neighboring workflows unless required.
-- The marginal cost of completeness is near zero with AI. Do the whole thing.
-  Do it right within the accepted contract. Do it with tests. Do it with
-  documentation when documentation is part of the contract.
-- Never offer to table a permanent solve when it is within reach. Never leave a
-  dangling thread inside the accepted scope when tying it off takes five more
-  minutes. Never present a workaround when the real fix exists.
-- The standard is not "good enough"; it is "holy shit, that's done." Search
-  before building. Test before shipping. Ship the complete accepted thing.
-- When Garry asks for something, the answer is the finished product, not a plan
-  to build it. Time is not an excuse. Fatigue is not an excuse. Complexity is
-  not an excuse. Boil the ocean inside the boundary.
+- Prefer contract-oriented code: a typed domain core with explicit IO, UI, and
+  imperative-integration boundaries.
+- Treat user actions, URL state, persisted state, backend payloads, mutations,
+  subscriptions, cache invalidation, and rendered output as product contracts.
+- Encode contracts with TypeScript types, schemas, endpoint metadata,
+  discriminated unions, or explicit state-machine actions.
+- Put deterministic behavior in named, typed, testable modules: schemas, parsers,
+  reducers, selectors, validators, compilers, hydrators, adapters, and model
+  helpers.
+- Keep React components and hooks focused on rendering, user interaction,
+  external subscriptions, IO coordination, cache coordination, navigation,
+  analytics, dialogs, and imperative interop.
+- Treat `useEffect` as a code smell. Avoid it for product/domain state,
+  derivation, event handling, data loading, backend shaping, or parent-child
+  synchronization; use event handlers, reducers/selectors, query/mutation hooks,
+  framework data APIs, or explicit subscriptions instead.
+- Centralize IO behind query, mutation, or command adapters. Do not scatter
+  fetches, saves, invalidation, or backend shaping through UI components.
+- Pass honest dependencies into helpers. Avoid broad courier objects unless the
+  function owns a broad transition or invariant.
+- Use `code-taste` for tactical TypeScript, React, helper-boundary, and
+  code-shape examples.
 
 ## Non-Negotiables
 
@@ -83,37 +84,20 @@ files add local context and override only overlapping instructions.
 - Never use `!` non-null assertions. Handle the null case.
 - Never delete, weaken, or skip tests to make a change pass.
 - Never assume an edit succeeded. Read back changed lines after editing.
+- Never run destructive git commands or revert user changes unless explicitly
+  asked.
 - Run the relevant linter, type-checker, and tests before marking work done, or
   report the exact blocker and the narrower verification that passed.
 
 ## Prior Art
 
 - For non-trivial work, search prior art before planning or writing code.
-- For broad explanatory questions, query the knowledge base before
-  reconstructing the answer from code. Use existing wiki, docs, notes, and
-  agent-artifact collections as the precomputed context layer, then inspect
-  source code only to verify drift-prone or implementation-level details.
-- Do not depend on fixed collection names. If the relevant QMD collections are
-  not obvious on the current machine, list or inspect the available collections
-  first, then choose the closest knowledge, docs, wiki, notes, and artifact
-  collections for the task.
-- Search `ai` for agent artifacts: plans, designs, reviews, investigations.
-- Search `docs` for project documentation: specs, meetings, research.
-- Use exact terms first, then semantic searches when vocabulary is uncertain.
-- If QMD MCP is available, prefer it. If not, use:
-
-```bash
-qmd search "keywords" -c ai
-qmd search "keywords" -c docs
-qmd query "question"
-```
-
-| Situation | Search For | Collection |
-| --- | --- | --- |
-| Feature work | prior designs, specs, related plans | both |
-| Debugging | prior investigations, module names, error text | ai |
-| Architecture | decisions, rationale, meeting notes | both |
-| Docs | existing docs to extend or reference | docs |
+- For broad explanatory questions, query durable knowledge before reconstructing
+  the answer from code.
+- Use QMD, Obsidian skills, `.ai/` artifacts, docs, notes, and agent sessions as
+  the precomputed context layer when history may matter.
+- Search exact terms first, then semantic searches when vocabulary is uncertain.
+- Inspect source code to verify drift-prone or implementation-level details.
 
 ## Phase Skills
 
@@ -123,350 +107,30 @@ qmd query "question"
   ambiguity; use `document-review` for requirements docs.
 - Plan: use `ce-plan`; layer in `repoprompt` for broad codebase context and
   `document-review` for markdown plans.
-- Work: use `ce-work`; fold in `frontend-design` for UI; run
-  `ce-quality-gate` after code edits.
-- Review: use `ce-review` for built work; use `ce-simplify-code` for cleanup;
-  use `security-review` only for real trust-boundary or security asks.
+- Work: use `ce-work`; fold in `code-taste` for TypeScript, React, or code-shape
+  decisions; fold in `frontend-design` for UI; run `ce-quality-gate` after code
+  edits. Code-taste cleanliness is part of the completion gate for touched code.
+- Review: use `ce-review` for built work; use `code-taste` for maintainability
+  and implementation-shape judgment; use `ce-simplify-code` for cleanup; use
+  `security-review` only for real trust-boundary or security asks.
 - Ship/feedback: use `git-commit`, `git-commit-push-pr`, `gh-fix-ci`, and
   `resolve-pr-feedback` for git and PR ops.
 - Remember: use `ce-compound`, `ce-compound-refresh`, QMD/Obsidian, and todo
   skills for durable knowledge.
 
-## Planning
-
-- Plan only when it reduces risk. For broad, risky, or ambiguous work, begin
-  with a short context block:
-  - goal
-  - business reason
-  - constraints and scope boundaries
-  - intended approach
-- For narrow fixes and direct requests, act after enough local discovery.
-- If the business reason is missing and the work changes product behavior, ask
-  for it before editing.
-- Confirm the approach before implementation when the work is broad, risky, or
-  introduces a new abstraction.
-- If adding an abstraction, lookup, wrapper, or indirection, ask whether the
-  direct approach is simpler.
-- If the likely fix crosses ownership boundaries or expands into adjacent UX,
-  validation, focus management, styling, persistence, or data modeling, pause
-  and confirm that broader contract before editing.
-- If the task is a bug report, reproduce or identify evidence, then fix it.
-  Do not ask for hand-holding.
-
-## Execution
-
-- Keep edits tightly scoped.
-- Match surrounding file style before applying global preferences.
-- If the current area is prototype-like, use nearby code to understand the
-  contract, but use mature local features as the quality bar.
-- Do not expand frontend tasks into backend, infra, or data-model work unless
-  the user asked for that scope.
-- Do not stretch a narrow UI contract by editing child controls, focus handling,
-  or adjacent configuration flows when opening, closing, selecting, or routing
-  state at the owner boundary solves the reported issue.
-- After every edit to a store, hook, component, schema, or route, read back the
-  changed lines.
-- For multi-file TypeScript changes, type-check after every few meaningful
-  edits instead of deferring all errors to the end.
-- If type-checking fails, fix that error before moving to unrelated files.
-- For UI changes, verify the running surface when available. Exercise the
-  changed state in a browser and inspect the result visually, not just by tests
-  or DOM assertions.
-- If full-repo checks are noisy, verify the touched surface and report the
-  unrelated baseline separately.
-
-## PR Workflow
-
-- Review phase: inspect diff vs main, categorize findings as P1, P2, or P3.
-- Consider business outcome before code aesthetics.
-- Do not edit during review unless the user asks for fixes.
-- Fix phase: apply only confirmed fixes, verify each edit, run checks.
-- Commit messages and PR titles must use Conventional Commits:
-  `type(scope): summary`.
-- Use lowercase types such as `feat`, `fix`, `refactor`, `test`, `docs`,
-  `chore`, `perf`, `ci`, `style`, or `build`; keep summaries imperative,
-  lowercase, under 72 characters, and without a trailing period.
-- Commit before creating a PR unless the user explicitly says otherwise.
-
-## TypeScript And React
-
-- Match local TypeScript and React conventions before applying global
-  preferences.
-- Prefer `interface` for object shapes and `type` for unions, intersections, and
-  utility types.
-- React components should be function declarations with explicit return types:
-
-```tsx
-function TracePicker(): React.ReactElement {
-  return <div />;
-}
-```
-
-- Co-locate related component, hook, type, and test files when the project
-  already uses that pattern.
-- Utilities should be named as verb-based functions first, then the filename
-  should match the main exported function. Prefer
-  `buildRenderConfigErrorGroups` in `buildRenderConfigErrorGroups.ts` over
-  noun bucket names like `renderConfigErrorGroups`.
-- Keep components focused. Extract domain logic into helpers, reducers,
-  selectors, or hooks when JSX starts carrying business rules.
-- Use `unknown` plus parsing at external boundaries instead of trusting raw data.
-- Avoid casts. If a cast is unavoidable, add a short `// SAFETY:` comment that
-  explains the invariant.
-
-## Production Feature Architecture
-
-Prefer **contract-oriented functional core with thin effect adapters**.
-
-- Start by identifying the product contract: backend payloads, URL state,
-  persisted state, user actions, mutations, subscriptions, and render output.
-- Encode contracts with TypeScript types, Zod schemas, endpoint metadata,
-  discriminated unions, or explicit state-machine actions.
-- Use explicit state-machine actions when behavior has meaningful transitions.
-  Otherwise prefer named pure helpers, selectors, parsers, hydrators, compilers,
-  validators, row builders, and model helpers.
-- Put deterministic behavior in named, testable modules.
-- Keep React hooks and components focused on effects and rendering: fetches,
-  mutations, polling, URL sync, persistence, subscriptions, analytics, toasts,
-  dialogs, and imperative library interop.
-- Centralize IO behind query, mutation, or command hooks. Do not scatter fetches,
-  invalidation, or save behavior through UI components.
-- Treat URL state, persisted state, backend contracts, and cache invalidation as
-  product contracts, not incidental plumbing.
-- Use lodash for clear data transformations: `groupBy`, `keyBy`, `uniqBy`,
-  `orderBy`, `partition`, `pick`, `omit`, and projection pipelines.
-- Prefer declarative transforms, but allow explicit loops or local mutation
-  inside isolated reducers, selectors, parsers, or adapters when they make a
-  state machine, hot path, or imperative-library boundary clearer.
-- When integrating imperative libraries, isolate the imperative engine behind a
-  controller or adapter and keep the rest of the feature typed and composable.
-
-### Honest Function Boundaries
-
-- Prefer pure helpers, but keep their signatures honest. A helper should accept
-  the smallest meaningful values it directly reasons about.
-- Compose broad domain objects at the boundary that owns the workflow: public
-  actions, render resolvers, validators, hooks, components, and IO adapters.
-  Below that boundary, pass explicit values into lower helpers.
-- Avoid courier arguments. Do not pass broad objects like `chart`, `series`,
-  `trace`, `source`, `config`, `context`, or `state` through helper layers just
-  so a lower function can read one field or forward the object again.
-- Flag helpers when they read only one or two fields from a broad object, pass a
-  broad object onward without meaningful local use, accept both a broad object
-  and a value derived from it, recompute a derived value already known at the
-  caller, or use a wrapper object that obscures duplicated semantic inputs.
-- Prefer explicit dependencies such as `dateMode`, `seriesId`, `dateBinding`,
-  `windowKind`, `seriesDateSetup`, `chartDateSetup`, `seriesCount`, `colorHue`,
-  or `traceWindow` over passing the whole parent object.
-- Broad objects are fine when the function truly owns a broad transition or
-  invariant. The goal is explicit dependencies, not primitive obsession.
-
-### Good: Compose At Boundary, Pass Honest Values
-
-```ts
-const chartDateSetup = chartDefaultDateSetup(chart);
-
-return resolveTraceDateWindow({
-  chartDateSetup,
-  seriesDateSetup: series.dateSetup,
-  traceWindow: trace.window,
-});
-```
-
-### Bad: Courier Arguments Hide Dependencies
-
-```ts
-return resolveTraceDateWindow(chart, series, trace);
-
-function resolveTraceDateWindow(
-  chart: ChartSpec,
-  series: ChartSpecSeries,
-  trace: ChartSpecTrace
-): DateWindow | null {
-  return trace.window.kind === "chart-window"
-    ? chartDefaultDateSetup(chart).windows.find(...)
-    : series.dateSetup.windows.find(...);
-}
-```
-
-### Good: Boundary Parse, Typed Core
-
-```ts
-const response = metadataSchema.parse(rawResponse);
-const catalog = buildSourceCatalog(response.sources);
-
-return hydrateChartSpec(savedSpec, catalog);
-```
-
-### Bad: Inline Backend Shaping In JSX
-
-```tsx
-const rows = data?.items.map((item) => ({
-  label: item.name ?? item.id,
-  value: item.value || 0,
-}));
-
-return <Grid rows={rows ?? []} />;
-```
-
-### Good: Domain Result, Caller Owns UI
-
-```ts
-type ValidationResult =
-  | { ok: true }
-  | { ok: false; reason: "duration-mismatch"; traceIds: string[] };
-
-function validateEqualDuration(spec: ChartSpec): ValidationResult {
-  return hasEqualDuration(spec)
-    ? { ok: true }
-    : { ok: false, reason: "duration-mismatch", traceIds: traceIds(spec) };
-}
-```
-
-### Bad: Domain Rule With Toast Side Effect
-
-```ts
-function validateTrace(trace: Trace): boolean {
-  if (!hasValidDuration(trace)) {
-    toast.error("Trace duration does not match");
-    return false;
-  }
-
-  return true;
-}
-```
-
-### Good: Explicit State Machine
-
-```ts
-type Action =
-  | { type: "cellEdited"; rowId: string; field: Field; value: Value }
-  | { type: "remoteChanged"; submission: Submission }
-  | { type: "saveSucceeded"; serverState: Submission[] };
-
-function reducer(state: DraftState, action: Action): DraftState {
-  switch (action.type) {
-    case "cellEdited":
-      return applyLocalEdit(state, action);
-    case "remoteChanged":
-      return applyRemoteChange(state, action.submission);
-    case "saveSucceeded":
-      return commitServerState(state, action.serverState);
-  }
-}
-```
-
-### Bad: State Transitions Spread Across Effects
-
-```ts
-useEffect(() => {
-  if (remoteData) {
-    setDrafts(mergeDrafts(drafts, remoteData));
-  }
-}, [remoteData, drafts]);
-
-function onSave(): void {
-  setIsSaving(true);
-  patchRows(drafts);
-  setDirty(false);
-}
-```
-
-### Good: Isolate Imperative Engines
-
-```tsx
-function MapRenderer({ layers }: Props): React.ReactElement {
-  const controller = useMapController();
-
-  useEffect(() => {
-    controller.setLayers(layers);
-  }, [controller, layers]);
-
-  return <MapCanvas ref={controller.containerRef} />;
-}
-```
-
-### Bad: Imperative Library Leaks Through UI
-
-```tsx
-function LayerToggle(): React.ReactElement {
-  deck.setProps({ layers: buildLayers() });
-  map.flyTo({ center });
-
-  return <Button>Toggle</Button>;
-}
-```
-
-## Testing Bar
-
-- Test the lowest meaningful seam that proves the behavior: schema parsing,
-  hydrators, state transitions, selectors, validators, URL sync, mutation
-  commands, cache invalidation, hooks, and adapter behavior.
-- Do not create React component, page, or render tests just because changed code
-  lives near React. First identify the lowest meaningful behavioral contract.
-- Avoid mock-heavy UI tests that only prove React wiring, browser behavior, or
-  implementation details.
-- Use UI or component tests when the regression is genuinely interaction-level,
-  visual-state-level, or a user journey would otherwise be unprotected.
-- Before adding a `.test.tsx` render test, state the user-visible behavior that
-  requires rendering and why a lower-level test would be insufficient. Existing
-  component tests nearby are not permission to add another one.
-- Avoid "wiring proof" tests that mount components only to observe props, mocked
-  hooks, or effect calls. Test the hook, state, command, parser, reducer,
-  selector, adapter, or schema contract directly instead.
-- For PR cleanup, derive the exact touched-file manifest from the diff and make
-  that surface clean. Warnings count as failures when they will become errors.
-- Prefer the project's existing test shape over a new harness.
-
-## Design Engineering
-
-- Build the actual usable experience first, not a marketing page, unless a
-  landing page is explicitly requested.
-- Match the existing design system before introducing new visual language.
-- Prioritize information density, scanning, and repeated workflows for
-  operational tools.
-- Use semantic HTML, keyboard access, focus management, and ARIA where needed.
-- Use CSS variables or existing design tokens.
-- Use icons for familiar actions when an icon exists.
-- Avoid nested cards, decorative blobs, one-note palettes, and oversized hero
-  typography inside tools.
-- Make text fit at mobile and desktop sizes. Do not allow labels, controls, or
-  overlays to collide.
-
 ## Tooling
 
-### RepoPromptCE First
-
-- When RepoPromptCE MCP is available, prefer it for codebase exploration and
-  review.
-- Prefer `file_search` over `grep` or globbing.
-- Prefer `get_file_tree` over `ls` or `find`.
-- Prefer `read_file` with line ranges over dumping full files.
-- Prefer `get_code_structure` for API shape and signatures.
-- Prefer `context_builder` for deep planning, reviews, and unfamiliar code.
-- Prefer `manage_selection` and slices/codemaps before full-file context.
+- Prefer RepoPromptCE MCP for codebase exploration and review when available:
+  `file_search`, `get_file_tree`, `read_file`, `get_code_structure`,
+  `context_builder`, and `manage_selection`.
 - If RepoPromptCE MCP is unavailable, use `rpce-cli`; then fall back to shell
   tools.
-
-### Shell
-
-- Prefer `rg` and `rg --files` for search.
+- Prefer `rg` and `rg --files` for shell search.
 - Use direct, non-interactive commands.
-- Avoid destructive git commands unless the user explicitly asks.
-- Do not revert user changes.
-
-### Browser
-
-- Prefer Browser Use or the in-app browser for local web automation when
-  available. Use `agent-browser` as a fallback.
-- For frontend changes, open the relevant route, story, or preview surface.
-- Exercise the changed interaction and inspect the final rendered state.
-- Capture a screenshot or describe the visual result before marking UI work
-  done.
-- Re-check the page after interactions.
-- If browser tooling or the server is unavailable, do not change product scope
-  to make verification pass. Use the closest available surface and report the
-  blocker.
+- For frontend changes, open the relevant route, story, or preview surface when
+  available. Exercise the changed state and inspect the final rendered result.
+- If browser tooling or the server is unavailable, use the closest available
+  proof surface and report the blocker.
 
 ## Task Artifacts
 

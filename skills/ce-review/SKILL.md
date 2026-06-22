@@ -26,6 +26,8 @@ docs. Use `document-review` for those artifacts.
 - Thoroughness is not noise. A strong review catches what matters and suppresses what does not.
 - Good code should be easy to trace, easy to test, easy to delete, and hard to misuse.
 - Taste matters. If the implementation works but is needlessly tangled, indirect, broad, or hard to read, say so with a concrete simpler direction.
+- Use `code-taste` for TypeScript, React, helper-boundary, effect, test-shape,
+  and maintainability smells when those concerns are relevant to the diff.
 - Guardrail concerns are conditional. Migration, deployment, rollout, support, and observability issues matter only when the diff actually touches those surfaces or creates a concrete product risk.
 
 ## Non-Goals

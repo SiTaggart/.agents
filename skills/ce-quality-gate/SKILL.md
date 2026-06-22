@@ -10,7 +10,7 @@ Use this after code has been written. It makes the touched surface mechanically
 clean and checks that the code shape matches the project's standards.
 
 This is not a product review and does not replace real-surface proof. It answers
-"is the changed code clean enough to review or ship?"
+"is the changed code complete enough to review or ship?"
 
 ## Loop Role
 
@@ -26,9 +26,13 @@ For the touched surface:
 - lint is clean
 - TypeScript or language-specific type checks are clean
 - relevant tests pass
+- relevant `code-taste` issues are fixed
 - warnings count when the project treats warnings as failures
 - no `any`, non-null assertions, skipped tests, weakened tests, or ignored
   rules were added to make checks pass
+- no speculative type guards, casts, wrappers, adapters, defensive helpers,
+  `useEffect` misuse, or premature abstractions remain unless required by the
+  accepted contract and reported as an exception
 - local `AGENTS.md`, `CLAUDE.md`, and nearby code conventions are followed
 
 If broad repo checks are noisy, separate unrelated baseline failures from
@@ -78,7 +82,8 @@ closest representative check.
 
 ### 4. Iterate Until Clean
 
-Run checks and fix failures caused by the changed surface.
+Run checks and fix failures caused by the changed surface. Treat relevant
+`code-taste` violations like lint failures for touched code.
 
 Do not:
 
@@ -96,12 +101,14 @@ then prove the touched surface with the narrower available command.
 
 Review the changed code for local taste:
 
-- honest helper arguments instead of broad courier objects
-- deterministic logic in named helpers, reducers, schemas, selectors, or
-  adapters when JSX or effects start carrying business rules
+- use `code-taste` for TypeScript, React, helper-boundary, effect, test-shape,
+  and maintainability smells when those concerns are relevant to the touched code
 - no dead code, duplicate branches, or speculative abstractions
 - behavior still lives at the owner boundary accepted by `ce-work`
 - comments explain why, not what
+
+The gate is not complete while relevant `code-taste` violations remain. Fix
+them, or report a necessary exception with the accepted-contract reason.
 
 Use `ce-simplify-code` only when simplification is non-trivial or the user asks
 for it. Do not turn simplification into a mandatory ritual.
@@ -112,6 +119,7 @@ Return a compact status:
 
 - touched files checked
 - commands run and results
+- `code-taste` status: passed, fixed, or necessary exception
 - code-shape issues fixed or still present
 - unrelated baseline failures, if any
 - what this gate did not prove, especially product/browser behavior

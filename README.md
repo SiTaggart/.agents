@@ -60,7 +60,7 @@ bun run link codex
 | Component  | Count |
 | ---------- | ----- |
 | Agents     | 40    |
-| Skills     | 59    |
+| Skills     | 62    |
 
 ## Operating Loops
 
@@ -69,8 +69,8 @@ The shelf is organized around a few tight loops rather than standalone skills:
 | Loop | Route |
 | ---- | ----- |
 | Explore and decide | `qmd` / Obsidian / `repoprompt` when broad codebase context matters -> `ce-brainstorm` -> `ce-grill` when branchy -> `document-review` when a requirements doc needs polish -> `ce-plan` |
-| Plan and build | `ce-plan` with `repoprompt` when broad -> `document-review` for markdown plans -> `ce-work` -> `ce-quality-gate`; fold in `frontend-design` for UI work |
-| Review and ship | `ce-review` on changed work -> `ce-simplify-code` when shape needs cleanup -> git skills for ops; `pr-review-canvas` for an interactive walkthrough of someone else's PR; `ce-thermo-nuclear-code-quality-review` when the change needs an unusually strict maintainability pass |
+| Plan and build | `ce-plan` with `repoprompt` when broad -> `document-review` for markdown plans -> `ce-work` -> `ce-quality-gate`; fold in `code-taste` for implementation shape and `frontend-design` for UI work |
+| Review and ship | `ce-review` on changed work -> `ce-simplify-code` when shape needs cleanup -> git skills for ops; fold in `code-taste` for maintainability judgment; `pr-review-canvas` for an interactive walkthrough of someone else's PR; `ce-thermo-nuclear-code-quality-review` when the change needs an unusually strict maintainability pass |
 | Remember and reuse | `ce-compound` / `ce-compound-refresh` -> Obsidian or QMD for durable knowledge |
 | Debug and investigate | `ce-debug` -> `repoprompt` when broad context is needed -> `ce-work` -> `ce-review` |
 
@@ -147,6 +147,7 @@ The shelf is organized around a few tight loops rather than standalone skills:
 
 | Skill                          | Description                                            |
 | ------------------------------ | ------------------------------------------------------ |
+| `code-taste`                   | TypeScript, React, and code-shape guidance             |
 | `frontend-design`              | Create production-grade frontend interfaces            |
 | `improve-codebase-architecture` | Find architecture deepening opportunities              |
 | `vercel-react-best-practices`  | React and Next.js performance optimization from Vercel |
