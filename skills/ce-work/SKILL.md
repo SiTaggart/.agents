@@ -6,7 +6,7 @@ argument-hint: "[task description, issue/PR reference, or plan path]"
 
 # Focused Work Execution
 
-Ship the accepted task without turning the work into a ceremony. The skill should help the model reason better, not replace judgment with a workflow.
+Ship the accepted task without turning the work into a ceremony.
 
 ## Core Contract
 
@@ -85,8 +85,6 @@ State the contract and owner boundary before editing when the change affects pro
 
 ## Step 2: Find Prior Art
 
-Search before building.
-
 Use local knowledge and repository context in this order:
 
 1. Existing code in the affected area
@@ -101,11 +99,12 @@ When the task depends on product memory, search QMD or Obsidian notes for
 interviews, transcripts, research summaries, PRDs, kickoff docs, or prior agent
 sessions before inventing context.
 
-When repo context is broad, unfamiliar, or crosses many files, use
-`repo-research-analyst` for a compact research handoff or `repoprompt` to build
-curated codebase context before choosing an approach. Treat either output as
-context for owner boundaries, data flow, and tests, not as permission to expand
-scope.
+Build curated codebase context with RepoPromptCE `context_builder` (see the
+`repoprompt` skill for the tool map) before choosing an approach. Skip it only
+when the change is a single, already-known file. When an unfamiliar codebase
+needs a compact prose handoff rather than curated files, dispatch
+`repo-research-analyst` instead. Treat either output as context for owner
+boundaries, data flow, and tests, not as permission to expand scope.
 
 ## Step 3: Choose The Smallest Sound Approach
 
@@ -139,6 +138,11 @@ when one exists.
 ## Step 4: Implement In Tight Loops
 
 Work in small enough steps that failures stay local.
+
+When RepoPromptCE MCP is available, read with `read_file` and edit with
+`apply_edits` (search/replace for targeted changes, rewrite mode for new or
+full-file writes); see the `repoprompt` skill for the tool map. Always read back
+the changed lines regardless of which tool applied the edit.
 
 For each meaningful edit:
 
@@ -218,6 +222,7 @@ Finish with a concise report:
 - what changed
 - what product contract is now true
 - what checks or proof passed
+- RepoPromptCE `context_builder`: used, or skipped with the reason
 - `code-taste` route and gate status: applied early, fixed late, not relevant,
   or necessary exception
 - what was not verified and why

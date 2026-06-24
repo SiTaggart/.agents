@@ -12,16 +12,16 @@ Brainstorming helps answer **WHAT** to build through collaborative dialogue. It 
 
 The durable output of this workflow is a **requirements document**. In other workflows this might be called a lightweight PRD or feature brief. In compound engineering, keep the workflow name `brainstorm`, but make the written artifact strong enough that planning does not need to invent product behavior, scope boundaries, or success criteria.
 
-This skill does not implement code. It explores, clarifies, and documents decisions for later planning or execution.
-
 ## Loop Connections
 
 - Use `qmd` or Obsidian context before inventing product history when the topic
   may already exist in notes, interviews, transcripts, research summaries,
   PRDs, kickoff docs, or prior agent sessions.
-- Use `repoprompt` for Standard or Deep software brainstorms when the product
-  frame depends on broad or unfamiliar codebase shape. Treat it as context for
-  existing constraints and ownership, not as implementation planning.
+- For Standard or Deep software brainstorms, build context with RepoPromptCE
+  `context_builder` (see the `repoprompt` skill) to ground the product frame in
+  existing constraints and ownership. Skip it only for non-software framing or a
+  quick brainstorm over already-known code. It is context, not implementation
+  planning.
 - Use `frontend-design` as a design lens when the brainstorm touches UI,
   workflows, dashboards, components, accessibility, responsive behavior, or
   visual polish. Fold the guidance into the brainstorm; do not make design a
@@ -163,11 +163,11 @@ agent sessions, search `qmd` and/or the Obsidian vault before asking the model t
 infer product context. Keep this bounded: pull only the notes that can change
 scope, user framing, constraints, or success criteria.
 
-*RepoPromptCE Context* — For Standard and Deep software brainstorms where the
-frame depends on broad codebase ownership, cross-module flows, or unfamiliar
-implementation shape, use `repoprompt` context building to map the current
-system. Use the result to constrain product framing and success criteria, not to
-write the implementation plan.
+*RepoPromptCE Context* — For Standard and Deep software brainstorms, default to a
+RepoPromptCE `context_builder` pass (see the `repoprompt` skill) to map the
+current system. Skip it only for non-software framing or a quick brainstorm over
+already-known code. Use the result to constrain product framing and success
+criteria, not to write the implementation plan.
 
 If nothing obvious appears after a short scan, say so and continue. Two rules govern technical depth during the scan:
 
@@ -270,7 +270,7 @@ If relevant, call out whether the choice is:
 
 ### Phase 2.5: Synthesis Summary
 
-**STOP. Before composing the synthesis, read `references/synthesis-summary.md`.** The two-stage shape (internal three-bucket draft → chat-time scoping synthesis), the Path A / Path B gate, the four scoping synthesis sections with their keep tests, the tier-aware bullet budget with re-cut rule, anti-pattern guidance, soft-cut behavior, self-redirect support, and internal-draft routing into doc body sections all live there. Composing a synthesis without these rules loaded reliably produces malformed output — pasting the full internal three-bucket draft verbatim into chat, implementation-detail leakage into the scoping synthesis, the proposal-pitch anti-pattern. **Each scoping synthesis bullet must pass the affirmability test (can the user evaluate this without reading code?) AND the detail test (1–2 lines max, conversational not documentary); over-share and over-detail are the failure modes to avoid.** This is not optional supplementary reading; it is the source of truth for how the phase behaves.
+**STOP. Before composing the synthesis, read `references/synthesis-summary.md`.** The two-stage shape (internal three-bucket draft → chat-time scoping synthesis), the Path A / Path B gate, the four scoping synthesis sections with their keep tests, the tier-aware bullet budget with re-cut rule, anti-pattern guidance, soft-cut behavior, self-redirect support, and internal-draft routing into doc body sections all live there. Composing a synthesis without these rules loaded reliably produces malformed output — pasting the full internal three-bucket draft verbatim into chat, implementation-detail leakage into the scoping synthesis, the proposal-pitch anti-pattern. **Each scoping synthesis bullet must pass the affirmability test (can the user evaluate this without reading code?) AND the detail test (1–2 lines max, conversational not documentary); over-share and over-detail are the failure modes to avoid.**
 
 Surface a scoping synthesis to the user before Phase 3 writes the requirements doc — the user's last opportunity to correct scope before the artifact lands. The scoping synthesis is shaped like what two product collaborators would confirm before writing a PRD, not like a comprehensive audit or a one-line preview.
 

@@ -23,8 +23,6 @@ docs. Use `document-review` for those artifacts.
 
 - Start from the product contract: what user action, UI state, backend payload, URL state, persisted state, rendered output, or artifact is this change trying to improve?
 - Prefer first-principles reasoning over checklist compliance.
-- Thoroughness is not noise. A strong review catches what matters and suppresses what does not.
-- Good code should be easy to trace, easy to test, easy to delete, and hard to misuse.
 - Taste matters. If the implementation works but is needlessly tangled, indirect, broad, or hard to read, say so with a concrete simpler direction.
 - Use `code-taste` for TypeScript, React, helper-boundary, effect, test-shape,
   and maintainability smells when those concerns are relevant to the diff.
@@ -86,7 +84,7 @@ For exported functions, public components, API handlers, hooks, schemas, command
 
 Do not let caller spelunking become an unrelated repo audit. Follow blast radius only as far as needed to decide whether this change is correct.
 
-When the diff is broad enough that an independent codebase read would improve the review, use `repoprompt` review mode to map blast radius and cross-module impact. Fold the result into the main review; do not mechanically forward findings that lack file/line evidence.
+When the review starts cold — a standalone diff or PR with no context built upstream this session — use a RepoPromptCE `context_builder` review-mode pass (see the `repoprompt` skill) to map blast radius and cross-module impact independently. Within a session that already ran brainstorm, plan, or work, reuse that context instead of rebuilding it. Fold the result into the main review; do not mechanically forward findings that lack file/line evidence.
 
 ## Step 3: Review Passes
 
@@ -160,7 +158,7 @@ Look for:
 - UI state and rendered output drifting apart
 - missing behavior from the stated or inferred requirement
 
-This pass is the most important. If the code is clean but solves the wrong problem, that is a must-fix.
+If the code is clean but solves the wrong problem, that is a must-fix.
 
 ### Pass 2: Traceability And Data Flow
 
