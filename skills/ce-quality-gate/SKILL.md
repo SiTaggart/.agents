@@ -130,3 +130,20 @@ Return a compact status:
 - code-shape issues fixed or still present
 - unrelated baseline failures, if any
 - what this gate did not prove, especially product/browser behavior
+
+### 7. Recommend The Next Step
+
+After the report, recommend what to run next and fire it — do not end on a bare report. The menu is gated by the gate result and the change's risk, not a fixed list: show only the options that fit, mark the recommended one, and renumber so options stay contiguous from 1.
+
+Use the platform's blocking question tool (`AskUserQuestion` in Claude Code, `request_user_input` in Codex, `ask_user` in Gemini, `ask_user` in Pi (requires the `pi-ask-user` extension)). In Claude Code, call `ToolSearch` with `select:AskUserQuestion` first if its schema isn't loaded — a pending schema load is not a reason to fall back. Fall back to a numbered chat list ("Pick a number or describe what you want.") only when no blocking tool exists or the call errors. Never end the turn without collecting a response. Act on the selection — invoke the routed skill via the platform's skill primitive — do not merely name it.
+
+Gate the options on the result:
+
+- **Clean and the change is substantial or risky:** `ce-review` for a first-principles pass (recommended), then ship.
+- **Clean and the change is narrow and low-risk:** `git-commit-push-pr` to ship (recommended), or `git-commit` for a local commit only. Offer `ce-review` only if the user wants a second pass.
+- **A non-trivial simplification opportunity remains, or a code-shape exception was reported:** `ce-simplify-code` before review or ship.
+- **Still blocked by a touched-file failure this gate could not resolve:** `ce-debug` to find the root cause (recommended). Do not route to review or ship while the surface is failing.
+
+Always include a `Done for now` option that ends the turn without follow-up work.
+
+**Sub-step guard:** When `ce-work` (or another skill) invoked this gate as a sub-step, skip the menu — return the report and let the caller own the terminal next-step recommendation. Present the menu only when the gate owns the turn's endpoint.

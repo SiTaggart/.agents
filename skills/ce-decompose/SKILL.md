@@ -149,3 +149,20 @@ Keep the user oriented with a compact status:
 - The stack or dispatch state — which commits/PRs exist or which agents are running, in parallel vs sequence, and where each piece stands.
 - Any unit that came back over threshold and is being decomposed recursively.
 - The exit signal: the point at which every remaining piece is small enough to review with confidence.
+
+## Next Step
+
+After the status, recommend what to run next and fire it — do not end on a bare status. The menu is gated by the carve state, not a fixed list: show only the options that fit, mark the recommended one, and renumber so options stay contiguous from 1.
+
+Use the platform's blocking question tool (`AskUserQuestion` in Claude Code, `request_user_input` in Codex, `ask_user` in Gemini, `ask_user` in Pi (requires the `pi-ask-user` extension)). In Claude Code, call `ToolSearch` with `select:AskUserQuestion` first if its schema isn't loaded — a pending schema load is not a reason to fall back. Fall back to a numbered chat list ("Pick a number or describe what you want.") only when no blocking tool exists or the call errors. Act on the selection — invoke the routed skill via the platform's skill primitive — do not merely name it.
+
+Gate the options on the carve state:
+
+- **The set warrants a durable plan with test scenarios and dependency ordering:** `ce-plan` (recommended).
+- **A unit is incomplete or needs building on the rebuild path:** `ce-work` on that unit.
+- **A unit has landed and is ready to gate:** `ce-quality-gate` then `ce-review` on that unit, incrementally — not one giant pass.
+- **A reviewed unit is ready to land:** `git-commit` / `git-commit-push-pr` for that unit in the stack.
+
+Always include a `Done for now` option that ends the turn with the stack/dispatch state saved.
+
+**Sub-step guard:** When another skill invoked this as a sub-step, skip the menu — return the status and let the caller route. Present the menu only when this skill owns the turn's endpoint.

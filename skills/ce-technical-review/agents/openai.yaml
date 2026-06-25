@@ -1,0 +1,4 @@
+interface:
+  display_name: "Technical Review"
+  short_description: "Rigorous multi-pass technical code review"
+  default_prompt: "Use $ce-technical-review to run a rigorous technical review of my current changes."

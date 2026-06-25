@@ -48,5 +48,19 @@ When the interview is done, return a compact handoff:
 - **Recommended planning input** - the exact summary or requirements path to pass to `ce-plan`
 - **Ready for `ce-plan`** - yes/no, with the reason
 
-Do not write the implementation plan here. If the result is ready, invoke
-`ce-plan` when the caller asked to continue the loop.
+Do not write the implementation plan here. Recommend the next step gated on that
+readiness verdict:
+
+- **Ready: yes.** Recommend `ce-plan` with the recommended planning input. When
+  the caller asked to continue the loop, invoke `ce-plan` directly rather than
+  just naming it. When this was a standalone grill, offer the choice via the
+  platform's blocking question tool (`AskUserQuestion` in Claude Code,
+  `request_user_input` in Codex, `ask_user` in Gemini, `ask_user` in Pi
+  (requires the `pi-ask-user` extension)) — in Claude Code call `ToolSearch` with
+  `select:AskUserQuestion` first if its schema isn't loaded — and fire the
+  selection. Fall back to a numbered chat list only when no blocking tool exists
+  or it errors.
+- **Ready: no.** Recommend resolving the remaining blocker — return to the open
+  question rather than routing to `ce-plan`. Do not force planning.
+
+Always leave a `Done for now` path that ends the turn without planning.

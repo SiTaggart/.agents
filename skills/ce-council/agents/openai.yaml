@@ -1,0 +1,4 @@
+interface:
+  display_name: "Council"
+  short_description: "Five-advisor decision pressure testing"
+  default_prompt: "Use $ce-council to pressure-test this decision."
