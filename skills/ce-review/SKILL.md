@@ -1,7 +1,7 @@
 ---
 name: ce-review
 description: Review recent code changes for bugs, regressions, product fit, conventions, performance, security, and blast radius.
-argument-hint: "[quick] [base:<ref>] [plan:<path>] [PR number, PR URL, branch name, or blank for current branch]"
+argument-hint: "[quick|deep] [base:<ref>] [plan:<path>] [PR number, PR URL, branch name, or blank for current branch]"
 ---
 
 # First-Principles Code Review
@@ -42,14 +42,17 @@ Do not do any of these:
 
 ## Step 0: Pre-Flight
 
-Before deep review, establish that the changeset is reviewable.
+Before substantive review, establish that the changeset is reviewable.
 
 Parse arguments before resolving the target:
 
 - `quick` means run the passes in the parent agent and keep the report short.
+- `deep` means prefer thoroughness over speed: use context-building and
+  specialist reviewers more readily, inspect relevant callers/importers for
+  changed contracts, and run every applicable pass even when the diff is small.
+  If both `quick` and `deep` are present, prefer `deep` and note the conflict.
 - `base:<ref>` selects the diff base for the current checkout.
 - `plan:<path>` is an optional intent source; read it for requirements context when it exists.
-- Legacy tokens such as `mode:agent`, `mode:headless`, `mode:report-only`, and `mode:autofix` are ignored. They do not change output format, apply behavior, or create artifacts.
 
 1. Determine the review target.
    - `base:<ref>` means review the current checkout against that base. Use `git merge-base HEAD <ref>` when possible; otherwise use `<ref>` directly.
@@ -86,9 +89,20 @@ Do not let caller spelunking become an unrelated repo audit. Follow blast radius
 
 When the review starts cold — a standalone diff or PR with no context built upstream this session — use a RepoPromptCE `context_builder` review-mode pass (see the `repoprompt` skill) to map blast radius and cross-module impact independently. Within a session that already ran brainstorm, plan, or work, reuse that context instead of rebuilding it. Fold the result into the main review; do not mechanically forward findings that lack file/line evidence.
 
+In `deep` mode, use the context-builder for any non-trivial diff unless enough
+equivalent context is already loaded. Inspect callers/importers for changed
+contracts more aggressively, but keep the search tied to real behavior,
+ownership boundaries, public APIs, shared state, or test fixtures touched by the
+change.
+
 ## Step 3: Review Passes
 
 For small changes, run these passes yourself. For medium or large changes, use parallel read-only sub-agents when the platform supports them, one pass per agent. If sub-agents are unavailable, run the passes sequentially.
+
+In `deep` mode, bias toward parallel specialist reviewers for all applicable
+passes, including small diffs with subtle state, data-flow, contract, security,
+performance, or test-proof risk. Deep mode should increase scrutiny and caller
+coverage; it should not lower the evidence bar or add speculative findings.
 
 Each pass returns at most five findings, ranked by impact. A pass with no issues says `No issues.`
 
@@ -102,9 +116,10 @@ Every pass uses this shared bar:
 
 ### Context-Isolated Agent Routing
 
-For medium or large reviews, delegate the context-heavy passes to existing
-reviewer agents instead of loading every lens into the parent thread. The parent
-keeps review intent, severity, deduplication, and final verdict ownership.
+For medium or large reviews, and for `deep` reviews, delegate the context-heavy
+passes to existing reviewer agents instead of loading every lens into the parent
+thread. The parent keeps review intent, severity, deduplication, and final
+verdict ownership.
 
 Dispatch the smallest useful set:
 
@@ -344,3 +359,21 @@ Before delivering, re-read every finding and ask:
 - Am I flagging this because it matters to the product/code, or because a checklist told me to?
 
 Drop anything that fails those questions.
+
+## Next Step
+
+After the verdict, recommend what to run next and fire it — do not end on a bare report. The menu is gated by the verdict, not a fixed list: show only the options that fit, mark the recommended one, and renumber so options stay contiguous from 1.
+
+Use the platform's blocking question tool (`AskUserQuestion` in Claude Code, `request_user_input` in Codex, `ask_user` in Gemini, `ask_user` in Pi (requires the `pi-ask-user` extension)). In Claude Code, call `ToolSearch` with `select:AskUserQuestion` first if its schema isn't loaded — a pending schema load is not a reason to fall back. Fall back to a numbered chat list ("Pick a number or describe what you want.") only when no blocking tool exists or the call errors. Never end the turn without collecting a response. Act on the selection — invoke the routed skill via the platform's skill primitive — do not merely name it.
+
+Gate the options on the verdict:
+
+- **`Ship it` / `Minor nits`:** `git-commit-push-pr` to ship (recommended), or `git-commit` for a local commit only. Add `ce-simplify-code` only when nits worth cleaning remain.
+- **`Needs changes`:** `ce-work` to address the findings (recommended), or `ce-debug` when the findings are bugs, regressions, or failing tests. After the fix lands, re-review the changed surface.
+- **`Rethink approach`:** `ce-plan` to rework the approach (recommended), or `ce-brainstorm` / `ce-grill` when the product framing itself is in question, not just the implementation. Offer `ce-work` only for any contained finding safe to fix in place.
+
+Always include a `Done for now` option that ends the turn without follow-up work.
+
+**Sub-step guard:** When another skill invoked this as a sub-step (e.g., `ce-work` owns the finish), skip the menu — return the verdict and findings and let the caller route. Present the menu only when this skill owns the turn's endpoint.
+
+This skill is review-only — routing to `ce-work` or `ce-debug` is the apply path; never apply fixes from here.

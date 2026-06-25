@@ -156,3 +156,19 @@ Briefly report:
 - any skipped findings and why they were not worth changing
 
 If the code was already clean, say so and list the checks performed.
+
+## Step 7: Recommend The Next Step
+
+After the summary, recommend what to run next and fire it — do not end on a bare report. The menu is gated by what the simplification produced, not a fixed list: show only the options that fit, mark the recommended one, and renumber so options stay contiguous from 1.
+
+Use the platform's blocking question tool (`AskUserQuestion` in Claude Code, `request_user_input` in Codex, `ask_user` in Gemini, `ask_user` in Pi (requires the `pi-ask-user` extension)). In Claude Code, call `ToolSearch` with `select:AskUserQuestion` first if its schema isn't loaded — a pending schema load is not a reason to fall back. Fall back to a numbered chat list ("Pick a number or describe what you want.") only when no blocking tool exists or the call errors. Never end the turn without collecting a response. Act on the selection — invoke the routed skill via the platform's skill primitive — do not merely name it.
+
+Gate the options on the outcome:
+
+- **Code changed and the touched surface has not been gated:** `ce-quality-gate` on the touched files (recommended), then review or ship.
+- **Already gated, or a substantial/risky change:** `ce-review` for a first-principles pass, or `git-commit-push-pr` / `git-commit` to ship a narrow, already-clean change.
+- **Simplification surfaced a deeper behavior risk or product question:** `ce-debug` for a suspected bug, or pause for product input rather than shipping.
+
+Always include a `Done for now` option that ends the turn without follow-up work.
+
+**Sub-step guard:** When `ce-quality-gate`, `ce-work`, or another skill invoked this as a sub-step, skip the menu — return the summary and let the caller route. Present the menu only when this skill owns the turn's endpoint.

@@ -228,7 +228,18 @@ Finish with a concise report:
 - what was not verified and why
 - any narrow follow-up that is genuinely outside the accepted contract
 
-Do not offer a generic menu. Do not ask the user to pick from process options after the work is complete.
+Then recommend the next step and fire it. The menu is gated by your assessment of the finished work, not a fixed list of process options. Show only the options that fit, mark the recommended one, and renumber so options stay contiguous from 1. Do not offer a generic menu unrelated to what the work produced.
+
+Use the platform's blocking question tool (`AskUserQuestion` in Claude Code, `request_user_input` in Codex, `ask_user` in Gemini, `ask_user` in Pi (requires the `pi-ask-user` extension)). In Claude Code, call `ToolSearch` with `select:AskUserQuestion` first if its schema isn't loaded — a pending schema load is not a reason to fall back. Fall back to a numbered chat list ("Pick a number or describe what you want.") only when no blocking tool exists or the call errors. Act on the selection — invoke the routed skill via the platform's skill primitive — do not merely name it.
+
+Gate the options on the finished work:
+
+- **Substantial or risky change not yet reviewed:** `ce-review` (recommended), or `ce-technical-review` for a stricter multi-pass audit.
+- **Clean, low-risk, and proven:** `git-commit-push-pr` to ship (recommended), or `git-commit` for a local commit only.
+- **A non-trivial simplification opportunity remains:** `ce-simplify-code` before review or ship.
+- **A durable lesson or new domain term surfaced:** `ce-compound` to capture it.
+
+Always include a `Done for now` option that ends the turn without follow-up work. If `ce-quality-gate` already routed forward in this session, do not re-ask the same question — defer to that handoff.
 
 ## Non-Code Work
 
