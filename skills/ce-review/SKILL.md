@@ -60,7 +60,7 @@ Parse arguments before resolving the target:
 1. Determine the review target.
    - `base:<ref>` means review the current checkout against that base. Use `git merge-base HEAD <ref>` when possible; otherwise use `<ref>` directly. Mark the target as `current-checkout`.
    - A PR number or URL means review that PR without checking it out. Use `gh pr view` and `gh pr diff --color=never` when available. Mark the target as `remote-readonly`.
-   - A branch name means review that branch without switching branches. Prefer an open PR for the branch when one exists; otherwise diff the resolved branch ref against the default branch. Mark the target as `remote-readonly`.
+   - A branch name means review that branch without switching branches. If the branch name resolves to the current checkout (`HEAD` or the current branch name), mark the target as `current-checkout`; otherwise prefer an open PR for the branch when one exists, or diff the resolved branch ref against the default branch, and mark the target as `remote-readonly`.
    - No argument means review the current branch against its PR base if an open PR exists; otherwise review against the default branch. Mark the target as `current-checkout`.
 2. Collect the changed file list and full diff.
 3. Exclude submodules, generated files, lockfiles, and vendored/minified assets unless the change is specifically about them.

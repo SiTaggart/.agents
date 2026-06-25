@@ -28,7 +28,12 @@ Before spawning review agents, verify the code is in a reviewable state.
 1. Build the changed-file list from both tracked and untracked work:
    `git diff HEAD --name-only` plus `git ls-files --others --exclude-standard`.
    Filter out submodules, generated files, lockfiles, and vendored/minified
-   assets unless the change is specifically about them.
+   assets unless the change is specifically about them. Before including
+   untracked file contents, explicitly exclude likely secret or local config
+   paths such as `.env*`, `.npmrc`, `.pypirc`, `*.pem`, `*.key`, `*.p12`,
+   `*.pfx`, `id_rsa*`, `*_rsa`, `*credentials*`, `*secret*`, `*.local.*`, and
+   `config.local.*` unless the review is specifically about that file and the
+   sensitive values are redacted.
 2. Run `git diff HEAD -- <tracked-files>` and keep the full tracked diff. For
    each untracked file in scope, include its full contents or a
    `git diff --no-index -- /dev/null <file> || true` patch so every review pass

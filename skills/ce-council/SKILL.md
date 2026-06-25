@@ -60,7 +60,8 @@ Before framing, enrich the context.
      workspace
    - any `memory/` folder
    - files the user explicitly referenced or attached
-   - recent `.ai/council/council-report-*.html` files, to avoid repeating old
+   - recent `.ai/council/council-report-*.html` files, plus legacy root-level
+     `council-report-*.html` files during migration, to avoid repeating old
      ground
    - design docs, benchmarks, prior analysis, or architecture notes relevant to
      the question
