@@ -141,7 +141,7 @@ Gate the options on the result and the proof status reported in §6. If required
 product/browser proof is missing or inconclusive, that wins over the clean/risk
 branches below.
 
-- **Clean, but required product/browser proof is missing or inconclusive:** `ce-work` to complete the real-surface proof (recommended), or `ce-review` for a non-mutating review if proof is blocked. Do not offer `git-commit-push-pr` from a mechanically clean but behaviorally unproven gate.
+- **Clean, but required product/browser proof is missing or inconclusive:** `ce-work` to complete the real-surface proof (recommended). If proof is blocked, report the blocker and offer only `Done for now`; do not route to `ce-review`, `git-commit-push-pr`, or any other path that can later offer shipping from a mechanically clean but behaviorally unproven gate.
 - **Clean, substantial or risky, and the required product/browser proof is present or not applicable:** `ce-review` for a first-principles pass (recommended), then ship.
 - **Clean, narrow, low-risk, and the required product/browser proof is present or not applicable:** `git-commit-push-pr` to ship (recommended), or `git-commit` for a local commit only. Offer `ce-review` only if the user wants a second pass.
 - **A non-trivial simplification opportunity remains, or a code-shape exception was reported:** `ce-simplify-code` before review or ship.

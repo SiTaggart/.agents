@@ -31,8 +31,9 @@ Before spawning review agents, verify the code is in a reviewable state.
    assets unless the change is specifically about them.
 2. Run `git diff HEAD -- <tracked-files>` and keep the full tracked diff. For
    each untracked file in scope, include its full contents or a
-   `git diff --no-index -- /dev/null <file>` patch so every review pass sees new
-   files that have not been staged.
+   `git diff --no-index -- /dev/null <file> || true` patch so every review pass
+   sees new files that have not been staged. Exit status 1 is expected for this
+   command when the file has content; treat the patch output as success.
 3. Note which files are new, untracked, or modified.
 4. Find every governing instruction file from the repo root down to the deepest
    changed directory, especially `AGENTS.md` and `CLAUDE.md`.
