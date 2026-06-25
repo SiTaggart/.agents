@@ -25,12 +25,15 @@ Before spawning review agents, verify the code is in a reviewable state.
 
 ## Step 1: Identify The Changeset
 
-1. Run `git diff HEAD --name-only` to get changed files. Filter out submodules,
-   generated files, lockfiles, and vendored/minified assets unless the change is
-   specifically about them.
-2. Run `git diff HEAD -- <files>` and keep the full diff. Every review pass
-   needs the same diff.
-3. Note which files are new versus modified.
+1. Build the changed-file list from both tracked and untracked work:
+   `git diff HEAD --name-only` plus `git ls-files --others --exclude-standard`.
+   Filter out submodules, generated files, lockfiles, and vendored/minified
+   assets unless the change is specifically about them.
+2. Run `git diff HEAD -- <tracked-files>` and keep the full tracked diff. For
+   each untracked file in scope, include its full contents or a
+   `git diff --no-index -- /dev/null <file>` patch so every review pass sees new
+   files that have not been staged.
+3. Note which files are new, untracked, or modified.
 4. Find every governing instruction file from the repo root down to the deepest
    changed directory, especially `AGENTS.md` and `CLAUDE.md`.
 5. This is the review scope: review only changed files and only issues
