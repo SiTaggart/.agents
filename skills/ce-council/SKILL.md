@@ -60,7 +60,9 @@ Before framing, enrich the context.
      workspace
    - any `memory/` folder
    - files the user explicitly referenced or attached
-   - recent `council-report-*.html` files, to avoid repeating old ground
+   - recent `.ai/council/council-report-*.html` files, plus legacy root-level
+     `council-report-*.html` files during migration, to avoid repeating old
+     ground
    - design docs, benchmarks, prior analysis, or architecture notes relevant to
      the question
 2. Prefer fast filesystem search such as `rg` and `rg --files`. Read the root
@@ -224,13 +226,13 @@ they could not get from a single perspective.
 
 ## Step 5: Generate The Council Report
 
-After synthesis, generate a self-contained HTML report and save it to the
-user's workspace.
+After synthesis, generate a self-contained HTML report and save it under the
+user's workspace at `.ai/council/`. Create that directory if needed.
 
 File name:
 
 ```text
-council-report-[timestamp].html
+.ai/council/council-report-[timestamp].html
 ```
 
 The report must include:
@@ -242,6 +244,12 @@ The report must include:
 5. A collapsible peer-review highlights section
 6. A footer with the timestamp and what was counciled
 
+Security boundary: treat the user's question, advisor responses, peer-review
+text, workspace snippets, file paths, and any copied source text as untrusted
+dynamic content. Insert those values with `textContent` or HTML-escape them
+before interpolation (for example, `html.escape(value, quote=True)` in Python).
+Only the static report template markup may be raw HTML.
+
 Use inline CSS, a white background, subtle borders, readable system fonts, and
 soft accent colors for advisor sections. Keep it professional and scannable.
 Open the HTML file after generating it when the environment supports that.
@@ -251,7 +259,7 @@ Open the HTML file after generating it when the environment supports that.
 Every council session produces one file:
 
 ```text
-council-report-[timestamp].html
+.ai/council/council-report-[timestamp].html
 ```
 
 In the chat response, give the recommendation summary and a link to the report.

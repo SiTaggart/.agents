@@ -137,10 +137,13 @@ After the report, recommend what to run next and fire it — do not end on a bar
 
 Use the platform's blocking question tool (`AskUserQuestion` in Claude Code, `request_user_input` in Codex, `ask_user` in Gemini, `ask_user` in Pi (requires the `pi-ask-user` extension)). In Claude Code, call `ToolSearch` with `select:AskUserQuestion` first if its schema isn't loaded — a pending schema load is not a reason to fall back. Fall back to a numbered chat list ("Pick a number or describe what you want.") only when no blocking tool exists or the call errors. Never end the turn without collecting a response. Act on the selection — invoke the routed skill via the platform's skill primitive — do not merely name it.
 
-Gate the options on the result:
+Gate the options on the result and the proof status reported in §6. If required
+product/browser proof is missing or inconclusive, that wins over the clean/risk
+branches below.
 
-- **Clean and the change is substantial or risky:** `ce-review` for a first-principles pass (recommended), then ship.
-- **Clean and the change is narrow and low-risk:** `git-commit-push-pr` to ship (recommended), or `git-commit` for a local commit only. Offer `ce-review` only if the user wants a second pass.
+- **Clean, but required product/browser proof is missing or inconclusive:** `ce-work` to complete the real-surface proof (recommended). If proof is blocked, report the blocker and offer only `Done for now`; do not route to `ce-review`, `git-commit-push-pr`, or any other path that can later offer shipping from a mechanically clean but behaviorally unproven gate.
+- **Clean, substantial or risky, and the required product/browser proof is present or not applicable:** `ce-review` for a first-principles pass (recommended), then ship.
+- **Clean, narrow, low-risk, and the required product/browser proof is present or not applicable:** `git-commit-push-pr` to ship (recommended), or `git-commit` for a local commit only. Offer `ce-review` only if the user wants a second pass.
 - **A non-trivial simplification opportunity remains, or a code-shape exception was reported:** `ce-simplify-code` before review or ship.
 - **Still blocked by a touched-file failure this gate could not resolve:** `ce-debug` to find the root cause (recommended). Do not route to review or ship while the surface is failing.
 

@@ -1,7 +1,7 @@
 ---
 name: ce-review
 description: Review recent code changes for bugs, regressions, product fit, conventions, performance, security, and blast radius.
-argument-hint: "[quick|deep] [base:<ref>] [plan:<path>] [PR number, PR URL, branch name, or blank for current branch]"
+argument-hint: "[quick|deep] [mode:* ignored] [base:<ref>] [plan:<path>] [PR number, PR URL, branch name, or blank for current branch]"
 ---
 
 # First-Principles Code Review
@@ -51,14 +51,17 @@ Parse arguments before resolving the target:
   specialist reviewers more readily, inspect relevant callers/importers for
   changed contracts, and run every applicable pass even when the diff is small.
   If both `quick` and `deep` are present, prefer `deep` and note the conflict.
+- `mode:*` tokens are legacy caller flags. Strip and ignore them before target
+  resolution; do not treat values such as `mode:agent`, `mode:headless`, or
+  `mode:autofix` as PRs, branches, paths, or review targets.
 - `base:<ref>` selects the diff base for the current checkout.
 - `plan:<path>` is an optional intent source; read it for requirements context when it exists.
 
 1. Determine the review target.
-   - `base:<ref>` means review the current checkout against that base. Use `git merge-base HEAD <ref>` when possible; otherwise use `<ref>` directly.
-   - A PR number or URL means review that PR without checking it out. Use `gh pr view` and `gh pr diff --color=never` when available.
-   - A branch name means review that branch without switching branches. Prefer an open PR for the branch when one exists; otherwise diff the resolved branch ref against the default branch.
-   - No argument means review the current branch against its PR base if an open PR exists; otherwise review against the default branch.
+   - `base:<ref>` means review the current checkout against that base. Use `git merge-base HEAD <ref>` when possible; otherwise use `<ref>` directly. Mark the target as `current-checkout`.
+   - A PR number or URL means review that PR without checking it out. Use `gh pr view` and `gh pr diff --color=never` when available. Mark the target as `remote-readonly`.
+   - A branch name means review that branch without switching branches. If the branch name resolves to the current checkout (`HEAD` or the current branch name), mark the target as `current-checkout`; otherwise prefer an open PR for the branch when one exists, or diff the resolved branch ref against the default branch, and mark the target as `remote-readonly`.
+   - No argument means review the current branch against its PR base if an open PR exists; otherwise review against the default branch. Mark the target as `current-checkout`.
 2. Collect the changed file list and full diff.
 3. Exclude submodules, generated files, lockfiles, and vendored/minified assets unless the change is specifically about them.
 4. Include staged and unstaged tracked changes for current-checkout reviews. List untracked files as excluded unless the user explicitly asked to include them.
@@ -366,7 +369,25 @@ After the verdict, recommend what to run next and fire it — do not end on a ba
 
 Use the platform's blocking question tool (`AskUserQuestion` in Claude Code, `request_user_input` in Codex, `ask_user` in Gemini, `ask_user` in Pi (requires the `pi-ask-user` extension)). In Claude Code, call `ToolSearch` with `select:AskUserQuestion` first if its schema isn't loaded — a pending schema load is not a reason to fall back. Fall back to a numbered chat list ("Pick a number or describe what you want.") only when no blocking tool exists or the call errors. Never end the turn without collecting a response. Act on the selection — invoke the routed skill via the platform's skill primitive — do not merely name it.
 
-Gate the options on the verdict:
+Before offering routes, check the target marker from Step 0. Mutating or
+current-checkout routes (`git-commit-push-pr`, `git-commit`, `ce-work`,
+`ce-debug`, `ce-simplify-code`, or any apply/fix workflow) are visible only when
+the reviewed target is `current-checkout`.
+
+If the reviewed target is `remote-readonly`, render only non-mutating options or
+guidance. Do not invoke an apply or shipping skill against the local checkout:
+
+- **`Ship it` / `Minor nits`:** state that the reviewed PR or branch appears
+  shippable from the review evidence, and tell the user to check out that target
+  before asking for commits or fixes.
+- **`Needs changes`:** provide a concise review response or fix list tied to the
+  remote diff, and tell the user to check out the target branch before applying
+  changes.
+- **`Rethink approach`:** summarize the planning concern and recommend a planning
+  pass after the target branch is checked out.
+- **Done for now:** leave the review as guidance only.
+
+For `current-checkout` targets, gate the options on the verdict:
 
 - **`Ship it` / `Minor nits`:** `git-commit-push-pr` to ship (recommended), or `git-commit` for a local commit only. Add `ce-simplify-code` only when nits worth cleaning remain.
 - **`Needs changes`:** `ce-work` to address the findings (recommended), or `ce-debug` when the findings are bugs, regressions, or failing tests. After the fix lands, re-review the changed surface.
