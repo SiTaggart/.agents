@@ -5,8 +5,8 @@
 // Codex thread id so follow-up questions reuse the conversation.
 //
 // Usage:
-//   node scripts/open-codiff.mjs --file <path> [target]
-//   node scripts/open-codiff.mjs --plan <path> [repository]
+//   node "$SKILL_DIR/scripts/open-codiff.mjs" --file <path> [target]
+//   node "$SKILL_DIR/scripts/open-codiff.mjs" --plan <path> [repository]
 //
 // `--file <path>` is forwarded to Codiff as `--walkthrough-file`. Any non-flag target
 // (commit, HEAD, PR number, or repository path) is forwarded verbatim; when no repository
@@ -16,56 +16,106 @@ import { Buffer } from 'node:buffer';
 import { spawnSync } from 'node:child_process';
 import { closeSync, existsSync, fstatSync, openSync, readSync, readdirSync } from 'node:fs';
 import { createRequire } from 'node:module';
-import { homedir } from 'node:os';
+import { constants as osConstants, homedir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 
 const threadId = process.env.CODEX_THREAD_ID || '';
 const skillRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const sourceCodiffRoot = resolve(skillRoot, '../../..');
+const sourceCodiffRoot = resolve(skillRoot, '../..');
 const macAppCodiffRoot = '/Applications/Codiff.app/Contents/Resources/app';
-const codiffRoot =
-  process.env.CODIFF_ROOT ||
-  (existsSync(join(sourceCodiffRoot, 'bin/share-codiff.mjs'))
-    ? sourceCodiffRoot
-    : process.platform === 'darwin' && existsSync(join(macAppCodiffRoot, 'bin/share-codiff.mjs'))
-      ? macAppCodiffRoot
-      : sourceCodiffRoot);
 const sessionIdPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const maxSessionScanFiles = 20_000;
 const maxSessionReadBytes = 16 * 1024 * 1024;
+
+const hasCodiffBin = (root) =>
+  existsSync(join(root, 'bin/share-codiff.mjs')) ||
+  existsSync(join(root, 'bin/codiff.js')) ||
+  existsSync(join(root, 'bin/codiff-app'));
+
+const resolveCodiffRoot = () => {
+  if (process.env.CODIFF_ROOT) {
+    return resolve(process.env.CODIFF_ROOT);
+  }
+
+  if (hasCodiffBin(sourceCodiffRoot)) {
+    return sourceCodiffRoot;
+  }
+
+  if (process.platform === 'darwin' && hasCodiffBin(macAppCodiffRoot)) {
+    return macAppCodiffRoot;
+  }
+
+  return '';
+};
+
+const codiffRoot = resolveCodiffRoot();
 
 const getCodiffCommand = () => {
   if (process.env.CODIFF_COMMAND) {
     return { args: [], command: process.env.CODIFF_COMMAND };
   }
 
-  const appCli = join(codiffRoot, 'bin/codiff-app');
-  if (
-    process.platform === 'darwin' &&
-    codiffRoot.includes('.app/Contents/Resources/app') &&
-    existsSync(appCli)
-  ) {
-    return { args: [], command: appCli };
-  }
+  if (codiffRoot) {
+    const appCli = join(codiffRoot, 'bin/codiff-app');
+    if (
+      process.platform === 'darwin' &&
+      codiffRoot.includes('.app/Contents/Resources/app') &&
+      existsSync(appCli)
+    ) {
+      return { args: [], command: appCli };
+    }
 
-  const devCli = join(codiffRoot, 'bin/codiff.js');
-  if (existsSync(devCli)) {
-    return { args: [devCli], command: process.execPath };
-  }
+    const devCli = join(codiffRoot, 'bin/codiff.js');
+    if (existsSync(devCli)) {
+      return { args: [devCli], command: process.execPath };
+    }
 
-  if (process.platform === 'darwin' && existsSync(appCli)) {
-    return { args: [], command: appCli };
+    if (process.platform === 'darwin' && existsSync(appCli)) {
+      return { args: [], command: appCli };
+    }
   }
 
   return { args: [], command: 'codiff' };
 };
 
-const getShareCommand = () =>
-  process.env.CODIFF_SHARE_COMMAND
-    ? { args: [], command: process.env.CODIFF_SHARE_COMMAND }
-    : { args: [join(codiffRoot, 'bin/share-codiff.mjs')], command: process.execPath };
+const getShareCommand = () => {
+  if (process.env.CODIFF_SHARE_COMMAND) {
+    return { args: [], command: process.env.CODIFF_SHARE_COMMAND };
+  }
+
+  if (codiffRoot) {
+    const shareCli = join(codiffRoot, 'bin/share-codiff.mjs');
+    if (existsSync(shareCli)) {
+      return { args: [shareCli], command: process.execPath };
+    }
+  }
+
+  process.stderr.write(
+    'open-codiff: could not find Codiff share launcher. Set CODIFF_ROOT or CODIFF_SHARE_COMMAND.\n',
+  );
+  process.exit(1);
+};
+
+const getSignalExitCode = (signal) => {
+  const signalNumber = osConstants.signals?.[signal];
+  return typeof signalNumber === 'number' ? 128 + signalNumber : 1;
+};
+
+const exitFromSpawn = (result) => {
+  if (result.error) {
+    process.stderr.write(`${result.error.message}\n`);
+    process.exit(1);
+  }
+
+  if (result.signal) {
+    process.stderr.write(`open-codiff: child process terminated by ${result.signal}.\n`);
+    process.exit(getSignalExitCode(result.signal));
+  }
+
+  process.exit(result.status ?? 1);
+};
 
 const getCodexHome = () => process.env.CODEX_HOME || join(homedir(), '.codex');
 
@@ -186,7 +236,7 @@ const readSessionCwd = (sessionId) => {
 const getFallbackSessionCwd = () => {
   const cwd = process.cwd();
   const isRunningFromSourceSkill = cwd === skillRoot || cwd.startsWith(`${skillRoot}/`);
-  if (isRunningFromSourceSkill && existsSync(join(codiffRoot, 'bin/codiff.js'))) {
+  if (isRunningFromSourceSkill && codiffRoot && existsSync(join(codiffRoot, 'bin/codiff.js'))) {
     return codiffRoot;
   }
 
@@ -205,7 +255,14 @@ if (rawArgs[0] === '--resolve-plan-comments') {
     process.exit(1);
   }
   const require = createRequire(import.meta.url);
-  const { resolvePlanReviewThreadsAtPath } = require(join(codiffRoot, 'electron/plan-review.cjs'));
+  const planReviewModule = codiffRoot ? join(codiffRoot, 'electron/plan-review.cjs') : '';
+  if (!planReviewModule || !existsSync(planReviewModule)) {
+    process.stderr.write(
+      'open-codiff: could not find Codiff plan review module. Set CODIFF_ROOT to a Codiff checkout or app resource root.\n',
+    );
+    process.exit(1);
+  }
+  const { resolvePlanReviewThreadsAtPath } = require(planReviewModule);
   try {
     const { missingIds, resolvedIds } = await resolvePlanReviewThreadsAtPath(
       reviewPath,
@@ -225,19 +282,15 @@ if (rawArgs[0] === '--resolve-plan-comments') {
 // `--guide`: print Codiff's current walkthrough authoring guide and exit. The
 // guidance lives in Codiff (not this skill), so it stays current across updates.
 if (rawArgs.includes('--guide')) {
-  const binEntry = join(codiffRoot, 'bin/codiff.js');
-  const guide = existsSync(binEntry)
+  const binEntry = codiffRoot ? join(codiffRoot, 'bin/codiff.js') : '';
+  const guide = binEntry && existsSync(binEntry)
     ? { args: [binEntry, '--walkthrough-guide'], command: process.execPath }
     : (() => {
         const resolved = getCodiffCommand();
         return { args: [...resolved.args, '--walkthrough-guide'], command: resolved.command };
       })();
   const guideResult = spawnSync(guide.command, guide.args, { encoding: 'utf8', stdio: 'inherit' });
-  if (guideResult.error) {
-    process.stderr.write(`${guideResult.error.message}\n`);
-    process.exit(1);
-  }
-  process.exit(guideResult.status ?? 0);
+  exitFromSpawn(guideResult);
 }
 
 // Pull `--file <path>` (or `--file=<path>`) out of the forwarded arguments.
@@ -307,11 +360,7 @@ if (planFile && shareWalkthrough) {
   if (shareResult.stderr) {
     process.stderr.write(shareResult.stderr);
   }
-  if (shareResult.error) {
-    process.stderr.write(`${shareResult.error.message}\n`);
-    process.exit(1);
-  }
-  process.exit(shareResult.status ?? 0);
+  exitFromSpawn(shareResult);
 }
 
 if (planFile) {
@@ -334,11 +383,7 @@ if (planFile) {
     ],
     { cwd: sessionCwd, encoding: 'utf8', stdio: 'inherit' },
   );
-  if (result.error) {
-    process.stderr.write(`${result.error.message}\n`);
-    process.exit(1);
-  }
-  process.exit(result.status ?? 0);
+  exitFromSpawn(result);
 }
 
 if (!walkthroughFile) {
@@ -376,11 +421,7 @@ if (shareWalkthrough) {
   if (shareResult.stderr) {
     process.stderr.write(shareResult.stderr);
   }
-  if (shareResult.error) {
-    process.stderr.write(`${shareResult.error.message}\n`);
-    process.exit(1);
-  }
-  process.exit(shareResult.status ?? 0);
+  exitFromSpawn(shareResult);
 }
 
 const hasRepositoryTarget = forwardedArgs.some(
@@ -404,9 +445,4 @@ const result = spawnSync(codiffCommand.command, args, {
   stdio: 'inherit',
 });
 
-if (result.error) {
-  process.stderr.write(`${result.error.message}\n`);
-  process.exit(1);
-}
-
-process.exit(result.status ?? 0);
+exitFromSpawn(result);

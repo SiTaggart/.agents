@@ -26,6 +26,19 @@ change. Codiff owns the format and authoring guidance, so this skill only handle
 - In share mode, only pass `--open` when the user explicitly asks to open the resulting share in
   a browser. Otherwise return the URL without opening it.
 
+## Bundled Launcher
+
+Before running any launcher command, set `SKILL_DIR` to the absolute directory containing this
+`SKILL.md`, then invoke the bundled script through that path:
+
+```bash
+SKILL_DIR="/absolute/path/to/skills/codiff"
+node "$SKILL_DIR/scripts/open-codiff.mjs" ...
+```
+
+The shell cwd is normally the user's project, so do not invoke a project-relative
+`scripts/open-codiff.mjs` path.
+
 ## Plan Mode
 
 1. Write the complete proposed plan to a Markdown file. Use a unique temporary file outside the
@@ -35,7 +48,7 @@ change. Codiff owns the format and authoring guidance, so this skill only handle
 3. Open the blocking handoff:
 
    ```bash
-   node scripts/open-codiff.mjs --plan /tmp/codiff-plan-<id>.md
+   node "$SKILL_DIR/scripts/open-codiff.mjs" --plan /tmp/codiff-plan-<id>.md
    ```
 
 4. Wait for Codiff to return. `status: "done"` means the user clicked **Done**. `status: "closed"`
@@ -49,7 +62,7 @@ change. Codiff owns the format and authoring guidance, so this skill only handle
    using the exact `reviewPath` from `CODIFF_PLAN_RESULT`:
 
    ```bash
-   node scripts/open-codiff.mjs --resolve-plan-comments "<reviewPath>" <thread-id>...
+   node "$SKILL_DIR/scripts/open-codiff.mjs" --resolve-plan-comments "<reviewPath>" <thread-id>...
    ```
 
    Do not resolve comments that were ambiguous, deferred, or not applied.
@@ -68,7 +81,7 @@ approval document.
 2. Upload it without opening a blocking desktop handoff:
 
    ```bash
-   node scripts/open-codiff.mjs --plan /tmp/codiff-plan-<id>.md --share
+   node "$SKILL_DIR/scripts/open-codiff.mjs" --plan /tmp/codiff-plan-<id>.md --share
    ```
 
 3. Add `--open` only when the user explicitly asks to open the shared plan in a browser.
@@ -80,7 +93,7 @@ approval document.
    schema:
 
    ```bash
-   node scripts/open-codiff.mjs --guide
+   node "$SKILL_DIR/scripts/open-codiff.mjs" --guide
    ```
 
 2. **Pick the change.** Default to the staged diff (`git diff --staged`). If the user named a
@@ -95,26 +108,26 @@ approval document.
    Desktop mode:
 
    ```bash
-   node scripts/open-codiff.mjs --file /tmp/codiff-walkthrough-<id>.json /path/to/repository
+   node "$SKILL_DIR/scripts/open-codiff.mjs" --file /tmp/codiff-walkthrough-<id>.json /path/to/repository
    ```
 
    Share mode:
 
    ```bash
-   node scripts/open-codiff.mjs --share --file /tmp/codiff-walkthrough-<id>.json /path/to/repository
+   node "$SKILL_DIR/scripts/open-codiff.mjs" --share --file /tmp/codiff-walkthrough-<id>.json /path/to/repository
    ```
 
    Share and open in the default browser:
 
    ```bash
-   node scripts/open-codiff.mjs --share --open --file /tmp/codiff-walkthrough-<id>.json /path/to/repository
+   node "$SKILL_DIR/scripts/open-codiff.mjs" --share --open --file /tmp/codiff-walkthrough-<id>.json /path/to/repository
    ```
 
    Forward an explicit target after the flags:
 
    ```bash
-   node scripts/open-codiff.mjs --share --file /tmp/codiff-walkthrough-<id>.json HEAD /path/to/repository
-   node scripts/open-codiff.mjs --share --file /tmp/codiff-walkthrough-<id>.json mr 123 /path/to/repository
+   node "$SKILL_DIR/scripts/open-codiff.mjs" --share --file /tmp/codiff-walkthrough-<id>.json HEAD /path/to/repository
+   node "$SKILL_DIR/scripts/open-codiff.mjs" --share --file /tmp/codiff-walkthrough-<id>.json mr 123 /path/to/repository
    ```
 
    The share command prints the final walkthrough URL to stdout. When the cached Cloudflare
