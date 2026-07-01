@@ -45,9 +45,29 @@
       "skillFolderHash": "0f346be8222b1afd7b95b2692953f520a11b82ae",
       "installedAt": "2026-06-11T15:14:50.562Z",
       "updatedAt": "2026-06-11T15:14:50.562Z"
+    },
+    "writing-great-skills": {
+      "source": "mattpocock/skills",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/mattpocock/skills.git",
+      "skillPath": "skills/productivity/writing-great-skills/SKILL.md",
+      "skillFolderHash": "0875ef784dfdf0a3860f1cdc3937c2796b0314a5",
+      "pluginName": "mattpocock-skills",
+      "installedAt": "2026-07-01T15:35:15.607Z",
+      "updatedAt": "2026-07-01T15:35:15.607Z"
+    },
+    "find-skills": {
+      "source": "vercel-labs/skills",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/vercel-labs/skills.git",
+      "skillPath": "skills/find-skills/SKILL.md",
+      "skillFolderHash": "eb6a23305aea6e340d14b9de3766e721f9f4861b",
+      "installedAt": "2026-07-01T15:35:24.614Z",
+      "updatedAt": "2026-07-01T15:35:24.614Z"
     }
   },
   "lastSelectedAgents": [
+    "amp",
     "antigravity",
     "antigravity-cli",
     "cline",
@@ -60,5 +80,8 @@
     "opencode",
     "warp",
     "zed"
-  ]
+  ],
+  "dismissed": {
+    "findSkillsPrompt": true
+  }
 }
