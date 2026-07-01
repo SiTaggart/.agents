@@ -85,7 +85,7 @@ npx skills add vercel-labs/agent-skills \
 | Component  | Count |
 | ---------- | ----- |
 | Agents     | 30    |
-| Skills     | 60    |
+| Skills     | 71    |
 
 ## Operating Loops
 
@@ -98,6 +98,7 @@ The shelf is organized around a few tight loops rather than standalone skills:
 | Review and ship | `ce-review` on changed work, delegating medium/large passes to reviewer agents -> `ce-simplify-code` when shape needs cleanup -> git skills for ops; `pr-review-canvas` for an interactive walkthrough of someone else's PR; `ce-thermo-nuclear-code-quality-review` when the change needs an unusually strict maintainability pass |
 | Remember and reuse | `ce-compound` / `ce-compound-refresh` -> Obsidian or QMD for durable knowledge |
 | Debug and investigate | `ce-debug` -> `repoprompt` when broad context is needed -> `ce-work` -> `ce-review` |
+| Improve the agent shelf | QMD retros / focused `ce-sessions` evidence -> `ce-improve-skills` -> one owner-skill patch or proposal -> later retro measurement |
 
 ## Context Delegation
 

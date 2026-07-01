@@ -3,6 +3,26 @@
 Global instructions for coding agents. Project-level `AGENTS.md` or `CLAUDE.md`
 files add local context and override only overlapping instructions.
 
+## Context Gate
+
+- For project, code, docs, planning, review, and debugging work, gather context
+  before answering, planning, or editing. No cold answers from memory.
+- Start each session or task with the closest applicable context pass:
+  - Read the local `AGENTS.md` or `CLAUDE.md`, task docs, and relevant project
+    files.
+  - Run QMD against durable knowledge for non-trivial work, broad explanations,
+    plans, reviews, or any task where history may matter. Search exact terms
+    first; add semantic or expanded searches when vocabulary is uncertain.
+  - Use RepoPromptCE for non-trivial codebase context. Prefer MCP tools:
+    `file_search`, `get_file_tree`, `read_file`, `get_code_structure`,
+    `context_builder`, and `manage_selection`. If MCP is unavailable, use
+    `rpce-cli`. Fall back to `rg` and shell reads only when RepoPromptCE is
+    unavailable or the scope is exact and small.
+- Inspect source files to verify drift-prone or implementation-level details
+  surfaced by QMD or RepoPromptCE.
+- State what context was checked in the final answer. If QMD or RepoPromptCE was
+  skipped, state the concrete reason.
+
 ## Working Style
 
 - Work with a senior Design Engineer specializing in TypeScript and React.
@@ -109,16 +129,6 @@ files add local context and override only overlapping instructions.
 - Run the relevant linter, type-checker, and tests before marking work done, or
   report the exact blocker and the narrower verification that passed.
 
-## Prior Art
-
-- For non-trivial work, search prior art before planning or writing code.
-- For broad explanatory questions, query durable knowledge before reconstructing
-  the answer from code.
-- Use QMD, Obsidian skills, `.ai/` artifacts, docs, notes, and agent sessions as
-  the precomputed context layer when history may matter.
-- Search exact terms first, then semantic searches when vocabulary is uncertain.
-- Inspect source code to verify drift-prone or implementation-level details.
-
 ## Phase Skills
 
 - Discover/context: use `qmd`, Obsidian skills, `ce-sessions`,
@@ -141,7 +151,8 @@ files add local context and override only overlapping instructions.
 
 ## Tooling
 
-- Prefer RepoPromptCE MCP for codebase exploration and review when available:
+- Use RepoPromptCE for non-trivial codebase exploration and review when
+  available:
   `file_search`, `get_file_tree`, `read_file`, `get_code_structure`,
   `context_builder`, and `manage_selection`.
 - If RepoPromptCE MCP is unavailable, use `rpce-cli`; then fall back to shell
