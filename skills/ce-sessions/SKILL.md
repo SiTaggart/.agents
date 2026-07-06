@@ -24,9 +24,9 @@ If the line above resolved to a plain branch name (like `feat/my-branch`), use i
 
 If the line above resolved to a path, take its last path component as the repo folder name and use that for session discovery. If it is empty or still contains a backtick command string, derive the repo name at runtime instead.
 
-## Note: 2026
+**Today (pre-resolved):** !`date +%Y-%m-%d`
 
-The current year is 2026. Use this when interpreting session timestamps.
+Use this when interpreting session timestamps and recency windows (e.g. "last 7 days"). If the line above still contains a backtick command string, use the date your harness provides instead.
 
 ## Guardrails
 

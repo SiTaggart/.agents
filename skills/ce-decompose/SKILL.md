@@ -119,17 +119,6 @@ Each unit — whether split off or rebuilt — goes through normal review as it 
 
 The loop terminates when every remaining piece is something a careful human can review with confidence. That is the exit condition — not a fully-specified plan, and not a green test suite alone.
 
-## Anti-Patterns
-
-- **Using this at the front of the funnel.** Decomposition operates on an existing diff. If there's no code yet, you want `ce-plan` → `ce-work`, not this.
-- **Discarding sound work.** Rebuilding from scratch when the diff was correct and just large. Splitting preserves work your plan/work loop already got right — default to it.
-- **Splitting tangled code anyway.** Forcing a reviewable stack out of a diff with no clean seams, when rebuilding would be faster and cleaner. The Step 2 gate exists to catch this.
-- **Finding the seams once.** Taking the agent's first split at face value. The independent second pass and the reconciliation are where real seams surface.
-- **Units shaped by the diff.** Units pinned to the diff's incidental file layout instead of the feature's durable boundaries.
-- **A stack that doesn't build green per step.** Ordering units so an early commit/PR can't build or pass tests without code that lands later. Each step in the stack must stand on its own.
-- **Treating 1500 as sacred.** It is a tripwire. A risky 400-line auth change is over threshold; a mechanical 3000-line rename may be under it. Judge review-ability.
-- **Running fully autonomous on feature work.** Feature work touches UI/API human boundaries and can introduce invariant-violating pathologies the tests don't yet catch. Keep the human at the strategy-and-seams checkpoint.
-
 ## Relationship To Other Skills
 
 - **ideate → brainstorm → `ce-plan` → `ce-work`** — your normal build loop, upstream of this skill. It produces the diff; this skill carves it.

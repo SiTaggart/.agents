@@ -444,17 +444,11 @@ In lightweight mode, the overlap check is skipped (no Related Docs Finder subage
 
 ## Preconditions
 
-<preconditions enforcement="advisory">
-  <check condition="problem_solved">
-    Problem has been solved (not in-progress)
-  </check>
-  <check condition="solution_verified">
-    Solution has been verified working
-  </check>
-  <check condition="non_trivial">
-    Non-trivial problem (not simple typo or obvious error)
-  </check>
-</preconditions>
+Document only when all hold:
+
+- the problem is solved, not in-progress
+- the solution has been verified working
+- the problem was non-trivial (not a simple typo or obvious error)
 
 ## What It Creates
 
@@ -591,12 +585,6 @@ Build → Test → Find Issue → Research → Improve → Document → Validate
 
 **Each unit of engineering work should make subsequent units of work easier—not harder.**
 
-## Auto-Invoke
-
-<auto_invoke> <trigger_phrases> - "that worked" - "it's fixed" - "working now" - "problem solved" </trigger_phrases>
-
-<manual_override> Use /ce-compound [context] to document immediately without waiting for auto-detection. </manual_override> </auto_invoke>
-
 ## Output
 
 Writes the final learning directly into `.ai/solutions/`.
@@ -624,5 +612,4 @@ Based on problem type, these agents can enhance documentation:
 
 ## Related Commands
 
-- `/research [topic]` - Deep investigation (searches .ai/solutions/ for patterns)
 - `/ce-plan` - Planning workflow (references documented solutions)
