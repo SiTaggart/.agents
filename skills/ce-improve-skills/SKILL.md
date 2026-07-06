@@ -49,9 +49,9 @@ failure modes independent of session friction: **no-op** lines the model
 already obeys by default, **sediment** (stale layers never cleared), **sprawl**
 (too long even when every line is live), **duplication** (one meaning in more
 than one place), and **premature completion** invited by a vague completion
-criterion. The `writing-great-skills` skill
-(`skills/writing-great-skills/GLOSSARY.md`) is the taxonomy and the cure for
-each; consult it when diagnosing or patching.
+criterion. Consult the `writing-great-skills` skill's glossary for the taxonomy and the
+cure for each — `skills/writing-great-skills/GLOSSARY.md` in this repo, or the
+same skill wherever the shelf is installed — when diagnosing or patching.
 
 Do not optimize vanity metrics such as fewer tool calls if the result becomes
 less correct.

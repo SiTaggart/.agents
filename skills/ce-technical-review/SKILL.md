@@ -87,7 +87,9 @@ Each pass must receive:
 > description, and specific fix direction. If no issues, say `No issues.` No
 > praise, no filler.
 
-Use these pass lenses:
+If the current repository has pass prompt files such as
+`.claude/review/prompts/passes/*.md`, use those as the detailed pass
+definitions. Otherwise use these pass lenses:
 
 1. Correctness: product logic, state transitions, async ordering, error
    propagation, edge cases, API misuse, and behavior missing from the stated or
