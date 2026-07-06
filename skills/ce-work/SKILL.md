@@ -46,6 +46,14 @@ patterns to preserve, expected proof, and what to return. The parent integrates
 the result, reads changed lines, runs the quality gate, and decides whether the
 contract is complete.
 
+Parallel writing subagents share one physical checkout unless each gets its own
+worktree. When more than one dispatched subagent will write files, either give
+each writer an isolated worktree (`git-worktree`) or put shared-tree discipline
+in every handoff: write only the assigned files, never run `git stash`,
+`git checkout`, or `git reset`, and re-read a file immediately before editing
+it. Dispatch a slice that others import from (shared types, schemas, foundation
+modules) first and wait for it to finish before starting dependents.
+
 Use this dispatch map when the criteria above are met:
 
 - **Frontend implementation:** dispatch `frontend-implementation-expert` for
