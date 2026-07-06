@@ -44,6 +44,15 @@ Treat these as evidence that a skill may need reinforcement:
 - a successful pattern that appears in multiple sessions but is not yet in the
   owning skill
 
+Reading the target skill itself surfaces a second evidence class — textual
+failure modes independent of session friction: **no-op** lines the model
+already obeys by default, **sediment** (stale layers never cleared), **sprawl**
+(too long even when every line is live), **duplication** (one meaning in more
+than one place), and **premature completion** invited by a vague completion
+criterion. The `writing-great-skills` skill
+(`skills/writing-great-skills/GLOSSARY.md`) is the taxonomy and the cure for
+each; consult it when diagnosing or patching.
+
 Do not optimize vanity metrics such as fewer tool calls if the result becomes
 less correct.
 
@@ -87,15 +96,20 @@ Before editing, state:
 - the owner skill
 - the expected future signal that should improve
 
-Then make the smallest durable change:
+Then make the smallest durable change, reaching for the `writing-great-skills`
+levers first (they are defined there, not here):
 
 - prefer replacing or deleting one misleading instruction over adding a new
   phase
+- prune **no-ops** and **sediment**; collapse **duplication** into a **single
+  source of truth** or a **leading word**; cure **sprawl** by **progressive
+  disclosure**, adding a new reference file only when the SKILL.md branch would
+  otherwise become noisy
+- steer with the **positive** target, not prohibition (**negation**); sharpen a
+  vague **completion criterion** before splitting to hide later steps
 - keep examples concrete and short
 - avoid new scripts unless the same deterministic operation has been rewritten
   or run manually at least three times
-- avoid new reference files unless the SKILL.md branch would otherwise become
-  noisy
 - preserve cross-platform tool wording when a skill runs across Codex, Claude
   Code, Cursor, Gemini, or Pi
 
