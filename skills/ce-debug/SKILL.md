@@ -79,6 +79,12 @@ Before deep code tracing, confirm the environment is what you think it is:
 - No stale build artifacts (`dist/`, `.next/`, compiled binaries from an earlier branch)
 - Dependent local services (database, cache, queue) running at expected versions *when the bug plausibly involves them*
 
+#### 1.2b Retrieve cross-cutting evidence when needed
+
+Use `qmd-knowledge-base` when the failing symbol, error, expected behavior, or
+relevant subsystem is unclear, or when prior reasoning could change the
+hypothesis. Verify the hypothesis against the live system and source.
+
 #### 1.3 Trace the code path
 
 Trace data flow backward from the symptom to where valid state first became invalid. Read code-shape to form a hypothesis, then verify with observed values — do not theorize from code alone.

@@ -90,6 +90,10 @@ For exported functions, public components, API handlers, hooks, schemas, command
 
 Do not let caller spelunking become an unrelated repo audit. Follow blast radius only as far as needed to decide whether this change is correct.
 
+When intent, conventions, or a historical decision remains unclear after
+reading the diff and live files, use `qmd-knowledge-base`. Keep the current diff,
+working tree, and tests as the review's implementation evidence.
+
 When the review starts cold — a standalone diff or PR with no context built upstream this session — use a RepoPromptCE `context_builder` review-mode pass (see the `repoprompt` skill) to map blast radius and cross-module impact independently. Within a session that already ran brainstorm, plan, or work, reuse that context instead of rebuilding it. Fold the result into the main review; do not mechanically forward findings that lack file/line evidence.
 
 In `deep` mode, use the context-builder for any non-trivial diff unless enough

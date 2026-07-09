@@ -10,9 +10,9 @@ files add local context and override only overlapping instructions.
 - Start each session or task with the closest applicable context pass:
   - Read the local `AGENTS.md` or `CLAUDE.md`, task docs, and relevant project
     files.
-  - Run QMD against durable knowledge for non-trivial work, broad explanations,
-    plans, reviews, or any task where history may matter. Search exact terms
-    first; add semantic or expanded searches when vocabulary is uncertain.
+  - Prefer `qmd-knowledge-base` for non-trivial framing and planning, and use it
+    when prior context may change broad explanations, work, debugging, or
+    review. Exact, already-grounded tasks may skip it.
   - Use RepoPromptCE for non-trivial codebase context. Prefer MCP tools:
     `file_search`, `get_file_tree`, `read_file`, `get_code_structure`,
     `context_builder`, and `manage_selection`. If MCP is unavailable, use
@@ -131,23 +131,29 @@ files add local context and override only overlapping instructions.
 
 ## Phase Skills
 
-- Discover/context: use `qmd`, Obsidian skills, `ce-sessions`,
-  `ce-slack-research`, and `repoprompt` when broad codebase context is needed.
-- Frame: use `ce-brainstorm`; add `ce-grill` for branchy or strategic
+- Discover/context: use `qmd-knowledge-base`, Obsidian skills, `ce-sessions`,
+  `ce-slack-research`, and `repoprompt` when prior or broad codebase context is
+  needed.
+- Frame: use `qmd-knowledge-base` when prior context could affect the product
+  frame, then `ce-brainstorm`; add `ce-grill` for branchy or strategic
   ambiguity; use `document-review` for requirements docs.
-- Plan: use `ce-plan`; layer in `repoprompt` for broad codebase context and
+- Plan: use `qmd-knowledge-base` when prior context could affect the plan, then
+  `ce-plan`; layer in `repoprompt` for broad codebase context and
   `document-review` for markdown plans.
-- Work: use `ce-work`; route TypeScript, React, or code-shape decisions through
-  `code-taste` before implementation; fold in `frontend-design` for UI; run
-  `ce-quality-gate` after code edits. Code-taste cleanliness is part of the
-  completion gate for touched code.
-- Review: use `ce-review` for built work; use `code-taste` for maintainability
-  and implementation-shape judgment; use `ce-simplify-code` for cleanup; use
-  `security-review` only for real trust-boundary or security asks.
+- Work: use `ce-work`; use `qmd-knowledge-base` when intent, expected behavior,
+  ownership, location, convention, or history is unclear; route TypeScript,
+  React, or code-shape decisions through `code-taste` before implementation;
+  fold in `frontend-design` for UI; run `ce-quality-gate` after code edits.
+  Code-taste cleanliness is part of the completion gate for touched code.
+- Review: use `ce-review` for built work; use `qmd-knowledge-base` only when
+  intent, convention, or historical context is unclear; use `code-taste` for
+  maintainability and implementation-shape judgment; use `ce-simplify-code`
+  for cleanup; use `security-review` only for real trust-boundary or security
+  asks.
 - Ship/feedback: use `git-commit`, `git-commit-push-pr`, `gh-fix-ci`, and
   `resolve-pr-feedback` for git and PR ops.
-- Remember: use `ce-compound`, `ce-compound-refresh`, QMD, and Obsidian for
-  durable knowledge.
+- Remember: use `ce-compound` and `ce-compound-refresh` to create durable
+  `.ai` knowledge for later QMD discovery passes.
 
 ## Tooling
 
