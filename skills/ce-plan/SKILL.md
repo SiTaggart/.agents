@@ -35,9 +35,9 @@ the answer would materially change the plan, invoke `ce-grill` first and then
 resume planning from its handoff.
 
 For UI work, fold in `frontend-design` while planning states, layout ownership,
-accessibility, responsive behavior, and browser proof. For historically loaded
-work, use `qmd` or Obsidian context before treating missing product background
-as an assumption.
+accessibility, responsive behavior, and browser proof. When prior context could
+change the plan, use `qmd-knowledge-base` before treating missing background as
+an assumption.
 
 Build curated codebase context with RepoPromptCE `context_builder` (see the
 `repoprompt` skill) before finalizing the plan. Skip it only for a trivial
@@ -411,6 +411,8 @@ If Step 1.2 indicates external research is useful, dispatch by the **intent** cl
 
 Summarize:
 - Relevant codebase patterns and file paths
+- QMD findings that changed a decision, including the collection/document and
+  live files verified
 - Relevant institutional learnings
 - Organizational context from Slack conversations, if gathered (prior discussions, decisions, or domain knowledge relevant to the feature)
 - External references, prior art, competitor/landscape findings, and best practices, if gathered

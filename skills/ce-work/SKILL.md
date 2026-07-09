@@ -98,14 +98,11 @@ Use local knowledge and repository context in this order:
 1. Existing code in the affected area
 2. Nearby tests and fixtures
 3. Project instructions such as `AGENTS.md` and `CLAUDE.md`
-4. Existing docs, QMD, or `.ai/` artifacts when the task is broad or historical context matters
+4. `qmd-knowledge-base` when intent, expected behavior, ownership, convention,
+   or history is unclear
 5. Official external docs only when the task depends on current external API behavior
 
 Look for the mature local pattern, not just the first similar file. If the area is prototype-like, use it to understand the contract but set the quality bar from the best nearby production code.
-
-When the task depends on product memory, search QMD or Obsidian notes for
-interviews, transcripts, research summaries, PRDs, kickoff docs, or prior agent
-sessions before inventing context.
 
 Build curated codebase context with RepoPromptCE `context_builder` (see the
 `repoprompt` skill for the tool map) before choosing an approach. Skip it only

@@ -85,7 +85,7 @@ npx skills add vercel-labs/agent-skills \
 | Component  | Count |
 | ---------- | ----- |
 | Agents     | 30    |
-| Skills     | 71    |
+| Skills     | 73    |
 
 ## Operating Loops
 
@@ -93,10 +93,10 @@ The shelf is organized around a few tight loops rather than standalone skills:
 
 | Loop | Route |
 | ---- | ----- |
-| Explore and decide | `qmd` / Obsidian / `repoprompt` when broad codebase context matters -> `ce-brainstorm` -> `ce-grill` when branchy -> `document-review` when a requirements doc needs polish -> `ce-plan` |
-| Plan and build | `ce-plan` with `repo-research-analyst` / `repoprompt` when broad -> `document-review` for markdown plans -> `ce-work` with early `code-taste` routing; delegate non-trivial frontend slices to `frontend-implementation-expert`; finish with `ce-quality-gate` |
+| Explore and decide | `qmd-knowledge-base` / Obsidian when prior context may affect the frame -> `repoprompt` when broad codebase context matters -> `ce-brainstorm` -> `ce-grill` when branchy -> `document-review` when a requirements doc needs polish -> `ce-plan` |
+| Plan and build | `qmd-knowledge-base` when prior context could affect the plan -> `ce-plan` with `repo-research-analyst` / `repoprompt` when broad -> `document-review` for markdown plans -> `ce-work` with early `code-taste` routing; delegate non-trivial frontend slices to `frontend-implementation-expert`; finish with `ce-quality-gate` |
 | Review and ship | `ce-review` on changed work, delegating medium/large passes to reviewer agents -> `ce-simplify-code` when shape needs cleanup -> git skills for ops; `pr-review-canvas` for an interactive walkthrough of someone else's PR; `ce-thermo-nuclear-code-quality-review` when the change needs an unusually strict maintainability pass |
-| Remember and reuse | `ce-compound` / `ce-compound-refresh` -> Obsidian or QMD for durable knowledge |
+| Remember and reuse | `ce-compound` / `ce-compound-refresh` -> `.ai` -> QMD retrieval in a later discovery pass |
 | Debug and investigate | `ce-debug` -> `repoprompt` when broad context is needed -> `ce-work` -> `ce-review` |
 | Improve the agent shelf | QMD retros / focused `ce-sessions` evidence -> `ce-improve-skills` -> one owner-skill patch or proposal -> later retro measurement |
 
@@ -220,9 +220,10 @@ Examples:
 
 ### Knowledge Search
 
-| Skill       | Description                                                  |
-| ----------- | ------------------------------------------------------------ |
-| `qmd`       | Search markdown knowledge bases, notes, and documentation    |
+| Skill | Description |
+| ----- | ----------- |
+| `qmd` | Operate QMD search and retrieval across markdown knowledge bases |
+| `qmd-knowledge-base` | Route this machine's project collections and interpret their evidence |
 
 ### Learning
 

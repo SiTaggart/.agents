@@ -14,9 +14,8 @@ The durable output of this workflow is a **requirements document**. In other wor
 
 ## Loop Connections
 
-- Use `qmd` or Obsidian context before inventing product history when the topic
-  may already exist in notes, interviews, transcripts, research summaries,
-  PRDs, kickoff docs, or prior agent sessions.
+- Use `qmd-knowledge-base` or Obsidian before inventing product history when
+  prior context could affect the product frame.
 - For Standard or Deep software brainstorms, build context with RepoPromptCE
   `context_builder` (see the `repoprompt` skill) to ground the product frame in
   existing constraints and ownership. Skip it only for non-software framing or a
@@ -157,11 +156,11 @@ Scan the repo before substantive brainstorming. Match depth to scope:
 
 *Topic Scan* — Search for relevant terms. Read the most relevant existing artifact if one exists (brainstorm, plan, spec, skill, feature doc). Skim adjacent examples covering similar behavior.
 
-*Knowledge Scan* — When the topic may be informed by user interviews,
-transcripts, research summaries, PRDs, kickoff docs, meeting notes, or prior
-agent sessions, search `qmd` and/or the Obsidian vault before asking the model to
-infer product context. Keep this bounded: pull only the notes that can change
-scope, user framing, constraints, or success criteria.
+*Knowledge Scan* — Apply the prior-context route from Loop Connections when the
+topic may be informed by user interviews, transcripts, research summaries,
+PRDs, kickoff docs, meeting notes, or prior agent sessions. Keep this bounded:
+pull only the notes that can change scope, user framing, constraints, or success
+criteria.
 
 *RepoPromptCE Context* — For Standard and Deep software brainstorms, default to a
 RepoPromptCE `context_builder` pass (see the `repoprompt` skill) to map the
