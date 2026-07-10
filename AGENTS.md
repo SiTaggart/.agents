@@ -59,6 +59,9 @@ files add local context and override only overlapping instructions.
 
 ## Product Contract
 
+- For consequential or ambiguous requests, use the `prompt-check` skill to
+  normalize the user's raw prompt before acting. See
+  `skills/prompt-check/SKILL.md`.
 - Before editing, identify the contract being changed: user action, UI state,
   backend payload, URL state, persisted state, rendered output, command behavior,
   or published artifact.
