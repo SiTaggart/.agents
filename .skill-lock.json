@@ -45,6 +45,15 @@
       "skillFolderHash": "0f346be8222b1afd7b95b2692953f520a11b82ae",
       "installedAt": "2026-06-11T15:14:50.562Z",
       "updatedAt": "2026-06-11T15:14:50.562Z"
+    },
+    "orca-linear": {
+      "source": "stablyai/orca",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/stablyai/orca.git",
+      "skillPath": "skills/orca-linear/SKILL.md",
+      "skillFolderHash": "c34f42030f43e5a85737996fa375bbd79cb5bea8",
+      "installedAt": "2026-07-10T19:16:24.038Z",
+      "updatedAt": "2026-07-10T19:16:24.038Z"
     }
   },
   "lastSelectedAgents": [
