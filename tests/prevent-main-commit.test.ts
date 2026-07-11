@@ -31,6 +31,40 @@ test("blocks commit operations on main", async () => {
   expect(result.stderr).toContain("Cannot commit directly to 'main'");
 });
 
+test.each([
+  "rm -rf build",
+  "rm -r build",
+  "find . -delete",
+  "truncate -s 0 data.db",
+  "git reset --hard HEAD",
+  "git clean -fd",
+  "git checkout -- .",
+  "git restore file.txt",
+  "git stash clear",
+  "git push --force origin main",
+  "terraform destroy",
+  "docker system prune -af",
+  "docker volume prune",
+  "docker compose down -v",
+  "kubectl delete namespace production",
+  "kubectl delete pods --all",
+  "chmod -R 000 .",
+  "sudo chown -R root /tmp/example",
+  "dd if=/dev/zero of=/dev/disk1",
+  "mkfs.ext4 /dev/disk1",
+  "diskutil eraseDisk APFS Empty /dev/disk4",
+])(
+  "blocks destructive command: %s",
+  async (command) => {
+    const result = await runHook({
+      input: JSON.stringify({ tool_input: { command } }),
+    });
+
+    expect(result.exitCode).toBe(2);
+    expect(result.stderr).toContain("Blocked:");
+  },
+);
+
 test("allows non-commit commands", async () => {
   const result = await runHook({
     input: JSON.stringify({ tool_input: { command: "git status" } }),
