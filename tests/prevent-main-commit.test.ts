@@ -73,6 +73,14 @@ test("allows non-commit commands", async () => {
   expect(result.exitCode).toBe(0);
 });
 
+test("allows push with force-with-lease", async () => {
+  const result = await runHook({
+    input: JSON.stringify({ tool_input: { command: "git push --force-with-lease" } }),
+  });
+
+  expect(result.exitCode).toBe(0);
+});
+
 interface HookRunOptions {
   cwd?: string;
   env?: Record<string, string>;

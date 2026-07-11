@@ -29,7 +29,7 @@ if echo "$command" | grep -qE '\brm[[:space:]]+(-[^[:space:];|&]*[rR][^[:space:]
   exit 2
 fi
 
-if echo "$command" | grep -qE '\bgit[[:space:]]+(reset[[:space:]]+--hard|clean[[:space:]]+-[^[:space:];|&]*f|checkout[[:space:]]+--|restore([[:space:]]|$)|stash[[:space:]]+(drop|clear)|push\b[^;|&]*(--force([[:space:];|&]|$)|--force-with-lease)|branch[[:space:]]+-[dD]|tag[[:space:]]+-d)'; then
+if echo "$command" | grep -qE '\bgit[[:space:]]+(reset[[:space:]]+--hard|clean[[:space:]]+-[^[:space:];|&]*f|checkout[[:space:]]+--|restore([[:space:]]|$)|stash[[:space:]]+(drop|clear)|push\b[^;|&]*--force([[:space:];|&]|$)|branch[[:space:]]+-[dD]|tag[[:space:]]+-d)'; then
   echo "Blocked: Destructive git command is disabled for coding agents." >&2
   exit 2
 fi
