@@ -20,8 +20,8 @@ files add local context and override only overlapping instructions.
     unavailable or the scope is exact and small.
 - Inspect source files to verify drift-prone or implementation-level details
   surfaced by QMD or RepoPromptCE.
-- State what context was checked in the final answer. If QMD or RepoPromptCE was
-  skipped, state the concrete reason.
+- For non-trivial work, briefly state which context and proof surfaces were
+  checked. Mention skipped context tools only when that limits confidence.
 
 ## Working Style
 
@@ -56,6 +56,23 @@ files add local context and override only overlapping instructions.
 - Rely on TypeScript inference and existing typed boundaries. Parse or guard once
   at actual untyped or untrusted boundaries, then keep the interior code direct.
 - Remove filler. Comments explain why, not what.
+
+## Communication Style
+
+- Write in flowing technical prose, like a sharp senior engineer talking in
+  chat. Be direct, conversational, and confident.
+- Lead with the answer and its main caveat. Match the length to the question
+  and err short.
+- Keep connected reasoning in paragraphs. Use bullets for genuinely parallel
+  facts and numbered lists for real sequences.
+- Make each paragraph or bullet a complete point: explain what is true, why,
+  and what it changes.
+- Use headings only when they help separate distinct parts of a longer answer.
+  Do not turn every answer into a report.
+- Avoid clipped phrases, staccato sentences, dramatic language, canned setup
+  phrases, and abstract jargon when concrete language is available.
+- Do not use “not just X, but Y” constructions. State the actual point directly.
+- End with a bottom line only when the answer weighs a real decision.
 
 ## Product Contract
 
@@ -123,6 +140,10 @@ files add local context and override only overlapping instructions.
 
 ## Non-Negotiables
 
+- For work associated with a Linear issue, retrieve and use Linear's exact
+  branch name before editing. Rename the current branch if necessary; do not
+  synthesize a replacement or keep an agent-generated branch name.
+- If the exact Linear branch name is unavailable, ask before making changes.
 - Never commit `.env`, secrets, API keys, credentials, or private tokens.
 - Never push directly to `main` or `master`.
 - Never use `any` to silence TypeScript errors. Fix the type boundary.

@@ -1,11 +1,11 @@
 ---
 name: ce-sessions
-description: "Search coding agent session history across Claude Code, Codex, and Cursor. Use for past work, previous attempts, or prior investigations."
+description: "Search coding agent session history across Claude Code, Codex, Cursor, and Hermes. Use for past work, previous attempts, or prior investigations."
 ---
 
 # /ce-sessions
 
-Search session history across Claude Code, Codex, and Cursor and synthesize findings about what was worked on, tried, decided, or learned in prior sessions.
+Search session history across Claude Code, Codex, Cursor, and Hermes and synthesize findings about what was worked on, tried, decided, or learned in prior sessions.
 
 ## Usage
 
@@ -38,6 +38,7 @@ These rules apply at all times during orchestration and synthesis.
 - **Never analyze the current session.** Its conversation history is already available to the caller.
 - **Surface technical content, not personal content.** Sessions contain everything — credentials, frustration, half-formed opinions. Use judgment about what belongs in a technical summary and what doesn't.
 - **Fail fast on access errors.** If session discovery fails on permissions, report the issue immediately. Do not retry the same operation with different tools or approaches — repeated retries waste tokens without changing the outcome.
+- **Default to the current project.** Use global mode only when the user explicitly asks across projects or a caller such as `ce-improve-skills` requires machine-wide evidence.
 
 ## Execution
 
@@ -58,30 +59,78 @@ Claude Code retains session history for ~30 days by default. Wider windows may f
 
 ### Step 2 — Discover sessions and extract metadata
 
+Create the per-run scratch directory before inventorying any platform:
+
+```bash
+SCRATCH=$(mktemp -d -t ce-sessions-XXXXXX)
+```
+
 Run the discovery + metadata pipeline (preserving the null-delimited xargs hardening that lets `extract-metadata.py` run in batch mode):
 
 ```bash
 bash scripts/discover-sessions.sh <repo> <days> | tr '\n' '\0' | xargs -0 python3 scripts/extract-metadata.py --cwd-filter <repo>
 ```
 
+For an explicitly cross-repository question, discover every project and omit the cwd filter:
+
+```bash
+bash scripts/discover-sessions.sh --all-repos <days> | tr '\n' '\0' | xargs -0 python3 scripts/extract-metadata.py
+```
+
 Each output line is a JSON object describing a session (platform, file, size, ts, session, plus platform-specific fields). The final `_meta` line carries `files_processed` and `parse_errors`.
 
-If the inventory's `_meta` line shows `files_processed: 0`, return "no relevant prior sessions" and stop.
+If the inventory's `_meta` line shows `files_processed: 0`, record that the
+file-backed inventory is empty and continue to the Hermes inventory below.
 
 If `parse_errors > 0`, note that some sessions could not be parsed and proceed with what was returned.
 
 To narrow the platform set, add `--platform claude`, `--platform codex`, or `--platform cursor` to the `discover-sessions.sh` invocation. Default to all three.
 
+Hermes keeps current sessions in SQLite rather than per-session JSONL files.
+Inventory it separately with a redacted prompt-only export. Keep the current
+repo filter by default; omit `--cwd` only in explicit global mode:
+
+```bash
+hermes sessions export --cwd <repo-root> --only user-prompts --format jsonl --redact --yes "$SCRATCH/hermes-prompts.jsonl"
+```
+
+Use `created_at` to identify session IDs with at least one prompt in the
+requested window, so sessions that started earlier but remained active are
+included. Rank those sessions using all of their prompt records, including
+older prompts that establish the topic. Do not print the prompt inventory into
+model context. Export only selected sessions, then pass each export through the
+skeleton extractor:
+
+```bash
+hermes sessions export --session-id <session-id> --format jsonl --redact --yes "$SCRATCH/<session-id>.hermes.jsonl"
+python3 scripts/extract-skeleton.py --output "$SCRATCH/<session-id>.skeleton.txt" < "$SCRATCH/<session-id>.hermes.jsonl"
+```
+
+If the Hermes CLI or database is unavailable, report that coverage gap and
+continue with the file-backed stores.
+
+Return "no relevant prior sessions" only when both the file-backed inventory
+and the Hermes prompt inventory contain no relevant sessions.
+
 ### Step 3 — Filter and rank
 
 Apply these filters in order to pick the sessions worth deep-diving:
 
-1. **Branch filter (Claude Code only).** Keep sessions where `branch == dispatch_branch` exactly, or where the branch name contains a keyword from the question's topic (e.g., a question about "auth middleware" matches branches `feat/auth-fix`, `chore/auth-refactor`). Codex sessions don't carry `gitBranch` — skip this filter for them.
+1. **Branch filter (current-project Claude Code only).** In current-project
+   mode, keep sessions where `branch == dispatch_branch` exactly, or where the
+   branch name contains a keyword from the question's topic (e.g., a question
+   about "auth middleware" matches branches `feat/auth-fix`,
+   `chore/auth-refactor`). Skip branch filtering in global mode so one matching
+   branch cannot hide relevant sessions from other repositories.
 
-2. **If the branch filter returned zero sessions, or you're processing Codex sessions:**
+2. **Keyword filter Codex and Cursor sessions. Also keyword-filter Claude
+   sessions in global mode or when the current-project branch filter returned
+   zero sessions:**
    - Derive 2-4 keywords from the question's topic. For "a recent crash in the auth middleware where session-validation rejects valid tokens", derive `auth,middleware,session,token` (or similar).
    - Re-invoke the discovery pipeline with `--keyword K1,K2,...` appended to the `extract-metadata.py` invocation. The script returns sessions with non-zero `match_count` plus per-keyword counts.
-   - **If `files_matched: 0`, return "no relevant prior sessions" and stop.** Do not extract anything.
+   - If `files_matched: 0`, keep no file-backed keyword candidates and continue
+     with any ranked Hermes candidates. Return "no relevant prior sessions"
+     only when neither inventory has a relevant candidate.
    - If `files_matched > 0`, treat those sessions as candidates. Rank by `match_count`, break ties by per-keyword counts.
 
 3. **Drop sessions outside the scan window.** Use `last_ts` when available, fall back to `ts`. Discard sessions where both fall before the window start.
@@ -96,7 +145,8 @@ Apply these filters in order to pick the sessions worth deep-diving:
 
 ### Step 4 — Set up scratch space
 
-Create a per-run throwaway scratch directory:
+Reuse the per-run throwaway scratch directory created in Step 2. If a caller
+provided already-filtered candidates and skipped inventory, create it now:
 
 ```bash
 SCRATCH=$(mktemp -d -t ce-sessions-XXXXXX)
@@ -140,7 +190,7 @@ The dispatch prompt is the agent's input contract. Pass these fields:
 - `scratch_dir` — absolute path to `$SCRATCH`.
 - `sessions` — an array of objects, one per extracted session, each with:
   - `path` — absolute path to the skeleton file (and optionally `errors_path` for the errors file when extracted)
-  - `platform` — `claude`, `codex`, or `cursor`
+  - `platform` — `claude`, `codex`, `cursor`, or `hermes`
   - `branch` — git branch when present (Claude Code only)
   - `cwd` — working directory when present (Codex only)
   - `ts` and `last_ts` — session timestamps
@@ -183,7 +233,9 @@ The agent reads each path via the platform's native file-read tool and returns p
 
 ### Step 7 — Return findings
 
-Return the synthesizer's output text to the caller verbatim. If discovery or keyword filtering returned zero sessions (Step 2 or Step 3), return the literal string `no relevant prior sessions` instead.
+Return the synthesizer's output text to the caller verbatim. If no file-backed
+or Hermes candidates remain after filtering, return the literal string
+`no relevant prior sessions` instead.
 
 Optionally clean up scratch:
 
@@ -198,7 +250,7 @@ The OS handles cleanup eventually regardless; the explicit cleanup is for reader
 When the caller (typically a user typing `/ce-sessions`, or another skill invoking ce-sessions via the platform's skill-invocation primitive) does not specify an output format, include a brief header noting what was searched:
 
 ```
-**Sessions searched**: [count] ([N] Claude Code, [N] Codex, [N] Cursor) | [date range]
+**Sessions searched**: [count] ([N] Claude Code, [N] Codex, [N] Cursor, [N] Hermes) | [date range]
 ```
 
 Then the synthesizer's prose findings. When the caller supplies a schema, honor it verbatim and omit the default header.

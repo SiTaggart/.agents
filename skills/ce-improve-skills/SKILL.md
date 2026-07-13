@@ -13,11 +13,13 @@ This is skill-level reinforcement, not model training. The policy is the
 ## Default Scope
 
 If the user names a skill, gotcha, proposal, error, or time window, use that.
-If not, use the last 7 days of agent retros and focus on `ce-*` skills plus
-`.agents` skill-development sessions.
+If not, use the last 7 days and focus on `ce-*` skills plus `.agents`
+skill-development sessions.
 
-Do not bulk-read raw session files. Use QMD retros first. Use `ce-sessions`
-only for a focused question that names a concrete skill, failure, or behavior.
+Do not bulk-read raw session files. Use QMD retros to seed terms, then run
+`ce-sessions` in global mode across every available agent store for the
+requested window. This skill's session scan is always machine-wide, even when
+QMD has relevant matches or the current working directory is one project.
 
 ## Evidence Sources
 
@@ -28,9 +30,17 @@ Gather the smallest evidence set that can justify a change:
 2. Query QMD, usually collection `ai`, for exact terms first:
    - `lex: <skill-name> gotcha proposal correction retry failure`
    - `vec: how has <skill-name> caused friction or needed improvement`
-3. Read matching gotchas, proposals, weekly digests, or lessons with `qmd get`.
-4. Use `ce-sessions` only when QMD evidence leaves a specific open question,
-   such as "what went wrong recently with `ce-quality-gate` menus?"
+3. Read the matching gotchas, proposals, digests, or other actual results with
+   `qmd get`; do not assume every evidence category exists.
+4. Run `ce-sessions` in global mode for the requested window. Seed its focused
+   metadata search with the CE skill names and behaviors surfaced by QMD, but
+   inventory every available store: Claude Code, standard and Orca-managed
+   Codex, Cursor, and Hermes. Use metadata or redacted user-prompt inventories
+   to rank candidates, then extract at most five selected session skeletons.
+5. Check coverage before deciding. Report unavailable or empty stores rather
+   than silently treating the scanned platforms as machine-wide coverage. QMD
+   plus session evidence must overlap the requested window and address `ce-*`
+   behavior or `.agents` skill development.
 
 ## Reward Signals
 
