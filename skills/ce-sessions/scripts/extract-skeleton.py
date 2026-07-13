@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Extract the conversation skeleton from a Claude Code, Codex, or Cursor JSONL session file.
+"""Extract a conversation skeleton from a Claude Code, Codex, Cursor, or Hermes JSONL session.
 
 Usage:
   cat <session.jsonl> | python3 extract-skeleton.py
   cat <session.jsonl> | python3 extract-skeleton.py --output PATH
 
-Auto-detects platform (Claude Code, Codex, or Cursor) from the JSONL structure.
+Auto-detects platform (Claude Code, Codex, Cursor, or Hermes) from the JSONL structure.
 Extracts:
   - User messages (text only, no tool results)
   - Assistant text (no thinking/reasoning blocks)
@@ -319,6 +319,52 @@ def handle_cursor(obj):
                 pending_tools.append({"ts": "", "name": name, "target": target})
 
 
+def handle_hermes(obj):
+    """Hermes exports one session object containing a messages array."""
+    for message in obj.get("messages", []):
+        role = message.get("role")
+        raw_ts = message.get("timestamp", "")
+        ts = str(raw_ts)[:19] if raw_ts is not None else ""
+
+        if role == "user":
+            content = message.get("content", "")
+            if isinstance(content, str):
+                content = clean_text(content)
+                if len(content) > 15:
+                    flush_tools()
+                    print(f"[{ts}] [user] {content[:800]}")
+                    print("---")
+                    stats["user"] += 1
+
+        elif role == "assistant":
+            content = message.get("content", "")
+            if isinstance(content, str) and len(content.strip()) > 20:
+                flush_tools()
+                print(f"[{ts}] [assistant] {content[:800]}")
+                print("---")
+                stats["assistant"] += 1
+
+            for call in message.get("tool_calls", []) or []:
+                function = call.get("function", {})
+                name = function.get("name", "unknown")
+                raw_arguments = function.get("arguments", "")
+                try:
+                    tool_input = json.loads(raw_arguments) if isinstance(raw_arguments, str) else raw_arguments
+                except json.JSONDecodeError:
+                    tool_input = {}
+                if not isinstance(tool_input, dict):
+                    tool_input = {}
+                _, target = summarize_claude_tool({"name": name, "input": tool_input})
+                pending_tools.append({"ts": ts, "name": name, "target": target})
+
+        elif role == "tool":
+            tool_name = message.get("tool_name")
+            for entry in pending_tools:
+                if not entry.get("status") and (not tool_name or entry["name"] == tool_name):
+                    entry["status"] = "ok"
+                    break
+
+
 # Auto-detect platform from first few lines, then process all
 detected = None
 buffer = []
@@ -339,10 +385,12 @@ for line in sys.stdin:
                 detected = "codex"
             elif obj.get("role") in ("user", "assistant") and "type" not in obj:
                 detected = "cursor"
+            elif isinstance(obj.get("messages"), list) and obj.get("id"):
+                detected = "hermes"
         except (json.JSONDecodeError, KeyError):
             pass
 
-handlers = {"claude": handle_claude, "codex": handle_codex, "cursor": handle_cursor}
+handlers = {"claude": handle_claude, "codex": handle_codex, "cursor": handle_cursor, "hermes": handle_hermes}
 handler = handlers.get(detected, handle_codex)
 
 for line in buffer:

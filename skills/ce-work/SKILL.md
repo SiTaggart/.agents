@@ -177,7 +177,10 @@ Good proof surfaces include:
 - browser or local preview proof for UI state and rendered output
 - readback of published docs or generated artifacts when the output is a document
 
-Avoid tests that only prove mocked wiring. If a UI or browser journey is the real contract, exercise that surface.
+Avoid tests that only prove mocked wiring. If the change affects what a user
+does in the UI, try those exact actions in the browser after the last code
+change. Do this before saying the work is finished or ready to ship. Passing
+tests is not a substitute.
 
 If full-repo checks are noisy, make the touched surface clean and report unrelated baseline noise separately.
 

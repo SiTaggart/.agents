@@ -1,11 +1,11 @@
 ---
 name: ce-sessions
-description: "Search coding agent session history across Claude Code, Codex, and Cursor. Use for past work, previous attempts, or prior investigations."
+description: "Search coding agent session history across Claude Code, Codex, Cursor, and Hermes. Use for past work, previous attempts, or prior investigations."
 ---
 
 # /ce-sessions
 
-Search session history across Claude Code, Codex, and Cursor and synthesize findings about what was worked on, tried, decided, or learned in prior sessions.
+Search session history across Claude Code, Codex, Cursor, and Hermes and synthesize findings about what was worked on, tried, decided, or learned in prior sessions.
 
 ## Usage
 
@@ -38,6 +38,7 @@ These rules apply at all times during orchestration and synthesis.
 - **Never analyze the current session.** Its conversation history is already available to the caller.
 - **Surface technical content, not personal content.** Sessions contain everything — credentials, frustration, half-formed opinions. Use judgment about what belongs in a technical summary and what doesn't.
 - **Fail fast on access errors.** If session discovery fails on permissions, report the issue immediately. Do not retry the same operation with different tools or approaches — repeated retries waste tokens without changing the outcome.
+- **Default to the current project.** Use global mode only when the user explicitly asks across projects or a caller such as `ce-improve-skills` requires machine-wide evidence.
 
 ## Execution
 
@@ -58,10 +59,22 @@ Claude Code retains session history for ~30 days by default. Wider windows may f
 
 ### Step 2 — Discover sessions and extract metadata
 
+Create the per-run scratch directory before inventorying any platform:
+
+```bash
+SCRATCH=$(mktemp -d -t ce-sessions-XXXXXX)
+```
+
 Run the discovery + metadata pipeline (preserving the null-delimited xargs hardening that lets `extract-metadata.py` run in batch mode):
 
 ```bash
 bash scripts/discover-sessions.sh <repo> <days> | tr '\n' '\0' | xargs -0 python3 scripts/extract-metadata.py --cwd-filter <repo>
+```
+
+For an explicitly cross-repository question, discover every project and omit the cwd filter:
+
+```bash
+bash scripts/discover-sessions.sh --all-repos <days> | tr '\n' '\0' | xargs -0 python3 scripts/extract-metadata.py
 ```
 
 Each output line is a JSON object describing a session (platform, file, size, ts, session, plus platform-specific fields). The final `_meta` line carries `files_processed` and `parse_errors`.
@@ -71,6 +84,26 @@ If the inventory's `_meta` line shows `files_processed: 0`, return "no relevant 
 If `parse_errors > 0`, note that some sessions could not be parsed and proceed with what was returned.
 
 To narrow the platform set, add `--platform claude`, `--platform codex`, or `--platform cursor` to the `discover-sessions.sh` invocation. Default to all three.
+
+Hermes keeps current sessions in SQLite rather than per-session JSONL files.
+Inventory it separately with a redacted prompt-only export. Keep the current
+repo filter by default; omit `--cwd` only in explicit global mode:
+
+```bash
+hermes sessions export --newer-than <days>d --cwd <repo-root> --only user-prompts --format jsonl --redact --yes "$SCRATCH/hermes-prompts.jsonl"
+```
+
+Group and rank that inventory locally by `session_id`, timestamps, and focused
+prompt matches. Do not print the prompt inventory into model context. Export
+only selected sessions, then pass each export through the skeleton extractor:
+
+```bash
+hermes sessions export --session-id <session-id> --format jsonl --redact --yes "$SCRATCH/<session-id>.hermes.jsonl"
+python3 scripts/extract-skeleton.py --output "$SCRATCH/<session-id>.skeleton.txt" < "$SCRATCH/<session-id>.hermes.jsonl"
+```
+
+If the Hermes CLI or database is unavailable, report that coverage gap and
+continue with the file-backed stores.
 
 ### Step 3 — Filter and rank
 
@@ -96,7 +129,8 @@ Apply these filters in order to pick the sessions worth deep-diving:
 
 ### Step 4 — Set up scratch space
 
-Create a per-run throwaway scratch directory:
+Reuse the per-run throwaway scratch directory created in Step 2. If a caller
+provided already-filtered candidates and skipped inventory, create it now:
 
 ```bash
 SCRATCH=$(mktemp -d -t ce-sessions-XXXXXX)
@@ -140,7 +174,7 @@ The dispatch prompt is the agent's input contract. Pass these fields:
 - `scratch_dir` — absolute path to `$SCRATCH`.
 - `sessions` — an array of objects, one per extracted session, each with:
   - `path` — absolute path to the skeleton file (and optionally `errors_path` for the errors file when extracted)
-  - `platform` — `claude`, `codex`, or `cursor`
+  - `platform` — `claude`, `codex`, `cursor`, or `hermes`
   - `branch` — git branch when present (Claude Code only)
   - `cwd` — working directory when present (Codex only)
   - `ts` and `last_ts` — session timestamps
