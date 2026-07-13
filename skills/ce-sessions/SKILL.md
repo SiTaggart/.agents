@@ -91,12 +91,15 @@ Inventory it separately with a redacted prompt-only export. Keep the current
 repo filter by default; omit `--cwd` only in explicit global mode:
 
 ```bash
-hermes sessions export --newer-than <days>d --cwd <repo-root> --only user-prompts --format jsonl --redact --yes "$SCRATCH/hermes-prompts.jsonl"
+hermes sessions export --cwd <repo-root> --only user-prompts --format jsonl --redact --yes "$SCRATCH/hermes-prompts.jsonl"
 ```
 
-Group and rank that inventory locally by `session_id`, timestamps, and focused
-prompt matches. Do not print the prompt inventory into model context. Export
-only selected sessions, then pass each export through the skeleton extractor:
+Use `created_at` to identify session IDs with at least one prompt in the
+requested window, so sessions that started earlier but remained active are
+included. Rank those sessions using all of their prompt records, including
+older prompts that establish the topic. Do not print the prompt inventory into
+model context. Export only selected sessions, then pass each export through the
+skeleton extractor:
 
 ```bash
 hermes sessions export --session-id <session-id> --format jsonl --redact --yes "$SCRATCH/<session-id>.hermes.jsonl"
@@ -113,9 +116,16 @@ and the Hermes prompt inventory contain no relevant sessions.
 
 Apply these filters in order to pick the sessions worth deep-diving:
 
-1. **Branch filter (Claude Code only).** Keep sessions where `branch == dispatch_branch` exactly, or where the branch name contains a keyword from the question's topic (e.g., a question about "auth middleware" matches branches `feat/auth-fix`, `chore/auth-refactor`). Codex sessions don't carry `gitBranch` — skip this filter for them.
+1. **Branch filter (current-project Claude Code only).** In current-project
+   mode, keep sessions where `branch == dispatch_branch` exactly, or where the
+   branch name contains a keyword from the question's topic (e.g., a question
+   about "auth middleware" matches branches `feat/auth-fix`,
+   `chore/auth-refactor`). Skip branch filtering in global mode so one matching
+   branch cannot hide relevant sessions from other repositories.
 
-2. **If the branch filter returned zero sessions, or you're processing Codex sessions:**
+2. **Keyword filter Codex and Cursor sessions. Also keyword-filter Claude
+   sessions in global mode or when the current-project branch filter returned
+   zero sessions:**
    - Derive 2-4 keywords from the question's topic. For "a recent crash in the auth middleware where session-validation rejects valid tokens", derive `auth,middleware,session,token` (or similar).
    - Re-invoke the discovery pipeline with `--keyword K1,K2,...` appended to the `extract-metadata.py` invocation. The script returns sessions with non-zero `match_count` plus per-keyword counts.
    - If `files_matched: 0`, keep no file-backed keyword candidates and continue
@@ -240,7 +250,7 @@ The OS handles cleanup eventually regardless; the explicit cleanup is for reader
 When the caller (typically a user typing `/ce-sessions`, or another skill invoking ce-sessions via the platform's skill-invocation primitive) does not specify an output format, include a brief header noting what was searched:
 
 ```
-**Sessions searched**: [count] ([N] Claude Code, [N] Codex, [N] Cursor) | [date range]
+**Sessions searched**: [count] ([N] Claude Code, [N] Codex, [N] Cursor, [N] Hermes) | [date range]
 ```
 
 Then the synthesizer's prose findings. When the caller supplies a schema, honor it verbatim and omit the default header.

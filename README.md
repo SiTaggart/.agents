@@ -150,7 +150,7 @@ Examples:
 | `git-history-analyzer`      | Analyze git history and code evolution              |
 | `learnings-researcher`      | Search past solutions in .ai/solutions/ for institutional knowledge |
 | `repo-research-analyst`     | Research repository structure and conventions       |
-| `session-historian`         | Analyze past agent sessions across Claude Code / Codex / Cursor |
+| `session-historian`         | Analyze past agent sessions across Claude Code / Codex / Cursor / Hermes |
 | `slack-researcher`          | Research organizational context from Slack workspaces |
 | `web-researcher`            | Research external documentation and web references  |
 
