@@ -1,6 +1,6 @@
 ---
 name: code-taste
-description: Apply TypeScript, React, and code-shape taste for implementation, review, refactor, and quality-gate tasks. Use when code changes involve TS/React conventions, typed contracts, helper boundaries, typed domain cores, IO or UI adapters, schemas, reducers, selectors, adapters, premature abstractions, speculative guards, maintainability smells, courier objects, JSX business logic, casts, useEffect, effect soup, or over-engineering.
+description: Apply TypeScript and React code-shape taste for implementation, review, refactor, and quality-gate tasks. Use when TypeScript or React changes involve typed contracts, helper boundaries, domain cores, IO or UI adapters, schemas, reducers, selectors, premature abstractions, speculative guards, maintainability smells, courier objects, JSX business logic, casts, useEffect, effect soup, or over-engineering.
 ---
 
 # Code Taste
@@ -18,6 +18,9 @@ language-specific preferences.
   carried forward — over the one with the smallest diff.
 
 ## Early Routing
+
+For Spade Python-only changes, use `spade-python-taste` instead. Use both only
+when the change crosses TypeScript or React and a Spade Python service.
 
 Use this skill before choosing the implementation approach when a change touches
 TypeScript contracts, React/Next behavior, helper boundaries, effect structure,

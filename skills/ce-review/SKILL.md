@@ -24,8 +24,11 @@ docs. Use `document-review` for those artifacts.
 - Start from the product contract: what user action, UI state, backend payload, URL state, persisted state, rendered output, or artifact is this change trying to improve?
 - Prefer first-principles reasoning over checklist compliance.
 - Taste matters. If the implementation works but is needlessly tangled, indirect, broad, or hard to read, say so with a concrete simpler direction.
-- Use `code-taste` for TypeScript, React, helper-boundary, effect, test-shape,
-  and maintainability smells when those concerns are relevant to the diff.
+- Use `code-taste` for TypeScript or React helper-boundary, effect, test-shape,
+  and maintainability concerns.
+- Use `spade-python-taste` for Spade Python service, FastAPI, Pydantic-boundary,
+  router, dependency, runtime-cost, and deployed-seam concerns.
+- Use both taste skills only when the diff crosses those language surfaces.
 - Guardrail concerns are conditional. Migration, deployment, rollout, support, and observability issues matter only when the diff actually touches those surfaces or creates a concrete product risk.
 
 ## Non-Goals
@@ -224,6 +227,7 @@ Look for:
 
 - ownership-boundary violations
 - TypeScript or React conventions ignored by new code
+- Spade Python service conventions ignored by new code
 - test harness conventions violated by new tests
 - local naming, file placement, or helper patterns bypassed without reason
 - forbidden shortcuts such as `any`, non-null assertions, weakened tests, or broad casts

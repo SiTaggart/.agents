@@ -126,12 +126,14 @@ Weigh the clean-slate option alongside the direct fix: would building this fresh
 
 Pause before crossing into adjacent UX, validation, focus behavior, styling, data modeling, persistence, or infrastructure. Ask the user if that broader contract is actually desired.
 
-Before implementation, decide whether the change touches TypeScript contracts,
-React/Next behavior, helper boundaries, schemas, reducers, selectors, adapters,
-JSX business logic, effect structure, or maintainability tradeoffs. If it does,
-use `code-taste` now, before writing code. Let `code-taste` route to
-`typescript-advanced-types` or `vercel-react-best-practices` only when that
-extra context is relevant. Do not defer this judgment to `ce-quality-gate`.
+Before implementation, classify the language surface. For TypeScript or React
+changes involving contracts, helper boundaries, schemas, adapters, JSX, effects,
+or maintainability tradeoffs, use `code-taste`. Let it route onward only when
+extra TypeScript or React context is relevant. For Spade Python services,
+FastAPI routes, Pydantic boundaries, router packages, runtime dependencies, or
+expensive endpoints, use `spade-python-taste`. Use both only for a change that
+crosses those language surfaces. Do not defer this judgment to
+`ce-quality-gate`.
 
 For frontend work done in the parent thread, use `frontend-design` as a guide
 inside this loop. For non-trivial React or UI implementation slices, prefer
@@ -186,10 +188,10 @@ If full-repo checks are noisy, make the touched surface clean and report unrelat
 After code edits, use `ce-quality-gate` on the current diff or explicit touched
 file list. Completion requires this gate.
 
-It must make the touched lint, format, type, test, and `code-taste` surface
-clean, or report the exact blocker and narrower proof that passed. This gate
-does not replace product proof, browser proof, early code-shape routing, or
-review of substantial work.
+It must make the touched lint, format, type, test, and applicable taste-skill
+surface clean, or report the exact blocker and narrower proof that passed. This
+gate does not replace product proof, browser proof, early code-shape routing,
+or review of substantial work.
 
 ## Step 7: Review The Diff
 
@@ -200,10 +202,11 @@ Before calling the task done, review your own diff with the same taste bar as `c
 - Is there less code that would do the same thing as clearly?
 - Did the fix stay inside the right owner boundary?
 - Are tests and real-surface proof proportional to risk?
-- If TypeScript, React, or code-shape mattered, did `code-taste` shape the
-  approach before implementation rather than only at the gate?
-- Is the touched implementation `code-taste` clean, with no speculative guards,
-  casts, wrappers, effects, or abstractions outside the accepted contract?
+- Did `code-taste` or `spade-python-taste`, when applicable, shape the approach
+  before implementation rather than only at the gate?
+- Is the touched implementation clean under the applicable taste skill, with no
+  speculative guards, casts, wrappers, effects, or abstractions outside the
+  accepted contract?
 - Did you avoid adding support, migration, deployment, or residual-work process unless the diff actually needed it?
 
 Invoke `ce-review` only when the change is substantial, risky, or the user asks for a review. Treat its output as advice to reason about, not a machine queue to apply blindly.
@@ -228,8 +231,8 @@ Finish with a concise report:
 - what product contract is now true
 - what checks or proof passed
 - RepoPromptCE `context_builder`: used, or skipped with the reason
-- `code-taste` route and gate status: applied early, fixed late, not relevant,
-  or necessary exception
+- taste-skill route and gate status: applied early, fixed late, not relevant, or
+  necessary exception
 - what was not verified and why
 - any narrow follow-up that is genuinely outside the accepted contract
 

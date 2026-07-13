@@ -1,0 +1,4 @@
+interface:
+  display_name: "Spade Python Taste"
+  short_description: "Write simpler, repo-native Spade services"
+  default_prompt: "Use $spade-python-taste to shape this Spade Python service around typed boundaries and local conventions."

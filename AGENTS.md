@@ -73,7 +73,7 @@ files add local context and override only overlapping instructions.
   - Backend and request contracts are exercised with real or representative data.
   - Docs are updated in the canonical destination and read back.
   - Touched files are clean for relevant lint, format, type, test, and
-    `code-taste` gates.
+    applicable taste-skill gates.
 - State what was proven and what was not. Do not let passing commands stand in
   for user-facing verification.
 
@@ -118,6 +118,8 @@ files add local context and override only overlapping instructions.
   function owns a broad transition or invariant.
 - Use `code-taste` before implementation for tactical TypeScript, React,
   helper-boundary, and code-shape decisions.
+- Use `spade-python-taste` before implementation for Spade Python service,
+  FastAPI, Pydantic-boundary, router, and runtime-cost decisions.
 
 ## Non-Negotiables
 
@@ -144,15 +146,16 @@ files add local context and override only overlapping instructions.
   `ce-plan`; layer in `repoprompt` for broad codebase context and
   `document-review` for markdown plans.
 - Work: use `ce-work`; use `qmd-knowledge-base` when intent, expected behavior,
-  ownership, location, convention, or history is unclear; route TypeScript,
-  React, or code-shape decisions through `code-taste` before implementation;
-  fold in `frontend-design` for UI; run `ce-quality-gate` after code edits.
-  Code-taste cleanliness is part of the completion gate for touched code.
+  ownership, location, convention, or history is unclear; route TypeScript or
+  React code-shape decisions through `code-taste`, and Spade Python service
+  decisions through `spade-python-taste`, before implementation; fold in
+  `frontend-design` for UI; run `ce-quality-gate` after code edits. Applicable
+  taste-skill cleanliness is part of the completion gate for touched code.
 - Review: use `ce-review` for built work; use `qmd-knowledge-base` only when
   intent, convention, or historical context is unclear; use `code-taste` for
-  maintainability and implementation-shape judgment; use `ce-simplify-code`
-  for cleanup; use `security-review` only for real trust-boundary or security
-  asks.
+  TypeScript and React shape, and `spade-python-taste` for Spade Python service
+  shape; use `ce-simplify-code` for cleanup; use `security-review` only for real
+  trust-boundary or security asks.
 - Ship/feedback: use `git-commit`, `git-commit-push-pr`, `gh-fix-ci`, and
   `resolve-pr-feedback` for git and PR ops.
 - Remember: use `ce-compound` and `ce-compound-refresh` to create durable
