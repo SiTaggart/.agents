@@ -56,7 +56,7 @@ discover_codex() {
         # sessions started before the scan window but still active within it
         # are not missed.
         find "$base" -name "*.jsonl" -mtime "-${DAYS}" 2>/dev/null
-    done
+    done | awk -F/ '!seen[$NF]++'
 }
 
 # --- Cursor ---
@@ -72,7 +72,7 @@ discover_cursor() {
 
     for dir in "${project_dirs[@]}"; do
         [ -d "$dir" ] || continue
-        local transcripts="$dir/agent-transcripts"
+        local transcripts="${dir}agent-transcripts"
         [ -d "$transcripts" ] || continue
         find "$transcripts" -name "*.jsonl" -mtime "-${DAYS}" 2>/dev/null
     done
@@ -95,4 +95,4 @@ discover() {
     esac
 }
 
-discover | awk -F/ '!seen[$NF]++'
+discover

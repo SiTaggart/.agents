@@ -31,16 +31,23 @@ test("discovers Claude sessions globally and in a dot-prefixed repo", async () =
     "shared.jsonl",
   );
   const orcaSession = path.join(path.dirname(mirroredOrcaSession), "orca.jsonl");
+  const cursorTranscripts = path.join(home, ".cursor", "projects", "-Users-test-spade", "agent-transcripts");
+  const cursorSessionA = path.join(cursorTranscripts, "a", "transcript.jsonl");
+  const cursorSessionB = path.join(cursorTranscripts, "b", "transcript.jsonl");
 
   await mkdir(agents, { recursive: true });
   await mkdir(spade, { recursive: true });
   await mkdir(path.dirname(codexSession), { recursive: true });
   await mkdir(path.dirname(mirroredOrcaSession), { recursive: true });
+  await mkdir(path.dirname(cursorSessionA), { recursive: true });
+  await mkdir(path.dirname(cursorSessionB), { recursive: true });
   await writeFile(agentsSession, "{}\n");
   await writeFile(spadeSession, "{}\n");
   await writeFile(codexSession, "{}\n");
   await writeFile(mirroredOrcaSession, "{}\n");
   await writeFile(orcaSession, "{}\n");
+  await writeFile(cursorSessionA, "{}\n");
+  await writeFile(cursorSessionB, "{}\n");
 
   const run = async (scope: string, platform?: string) => {
     const args = ["bash", script, scope, "7"];
@@ -55,7 +62,9 @@ test("discovers Claude sessions globally and in a dot-prefixed repo", async () =
     return output.trim().split("\n").sort();
   };
 
-  expect(await run("--all-repos")).toEqual([agentsSession, codexSession, orcaSession, spadeSession].sort());
+  expect(await run("--all-repos")).toEqual(
+    [agentsSession, codexSession, cursorSessionA, cursorSessionB, orcaSession, spadeSession].sort(),
+  );
   expect(await run(".agents", "claude")).toEqual([agentsSession]);
 });
 
