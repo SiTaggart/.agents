@@ -75,22 +75,31 @@ test("extracts Hermes sessions without reasoning or tool output", async () => {
   const session = {
     id: "hermes-test",
     messages: [
-      { role: "user", content: "Please inspect the skill behavior in this repository.", timestamp: "2026-07-13" },
+      {
+        role: "user",
+        content: [
+          { type: "text", text: "Please inspect the skill behavior in this repository." },
+          { type: "image_url", image_url: { url: "SECRET_IMAGE" } },
+        ],
+        timestamp: 1783962346.49,
+      },
       {
         role: "assistant",
-        content: "I will inspect the relevant source before deciding.",
+        content: [{ type: "text", text: "I will inspect the relevant source before deciding." }],
         reasoning: "SECRET_REASONING",
-        timestamp: "2026-07-13",
+        timestamp: 1783962346.49,
         tool_calls: [
           {
             function: {
-              name: "read_file",
-              arguments: JSON.stringify({ file_path: "/tmp/SKILL.md", secret: "SECRET_ARGUMENT" }),
+              name: "exec_command",
+              arguments: JSON.stringify({ cmd: "git status", secret: "SECRET_ARGUMENT" }),
             },
           },
+          { name: "terminal", arguments: JSON.stringify({ command: "pwd" }) },
         ],
       },
-      { role: "tool", tool_name: "read_file", content: "SECRET_TOOL_OUTPUT", timestamp: "2026-07-13" },
+      { role: "tool", tool_name: "exec_command", content: "SECRET_TOOL_OUTPUT", timestamp: 1783962346.49 },
+      { role: "tool", tool_name: "terminal", content: "Error: SECRET_FAILURE", timestamp: 1783962346.49 },
     ],
   };
   await writeFile(input, `${JSON.stringify(session)}\n`);
@@ -103,10 +112,15 @@ test("extracts Hermes sessions without reasoning or tool output", async () => {
   expect(await process.exited).toBe(0);
 
   const skeleton = await Bun.file(output).text();
+  expect(skeleton).toContain("[2026-07-13T17:05:46Z]");
   expect(skeleton).toContain("[user] Please inspect the skill behavior");
   expect(skeleton).toContain("[assistant] I will inspect the relevant source");
-  expect(skeleton).toContain("[tool] read_file /tmp/SKILL.md -> ok");
+  expect(skeleton).toContain("[tool] exec_command git status");
+  expect(skeleton).toContain("[tool] terminal pwd");
+  expect(skeleton).not.toContain("-> ok");
+  expect(skeleton).not.toContain("SECRET_IMAGE");
   expect(skeleton).not.toContain("SECRET_REASONING");
   expect(skeleton).not.toContain("SECRET_ARGUMENT");
   expect(skeleton).not.toContain("SECRET_TOOL_OUTPUT");
+  expect(skeleton).not.toContain("SECRET_FAILURE");
 });

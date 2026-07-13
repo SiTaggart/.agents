@@ -23,6 +23,7 @@ extraction bytes through orchestrator tool results.
 Without --output, extracted content goes to stdout and ends with a _meta line.
 """
 import argparse
+from datetime import datetime, timezone
 import io
 import os
 import sys
@@ -131,8 +132,8 @@ def _safe_slice(value, n):
     return value[:n] if isinstance(value, str) else ""
 
 
-def summarize_claude_tool(block):
-    """Extract name and target from a Claude Code tool_use block."""
+def summarize_tool(block):
+    """Extract a readable name and target from a tool call."""
     name = block.get("name", "unknown")
     inp = block.get("input", {})
     fp = inp.get("file_path")
@@ -141,6 +142,7 @@ def summarize_claude_tool(block):
         (fp if isinstance(fp, str) else None)
         or (p if isinstance(p, str) else None)
         or _safe_slice(inp.get("command"), 120)
+        or _safe_slice(inp.get("cmd"), 120)
         or _safe_slice(inp.get("pattern"), 200)
         or _safe_slice(inp.get("query"), 80)
         or _safe_slice(inp.get("prompt"), 80)
@@ -210,7 +212,7 @@ def handle_claude(obj):
                         print("---")
                         stats["assistant"] += 1
                 elif block.get("type") == "tool_use":
-                    name, target = summarize_claude_tool(block)
+                    name, target = summarize_tool(block)
                     entry = {"ts": ts, "name": name, "target": target}
                     tool_id = block.get("id")
                     if tool_id:
@@ -319,33 +321,54 @@ def handle_cursor(obj):
                 pending_tools.append({"ts": "", "name": name, "target": target})
 
 
+def hermes_text(content):
+    """Extract text from Hermes string or multimodal content."""
+    if isinstance(content, str):
+        return content
+    if isinstance(content, list):
+        return "\n".join(filter(None, (hermes_text(part) for part in content)))
+    if isinstance(content, dict):
+        for key in ("text", "content"):
+            value = content.get(key)
+            if isinstance(value, str):
+                return value
+    return ""
+
+
+def hermes_timestamp(value):
+    """Render Hermes epoch timestamps like the other platform handlers."""
+    if isinstance(value, (int, float)):
+        timestamp = datetime.fromtimestamp(value, tz=timezone.utc)
+        return timestamp.isoformat(timespec="seconds").replace("+00:00", "Z")
+    return str(value)[:19] if value is not None else ""
+
+
 def handle_hermes(obj):
     """Hermes exports one session object containing a messages array."""
     for message in obj.get("messages", []):
         role = message.get("role")
-        raw_ts = message.get("timestamp", "")
-        ts = str(raw_ts)[:19] if raw_ts is not None else ""
+        ts = hermes_timestamp(message.get("timestamp", ""))
 
         if role == "user":
-            content = message.get("content", "")
-            if isinstance(content, str):
-                content = clean_text(content)
-                if len(content) > 15:
-                    flush_tools()
-                    print(f"[{ts}] [user] {content[:800]}")
-                    print("---")
-                    stats["user"] += 1
+            content = clean_text(hermes_text(message.get("content", "")))
+            if len(content) > 15:
+                flush_tools()
+                print(f"[{ts}] [user] {content[:800]}")
+                print("---")
+                stats["user"] += 1
 
         elif role == "assistant":
-            content = message.get("content", "")
-            if isinstance(content, str) and len(content.strip()) > 20:
+            content = clean_text(hermes_text(message.get("content", "")))
+            if len(content) > 20:
                 flush_tools()
                 print(f"[{ts}] [assistant] {content[:800]}")
                 print("---")
                 stats["assistant"] += 1
 
             for call in message.get("tool_calls", []) or []:
-                function = call.get("function", {})
+                function = call.get("function")
+                if not isinstance(function, dict):
+                    function = call
                 name = function.get("name", "unknown")
                 raw_arguments = function.get("arguments", "")
                 try:
@@ -354,15 +377,8 @@ def handle_hermes(obj):
                     tool_input = {}
                 if not isinstance(tool_input, dict):
                     tool_input = {}
-                _, target = summarize_claude_tool({"name": name, "input": tool_input})
+                _, target = summarize_tool({"name": name, "input": tool_input})
                 pending_tools.append({"ts": ts, "name": name, "target": target})
-
-        elif role == "tool":
-            tool_name = message.get("tool_name")
-            for entry in pending_tools:
-                if not entry.get("status") and (not tool_name or entry["name"] == tool_name):
-                    entry["status"] = "ok"
-                    break
 
 
 # Auto-detect platform from first few lines, then process all
