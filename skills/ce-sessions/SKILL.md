@@ -79,7 +79,8 @@ bash scripts/discover-sessions.sh --all-repos <days> | tr '\n' '\0' | xargs -0 p
 
 Each output line is a JSON object describing a session (platform, file, size, ts, session, plus platform-specific fields). The final `_meta` line carries `files_processed` and `parse_errors`.
 
-If the inventory's `_meta` line shows `files_processed: 0`, return "no relevant prior sessions" and stop.
+If the inventory's `_meta` line shows `files_processed: 0`, record that the
+file-backed inventory is empty and continue to the Hermes inventory below.
 
 If `parse_errors > 0`, note that some sessions could not be parsed and proceed with what was returned.
 
@@ -105,6 +106,9 @@ python3 scripts/extract-skeleton.py --output "$SCRATCH/<session-id>.skeleton.txt
 If the Hermes CLI or database is unavailable, report that coverage gap and
 continue with the file-backed stores.
 
+Return "no relevant prior sessions" only when both the file-backed inventory
+and the Hermes prompt inventory contain no relevant sessions.
+
 ### Step 3 — Filter and rank
 
 Apply these filters in order to pick the sessions worth deep-diving:
@@ -114,7 +118,9 @@ Apply these filters in order to pick the sessions worth deep-diving:
 2. **If the branch filter returned zero sessions, or you're processing Codex sessions:**
    - Derive 2-4 keywords from the question's topic. For "a recent crash in the auth middleware where session-validation rejects valid tokens", derive `auth,middleware,session,token` (or similar).
    - Re-invoke the discovery pipeline with `--keyword K1,K2,...` appended to the `extract-metadata.py` invocation. The script returns sessions with non-zero `match_count` plus per-keyword counts.
-   - **If `files_matched: 0`, return "no relevant prior sessions" and stop.** Do not extract anything.
+   - If `files_matched: 0`, keep no file-backed keyword candidates and continue
+     with any ranked Hermes candidates. Return "no relevant prior sessions"
+     only when neither inventory has a relevant candidate.
    - If `files_matched > 0`, treat those sessions as candidates. Rank by `match_count`, break ties by per-keyword counts.
 
 3. **Drop sessions outside the scan window.** Use `last_ts` when available, fall back to `ts`. Discard sessions where both fall before the window start.
@@ -217,7 +223,9 @@ The agent reads each path via the platform's native file-read tool and returns p
 
 ### Step 7 — Return findings
 
-Return the synthesizer's output text to the caller verbatim. If discovery or keyword filtering returned zero sessions (Step 2 or Step 3), return the literal string `no relevant prior sessions` instead.
+Return the synthesizer's output text to the caller verbatim. If no file-backed
+or Hermes candidates remain after filtering, return the literal string
+`no relevant prior sessions` instead.
 
 Optionally clean up scratch:
 
