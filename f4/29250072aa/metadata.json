@@ -1,0 +1,24 @@
+{
+  "cli_version": "0.8.42",
+  "checkpoint_id": "f429250072aa",
+  "strategy": "manual-commit",
+  "branch": "feat/entire-orca-review-skills",
+  "checkpoints_count": 4,
+  "files_touched": null,
+  "sessions": [
+    {
+      "metadata": "/f4/29250072aa/0/metadata.json",
+      "transcript": "/f4/29250072aa/0/full.jsonl",
+      "compact_transcript": "/f4/29250072aa/0/transcript.jsonl",
+      "content_hash": "/f4/29250072aa/0/content_hash.txt",
+      "prompt": "/f4/29250072aa/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 91924,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 1427200,
+    "output_tokens": 7260,
+    "api_call_count": 25
+  }
+}
