@@ -1,0 +1,29 @@
+{
+  "cli_version": "0.8.42",
+  "checkpoint_id": "51e7137acee9",
+  "strategy": "manual-commit",
+  "branch": "feat/entire-orca-review-skills",
+  "checkpoints_count": 4,
+  "files_touched": [
+    "skills/orca-multi-review/SKILL.md",
+    "skills/orca-multi-review/agents/openai.yaml",
+    "skills/orca-super-review/SKILL.md",
+    "skills/orca-super-review/agents/openai.yaml"
+  ],
+  "sessions": [
+    {
+      "metadata": "/51/e7137acee9/0/metadata.json",
+      "transcript": "/51/e7137acee9/0/full.jsonl",
+      "compact_transcript": "/51/e7137acee9/0/transcript.jsonl",
+      "content_hash": "/51/e7137acee9/0/content_hash.txt",
+      "prompt": ""
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 1370,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 85760,
+    "output_tokens": 482,
+    "api_call_count": 1
+  }
+}
