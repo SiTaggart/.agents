@@ -1,17 +1,1 @@
-gimme a quick overview of the hooks installed in this repo for Entire and tell me what thye do
-
----
-
-ok makes sense if I commit these config files in this repo to set it up, is that kind of normal, nothing super weird in ther?
-
----
-
-what about the contents of the orca review skills, anything proprietary?
-
----
-
-OK that seems fine, I might end up making the repo private anywayu
-
----
-
 can you create a pr for these changes includeing the added skills
