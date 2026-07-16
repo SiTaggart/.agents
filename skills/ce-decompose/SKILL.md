@@ -99,8 +99,8 @@ Carve the existing code into the units from Step 3, preserving the work. The out
 
 - **Map changes to units.** Assign each changed file (or region) to exactly one unit. Prefer **file-level grouping** — it is clean and matches the house commit convention. When a single file genuinely mixes concerns across units, split that file's changes by hunk; if the file *is* the seam, keep it as one unit.
 - **Order by dependency.** A unit that others build on lands first. Each commit/PR in the stack must build and pass its own tests on its own — no unit may depend on code that lands later.
-- **Mechanics.** Build the stack by re-applying the existing changes in grouped commits, or as a branch/PR per unit. To group commits, `git reset --mixed <base>` first — a `--soft` reset leaves the whole diff staged in the index, so the first `git-commit` would sweep in every sibling unit's files and collapse the stack; `--mixed` keeps the changes in the working tree but unstages them, so each unit stages cleanly. For **file-level** units, use `git-commit` / `git-commit-push-pr` once each unit's files are grouped. For **partial-file (hunk-split)** units, do **not** hand off to `git-commit` — it stages whole files by name and would re-stage the sibling units' hunks in the same file, collapsing the split back together. Instead stage the hunks directly (`git add -p`) and commit in place, then move to the next unit.
-- **Base each PR on the unit below it.** When the stack is emitted as a branch/PR per unit, a dependent unit's PR must set its base to the previous unit's branch (`gh pr create --base <prev-unit-branch>`), not the repo default. Left to default, every later PR targets `main` and re-includes the earlier units, so the stack stops being independently reviewable.
+- **Mechanics.** Build the stack by re-applying the existing changes in grouped commits, or as a branch/PR per unit. To group commits, `git reset --mixed <base>` first — a `--soft` reset leaves the whole diff staged in the index, so the first `git-commit` would sweep in every sibling unit's files and collapse the stack; `--mixed` keeps the changes in the working tree but unstages them, so each unit stages cleanly. For **file-level** units, use `git-commit` once each unit's files are grouped. For **partial-file (hunk-split)** units, do **not** hand off to `git-commit` — it stages whole files by name and would re-stage the sibling units' hunks in the same file, collapsing the split back together. Instead stage the hunks directly (`git add -p`) and commit in place, then move to the next unit.
+- **Publish PR stacks with `gh-stack` when available.** Invoke the `gh-stack` skill for non-interactive branch, submit, rebase, and verification mechanics; it owns the command contract. If `gh stack` is unavailable or the repository is not enabled for GitHub Stacked PRs, fall back to creating each PR manually with its base set to the previous unit's branch (`gh pr create --base <prev-unit-branch>`). A later PR based on the repo default re-includes earlier units and is not independently reviewable.
 - **Recurse.** If a unit's own diff is still over threshold, it was not atomic. Run Step 3 on that unit and split again. Decomposition is recursive until every piece is reviewable.
 
 ### Step 4b: Reference & Rebuild (discard path)
@@ -124,7 +124,9 @@ The loop terminates when every remaining piece is something a careful human can 
 - **ideate → brainstorm → `ce-plan` → `ce-work`** — your normal build loop, upstream of this skill. It produces the diff; this skill carves it.
 - **`ce-plan`** — the natural home for the Step 3 unit breakdown when the set warrants a durable plan with test scenarios and dependency ordering.
 - **`ce-work`** — builds each unit on the rebuild path, and finishes any unit a split leaves incomplete.
-- **`git-commit`** / **`git-commit-push-pr`** — create the commits/PRs for each unit in the stack.
+- **`git-commit`** — create each unit's commits before the stack is published.
+- **`gh-stack`** — publish, rebase, sync, and inspect dependent PR stacks when the extension and repository feature are available.
+- **`git-commit-push-pr`** — ship a unit only when it is an independent PR rather than a layer in the dependent stack.
 - **`ce-quality-gate`** / **`ce-review`** — gate each unit as it lands; review incrementally, not in one giant pass.
 - **`git-worktree`** — isolates parallel rebuild agents that touch overlapping files.
 - **`orchestration`** — use when the parallel fan-out needs structured coordination beyond a single concurrent batch.
@@ -150,7 +152,7 @@ Gate the options on the carve state:
 - **The set warrants a durable plan with test scenarios and dependency ordering:** `ce-plan` (recommended).
 - **A unit is incomplete or needs building on the rebuild path:** `ce-work` on that unit.
 - **A unit has landed and is ready to gate:** `ce-quality-gate` then `ce-review` on that unit, incrementally — not one giant pass.
-- **A reviewed unit is ready to land:** `git-commit` / `git-commit-push-pr` for that unit in the stack.
+- **A reviewed unit is ready to land:** `git-commit` for a commit stack, `gh-stack` for a dependent PR stack, or `git-commit-push-pr` for an independent PR.
 
 Always include a `Done for now` option that ends the turn with the stack/dispatch state saved.
 
