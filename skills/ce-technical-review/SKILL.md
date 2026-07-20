@@ -79,8 +79,13 @@ Each pass must receive:
 - this shared instruction:
 
 > Read each changed file in full for context when reasonably sized. The diff is
-> provided; use it to distinguish introduced lines from pre-existing code. Only
-> flag issues introduced or materially affected by this changeset. Do not flag
+> provided; use it to distinguish introduced lines from pre-existing code. Reason
+> from the diff, changed files, and the check output already gathered in Step 0;
+> do not rerun lint, typecheck, or tests yourself, because a read-only review
+> sandbox rejects the temp files and sockets that tsx, Vite, and Vitest need to
+> start. If a needed check never ran, report it as blocked rather than as a
+> product test failure. Only flag issues introduced or materially affected by
+> this changeset. Do not flag
 > pre-existing issues unless a changed line directly interacts with them. Return
 > at most 5 findings, ranked by severity. Report a flat list: severity
 > (`must-fix`, `should-fix`, or `nit`), file path, line number, concrete
