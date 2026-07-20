@@ -1,0 +1,1 @@
+Reply with exactly: GLM_CLAUDE_OK
