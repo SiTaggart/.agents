@@ -3,7 +3,7 @@
   "checkpoint_id": "b6f057d188db",
   "strategy": "manual-commit",
   "branch": "docs/agent-guidance-and-review-sandbox",
-  "checkpoints_count": 15,
+  "checkpoints_count": 16,
   "files_touched": [
     "AGENTS.md"
   ],
@@ -28,13 +28,20 @@
       "compact_transcript": "/b6/f057d188db/2/transcript.jsonl",
       "content_hash": "/b6/f057d188db/2/content_hash.txt",
       "prompt": "/b6/f057d188db/2/prompt.txt"
+    },
+    {
+      "metadata": "/b6/f057d188db/3/metadata.json",
+      "transcript": "/b6/f057d188db/3/full.jsonl",
+      "compact_transcript": "/b6/f057d188db/3/transcript.jsonl",
+      "content_hash": "/b6/f057d188db/3/content_hash.txt",
+      "prompt": "/b6/f057d188db/3/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 1253576,
+    "input_tokens": 1310072,
     "cache_creation_tokens": 0,
-    "cache_read_tokens": 23149568,
-    "output_tokens": 66481,
-    "api_call_count": 182
+    "cache_read_tokens": 23150336,
+    "output_tokens": 66527,
+    "api_call_count": 183
   }
 }

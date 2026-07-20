@@ -1,0 +1,2 @@
+{"v":1,"agent":"claude-code","cli_version":"0.8.42","type":"user","ts":"2026-07-20T22:15:59.366Z","content":[{"id":"0bbcea69-7f00-4a37-bd60-9db4ce3a9d7b","text":"Reply with exactly: CLAUDEOC_OK"}]}
+{"v":1,"agent":"claude-code","cli_version":"0.8.42","type":"assistant","ts":"2026-07-20T22:16:10.735Z","id":"chatcmpl-6a5e9e237f8accccd3fafc67","input_tokens":56496,"output_tokens":46,"content":[{"text":"CLAUDEOC_OK","type":"text"}]}
