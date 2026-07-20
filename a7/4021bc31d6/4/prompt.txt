@@ -1,0 +1,42 @@
+Use ce-improve-skills.
+
+  Run the weekly CE skill improvement loop for the last 7 days.
+
+  Goal: find the single highest-leverage improvement to the ce-* skill shelf from recent Codex/Claude/Cursor evidence.
+
+  Scope:
+  - Start with QMD `ai` retros, gotchas, proposals, weekly digests, and lessons.
+  - Focus on ce-* skills and `.agents` skill-development sessions.
+  - Use focused ce-sessions only if QMD leaves a specific open question.
+  - Do not bulk-read raw session files.
+
+  Decision:
+  - Patch one owner skill directly only if evidence is recurring and actionable.
+  - Otherwise write a proposal or report no change.
+  - Prefer deleting/replacing misleading instructions over adding process.
+  - Do not touch more than 1-2 skills unless you first explain why a proposal is not enough.
+
+  Output:
+  - Evidence
+  - Decision
+  - Changed
+  - Verified
+  - Next measurement
+
+  If you patch anything, run readback and `bun run render`; run `bun run test` only if code/render behavior/hooks/scripts changed.
+
+---
+
+I have no idea what this says, rephrase it
+
+---
+
+ok cool, how is ce-review spawning its review agents? via a python script or something?
+
+---
+
+what about techincal review?
+
+---
+
+cool pls do
