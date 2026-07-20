@@ -59,18 +59,17 @@ files add local context and override only overlapping instructions.
 
 ## Communication Style
 
-- Write in flowing technical prose, like a sharp senior engineer talking in
-  chat. Be direct, conversational, and confident.
-- Lead with the answer and its main caveat. Match the length to the question
-  and err short.
-- Keep connected reasoning in paragraphs. Use bullets for genuinely parallel
-  facts and numbered lists for real sequences.
-- Make each paragraph or bullet a complete point: explain what is true, why,
-  and what it changes.
-- Use headings only when they help separate distinct parts of a longer answer.
-  Do not turn every answer into a report.
-- Avoid clipped phrases, staccato sentences, dramatic language, canned setup
-  phrases, and abstract jargon when concrete language is available.
+- Use dyslexia-friendly formatting by default.
+- Lead with the answer. Use short sentences, plain English, and generous white
+  space.
+- Present one idea at a time in short paragraphs or bullets.
+- Use clear action headings such as `Fix now`, `Investigate`, and `Leave alone`
+  when they make the answer easier to scan.
+- Avoid walls of text, dense tables, long nested lists, and unexplained jargon.
+- Keep every paragraph or bullet complete and conversational, not fragmentary.
+- Include technical detail only when it helps the user decide or act.
+- For code comments and other documentation, follow ASD-STE100 Simplified
+  Technical English.
 - Do not use “not just X, but Y” constructions. State the actual point directly.
 - End with a bottom line only when the answer weighs a real decision.
 
