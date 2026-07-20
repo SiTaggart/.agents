@@ -3,7 +3,7 @@
   "checkpoint_id": "a74021bc31d6",
   "strategy": "manual-commit",
   "branch": "docs/agent-guidance-and-review-sandbox",
-  "checkpoints_count": 15,
+  "checkpoints_count": 16,
   "files_touched": [
     "skills/ce-review/SKILL.md",
     "skills/ce-technical-review/SKILL.md"
@@ -29,6 +29,13 @@
       "compact_transcript": "/a7/4021bc31d6/2/transcript.jsonl",
       "content_hash": "/a7/4021bc31d6/2/content_hash.txt",
       "prompt": "/a7/4021bc31d6/2/prompt.txt"
+    },
+    {
+      "metadata": "/a7/4021bc31d6/3/metadata.json",
+      "transcript": "/a7/4021bc31d6/3/full.jsonl",
+      "compact_transcript": "/a7/4021bc31d6/3/transcript.jsonl",
+      "content_hash": "/a7/4021bc31d6/3/content_hash.txt",
+      "prompt": "/a7/4021bc31d6/3/prompt.txt"
     }
   ],
   "token_usage": {
