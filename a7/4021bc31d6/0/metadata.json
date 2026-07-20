@@ -1,0 +1,40 @@
+{
+  "cli_version": "0.8.42",
+  "checkpoint_id": "a74021bc31d6",
+  "session_id": "019f7288-d52b-7811-bc60-1219a5acf92e",
+  "strategy": "manual-commit",
+  "created_at": "2026-07-20T23:48:53.834538Z",
+  "branch": "docs/agent-guidance-and-review-sandbox",
+  "checkpoints_count": 13,
+  "save_step_count": 1,
+  "files_touched": [
+    "skills/ce-review/SKILL.md",
+    "skills/ce-technical-review/SKILL.md"
+  ],
+  "agent": "Codex",
+  "model": "gpt-5.6-sol",
+  "turn_id": "959a84f585a9",
+  "compact_transcript_start": 0,
+  "token_usage": {
+    "input_tokens": 1137394,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 23148032,
+    "output_tokens": 66418,
+    "api_call_count": 180
+  },
+  "session_metrics": {
+    "turn_count": 13
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-07-20T23:48:53.757774Z",
+    "agent_lines": 15,
+    "agent_removed": 3,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 15,
+    "total_lines_changed": 18,
+    "agent_percentage": 100,
+    "metric_version": 2
+  }
+}
