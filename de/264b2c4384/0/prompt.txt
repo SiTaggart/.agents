@@ -1,0 +1,69 @@
+[Image #1]  take this brief tweet setup guide and help me a install CLIProxyAPI, connect it and set up the claudex alias so I can use gpt5.6 sol inside of the clade code cli. The link the CLIProxyAPI set up docs and configuration is here https://help.router-for.me/introduction/quick-start.html
+
+---
+
+can it be in .zshrc.local pls
+
+---
+
+can you add the dangerously skip permissions flag to the alias just like my ccc alias
+
+---
+
+looks great, and is working
+
+---
+
+are we able to use CLIProxyAPI to give Codex model picker access to every model based on configured providers? Like it would be cool to be able to use Claude in Codex desktop along with kimi K3 from our opencode sub?
+
+---
+
+i don't mind reloading the app, that's not a big problem for me
+
+---
+
+cool, in terms of models, I agree all the gpt stuff as is, fable 5 and opus 4.8 might be nice, plus kimi k3 and gml5.2 from opencode
+
+---
+
+use the API key, it's fine
+
+---
+
+can we just make sure the catalog is sync'd
+
+---
+
+if I wanted to create another claude alias similar to my claudex alias, but instead of using codex as a provider it used opencode go? How would I do that, and what models do I need to declare or can it jsut auto find the models available if I ran something like claudeoc
+
+---
+
+yes pls
+
+---
+
+going back to the codex desktop app, I have reloaded the app but I'm not seeing the other modesl and providers from the model selector? [Image #1] [Image #2]
+
+---
+
+and half my chats are missing actually
+
+---
+
+nope, totally broken now. All the threads have gone from the sidebar and the model selector is still only openai models, lets forget this, undo it
+
+---
+
+OK we're back
+
+---
+
+it does look like we have some changes to commit to the repo though from other changes, so maybe we shold create a pr for those
+
+---
+
+can you update the skills we've installed via the skill tool so it's uptodate and updates the skill lock file and then include it pls
+
+---
+
+aere you sure? that means we're missing all the skills in the "old" lockfile?
