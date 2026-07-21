@@ -69,7 +69,7 @@ Parse arguments before resolving the target:
 3. Exclude submodules, generated files, lockfiles, and vendored/minified assets unless the change is specifically about them.
 4. Include staged and unstaged tracked changes for current-checkout reviews. List untracked files as excluded unless the user explicitly asked to include them.
 5. Find project instruction files that govern the changed files, especially `AGENTS.md` and `CLAUDE.md` ancestors.
-6. If an obvious fast lint, typecheck, or touched-surface test command exists, run it first. If basics fail, report those failures before deeper review. Continue only when the user explicitly wants conceptual review despite red checks.
+6. If an obvious fast lint, typecheck, or touched-surface test command exists, run it once here in the parent before any fan-out, and carry the output into Step 3 so reviewers reason from it. If basics fail, report those failures before deeper review. Continue only when the user explicitly wants conceptual review despite red checks.
 
 When command output is unavailable, continue with the closest reliable source and state the limitation in the review.
 
@@ -130,6 +130,13 @@ For medium or large reviews, and for `deep` reviews, delegate the context-heavy
 passes to existing reviewer agents instead of loading every lens into the parent
 thread. The parent keeps review intent, severity, deduplication, and final
 verdict ownership.
+
+Reviewers reason from the diff, source, tests, and the check output the parent
+already produced in Step 0; they do not rerun lint, typecheck, or Vitest
+themselves, because a read-only review sandbox rejects the temp files and IPC
+sockets that tsx, Vite, and Vitest create at startup. When a check never ran,
+report it as blocked rather than logging the sandbox error as a product test
+failure.
 
 Dispatch the smallest useful set:
 
