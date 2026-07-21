@@ -59,3 +59,7 @@ OK we're back
 ---
 
 it does look like we have some changes to commit to the repo though from other changes, so maybe we shold create a pr for those
+
+---
+
+can you update the skills we've installed via the skill tool so it's uptodate and updates the skill lock file and then include it pls
