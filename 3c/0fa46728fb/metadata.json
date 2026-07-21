@@ -1,0 +1,24 @@
+{
+  "cli_version": "0.8.42",
+  "checkpoint_id": "3c0fa46728fb",
+  "strategy": "manual-commit",
+  "branch": "docs/agent-guidance-and-review-sandbox",
+  "checkpoints_count": 1,
+  "files_touched": null,
+  "sessions": [
+    {
+      "metadata": "/3c/0fa46728fb/0/metadata.json",
+      "transcript": "/3c/0fa46728fb/0/full.jsonl",
+      "compact_transcript": "/3c/0fa46728fb/0/transcript.jsonl",
+      "content_hash": "/3c/0fa46728fb/0/content_hash.txt",
+      "prompt": "/3c/0fa46728fb/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 1479145,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 27228928,
+    "output_tokens": 82395,
+    "api_call_count": 232
+  }
+}
