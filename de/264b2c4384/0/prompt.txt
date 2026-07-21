@@ -67,3 +67,7 @@ can you update the skills we've installed via the skill tool so it's uptodate an
 ---
 
 aere you sure? that means we're missing all the skills in the "old" lockfile?
+
+---
+
+delete it then?
