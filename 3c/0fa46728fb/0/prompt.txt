@@ -63,3 +63,7 @@ it does look like we have some changes to commit to the repo though from other c
 ---
 
 can you update the skills we've installed via the skill tool so it's uptodate and updates the skill lock file and then include it pls
+
+---
+
+aere you sure? that means we're missing all the skills in the "old" lockfile?
