@@ -1,0 +1,23 @@
+# `/ce-slack-research` smoke capture
+
+- **Opt-in evidence:** The user explicitly said, “The user explicitly opts in: run /ce-slack-research for any prior Slack decisions about pagination contracts, negative page sizes, or -1 as an unlimited sentinel.” They also required read-only research and prohibited Slack message sends or modifications.
+- **Dispatch/tool path:** Read `/Users/staggart/orca/workspaces/.agents/bowhead/skills/ce-slack-research/SKILL.md`, its required `../ce-conventions/SKILL.md` reference, and the dispatched-agent contract at `/Users/staggart/orca/workspaces/.agents/bowhead/agents/slack-researcher.md`. Attempted the required `slack-researcher` dispatch with the topic and no permission-mode override; the runner rejected it before execution with `no thread with id`. Continued under the same agent contract via `tool_search` → `mcp__codex_apps__slack_slack_search_public_and_private` → `mcp__codex_apps__slack_slack_read_thread`. Only public and private channels were searched; DMs were excluded.
+- **Queries:**
+  - `pagination "page size" contract`
+  - `"negative page size"`
+  - `"-1" unlimited pagination`
+  - `pagination` (required broader retry after the targeted zero-result searches)
+  - `page_size` (rerun once in detailed mode to resolve the hit)
+  - `"page size"`
+  - `unlimited sentinel`
+  - `negative pagination`
+  - `"minus one" pagination`
+  - `unlimited pagination`
+- **Result count:** The first three targeted searches returned 0 results. The broader `pagination` retry returned 14 results. `page_size` returned 1 result; every other follow-up returned 0. The `page_size` result was rerun in detailed mode and is not an additional unique result. Two potentially relevant threads were read. Slack access was available and authenticated.
+- **Source links:**
+  - [Dagster pagination guidance in `#notif-dagster`](https://sescoworld.slack.com/archives/C077LKVR5U6/p1780412275572919?thread_ts=1780412109.839109&cid=C077LKVR5U6)
+  - [Merged PR notification in `#notif-github`](https://sescoworld.slack.com/archives/C0785SENH4Z/p1783366303453449?thread_ts=1783366303.453449&cid=C0785SENH4Z)
+- **Synthesized outcome:** **Workspace: sescoworld.slack.com. Research value: high for cursor pagination, none for negative-size sentinels.** A shared Dagster operational contract says event-log pagination must omit `afterCursor` on the first request, then pass only a real cursor returned by the prior page while `hasMore` is true; an empty-string cursor causes a misleading HTTP 500. A separate merged-PR notification says a Linear issue helper avoids page-size truncation, but it does not define the API contract. No Slack discussion or decision supported negative page sizes or `-1` as an unlimited sentinel. Therefore Slack provides evidence for explicit cursor pagination, not for adopting `-1`; absent another documented contract, `-1` should not be inferred from Slack.
+- **Slack write count:** 0.
+- **Repository write count:** 1 (`capture.md` only).
+- **Final turn:** “Found one prior Slack pagination contract: Dagster event-log reads omit `afterCursor` on page one, then use the returned cursor while `hasMore` is true; empty string is invalid and can produce HTTP 500. A merged PR also notes avoiding page-size truncation, but Slack contains no decision endorsing negative page sizes or `-1` as an unlimited sentinel. Slack writes: 0. Capture: `/tmp/ce-evals/smoke/ce-slack-research/capture.md`. Next: 1. Run `/ce-plan` if you want this evidence turned into an implementation contract. 2. Done for now.”

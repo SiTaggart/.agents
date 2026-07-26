@@ -1,0 +1,44 @@
+{
+  "skill_name": "ce-brainstorm",
+  "purpose": "Guard the Phase 2.5 Path A / Path B gate: the scoping synthesis must be gated on TWO signals (blocking question fired? AND tier). Regression guarded: Deep-tier pre-loaded prompts routed to Path A and got a one-sentence checkpoint for 20+ items of scope.",
+  "non_purpose": "Not testing dialogue quality, doc content, or tier classification accuracy in general — only the synthesis-shape routing.",
+  "variance_protocol": {
+    "runs_per_eval": 3,
+    "stability_metric": "routing agreement across runs (Path A vs Path B shape)",
+    "pass_threshold": "3/3 runs produce the expected path shape"
+  },
+  "grading_pipeline": {
+    "stage_1": "Programmatic shape check on the turn that precedes doc-writing: Path B = multi-section synthesis AND a confirmation question AND no doc written in that turn; Path A = 1-3 sentence announce AND doc written (or explicitly skipped) in the same turn with no confirmation question.",
+    "stage_2": "LLM grader (grader.md) — judges whether the synthesis substance matches the scope substance (Path B synthesis must reflect the pre-loaded decisions, not generic filler)."
+  },
+  "evals": [
+    {
+      "id": 1,
+      "name": "deep-preload-routes-path-b",
+      "tests_risk": "tier_guard_regression",
+      "prompt": "/ce-brainstorm We're adding a notification-mute feature. Decisions from our last session, all settled after long discussion — please don't re-litigate them, just capture them: per-channel and per-thread mutes; mute durations 1h/8h/1w/forever; backfilled rows keep their original expiry timestamp (presets are a picker constraint, not a storage constraint); muted channels still badge on @-mentions unless the mention is suppressed by an org-level quiet-hours policy (quiet-hours is suppress-only — org policy can silence a notification but never force one through a mute); the badge-through rule applies to channel mutes only — a muted thread is fully silent, @-mentions included; no UI for org policy yet (admin API only); migration backfills existing per-channel 'snooze' rows into the new mute table and deletes the snooze table (we accept the one-way door; snooze usage data reviewed last session); snooze API endpoints return 410 with a pointer to the new mute endpoints for two releases; mobile push suppression handled server-side so stale clients behave; analytics event 'mute_set' with source field. Write the requirements doc.",
+      "setup": "Two fixture rules, both load-bearing. (1) The scratch repo's code must NOT contradict the pre-loaded decisions (snooze must already be per-channel: { userId, channelId, untilTs }) — a planted contradiction legitimately fires a Phase 1.3 question, which routes Path B via the question signal and leaves the tier signal untested. (2) The prompt's settled-framing and the suppress-only disambiguation are part of the fixture: they suppress legitimate dialogue probes so the tier signal is the only thing forcing the checkpoint.",
+      "expected_behavior": "No blocking questions are needed (everything is pre-stated), but the pre-loaded substance makes the tier Standard/Deep, so Path B must fire: a full tier-aware scoping synthesis (shape, trade-offs, deferred, call-outs as applicable) ending in a confirmation question. The doc is NOT written in the same turn.",
+      "must_not": "A 1-3 sentence announce followed by immediate doc-write in the same turn (Path A shape).",
+      "notes": "This is the exact regression the tier guard was added for: rich pre-load, zero questions, one-sentence checkpoint. If a run stops at a legitimate blocking question instead, grade it inconclusive for the tier signal and check the fixture against the setup note. Run history (2026-07-25, first execution): 12/12 cold runs showed zero must_not behavior; 9/9 runs on the tightened prompt each found a DIFFERENT genuine composition gap in the decision list (thread-in-muted-channel precedence, non-preset expiry vs preset picker, quiet-hours blast radius) and correctly stopped to ask — the integration check closes the zero-question corridor for decision-dense prompts. To actually isolate the tier signal, shrink the pre-load to ~5 fully orthogonal decisions so the pairwise composition space is closed, or accept the question-signal route as the tested path."
+    },
+    {
+      "id": 2,
+      "name": "lightweight-no-questions-routes-path-a",
+      "tests_risk": "over_gating",
+      "prompt": "/ce-brainstorm Add a --version flag to the CLI that prints the package version from package.json.",
+      "expected_behavior": "Lightweight tier, no blocking questions -> Path A announce-mode: 1-3 sentences of 'what we're building', then proceed in the same turn (write the doc or state that a doc is not warranted). No confirmation gate, no multi-section synthesis, turn does not end waiting for acknowledgment.",
+      "must_not": "A full scoping synthesis with confirmation question for a trivial one-liner.",
+      "notes": "Guards the opposite direction — the gate must not collapse to 'always Path B' either. Run history (2026-07-26): 3/3 fresh runs produced the expected Path A announce-and-skip shape with no blocking question."
+    },
+    {
+      "id": 3,
+      "name": "question-fired-routes-path-b",
+      "tests_risk": "question_signal_dropped",
+      "prompt": "/ce-brainstorm Users should be able to share saved searches with teammates.",
+      "expected_behavior": "The prompt is underspecified, so at least one blocking dialogue question fires. After answers, Phase 2.5 must produce the full Path B scoping synthesis with confirmation gate — regardless of what tier the scope settles at — because answer-time was invested.",
+      "must_not": "Announce-mode synthesis after the user answered blocking questions.",
+      "notes": "Tests the first of the two gate signals independently of tier. Run history (2026-07-26): 3/3 fresh runs produced a substantive Path B synthesis after scripted answers, with no requirements document written before confirmation."
+    }
+  ]
+}
