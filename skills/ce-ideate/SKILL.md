@@ -7,8 +7,6 @@ argument-hint: "[feature, focus area, or constraint]"
 
 # Generate Improvement Ideas
 
-**Note: The current year is 2026.** Use this when dating ideation documents and checking recent ideation artifacts.
-
 `ce-ideate` precedes `ce-brainstorm`.
 
 - `ce-ideate` answers: "What are the strongest ideas worth exploring?"
@@ -19,28 +17,19 @@ This workflow produces a ranked ideation artifact in `.ai/ideation/`. It does **
 
 ## Interaction Method
 
-Use the platform's blocking question tool: `AskUserQuestion` in Claude Code (call `ToolSearch` with `select:AskUserQuestion` first if its schema isn't loaded), `request_user_input` in Codex, `ask_user` in Gemini, `ask_user` in Pi (requires the `pi-ask-user` extension). Fall back to numbered options in chat only when no blocking tool exists in the harness or the call errors (e.g., Codex edit modes) — not because a schema load is required. Never silently skip the question.
-
-Ask one question at a time. Prefer concise single-select choices when natural options exist.
+Use the platform's blocking question tool (see `../ce-conventions/SKILL.md`). Ask one question at a time; prefer concise single-select choices when natural options exist.
 
 ## Focus Hint
 
 <focus_hint> #$ARGUMENTS </focus_hint>
 
-Interpret any provided argument as optional context. It may be:
-
-- a concept such as `DX improvements`
-- a path such as `plugins/compound-engineering/skills/`
-- a constraint such as `low-complexity quick wins`
-- a volume hint such as `top 3`, `100 ideas`, or `raise the bar`
-
-If no argument is provided, proceed with open-ended ideation.
+Interpret any provided argument as optional context: a concept (`DX improvements`), a path, a constraint (`low-complexity quick wins`), or a volume hint (`top 3`, `100 ideas`, `raise the bar`). If no argument is provided, proceed with open-ended ideation.
 
 ## Core Principles
 
-1. **Ground before ideating** - Scan the actual codebase first. Do not generate abstract product advice detached from the repository.
-2. **Generate many -> critique all -> explain survivors only** - The quality mechanism is explicit rejection with reasons, not optimistic ranking. Do not let extra process obscure this pattern.
-3. **Route action into brainstorming** - Ideation identifies promising directions; `ce-brainstorm` defines the selected one precisely enough for planning. Do not skip to planning from ideation output.
+1. **Ground before ideating** - Scan the actual context first. Do not generate abstract advice detached from the subject.
+2. **Generate many -> critique all -> explain survivors only** - The quality mechanism is explicit rejection with reasons, not optimistic ranking.
+3. **Route action into brainstorming** - Ideation identifies promising directions; `ce-brainstorm` defines the selected one precisely enough for planning.
 
 ## Execution Flow
 
@@ -48,353 +37,97 @@ If no argument is provided, proceed with open-ended ideation.
 
 #### 0.1 Check for Recent Ideation Work
 
-Look in `.ai/ideation/` for ideation documents created within the last 30 days.
-
-Treat a prior ideation doc as relevant when:
-
-- the topic matches the requested focus
-- the path or subsystem overlaps the requested focus
-- the request is open-ended and there is an obvious recent open ideation doc
-- the issue-grounded status matches: do not offer to resume a non-issue ideation when the current argument indicates issue-tracker intent, or vice versa — treat these as distinct topics
-
-If a relevant doc exists, ask whether to:
-
-1. continue from it
-2. start fresh
-
-If continuing:
-
-- read the document
-- summarize what has already been explored
-- preserve previous idea statuses
-- update the existing file instead of creating a duplicate
+Look in `.ai/ideation/` for ideation documents from the last 30 days whose topic, path, or subsystem matches the requested focus (issue-grounded and non-issue ideations are distinct topics). If one exists, ask whether to continue from it or start fresh. If continuing: read it, summarize what was explored, preserve idea statuses, and update the file instead of creating a duplicate.
 
 #### 0.2 Subject-Identification Gate
 
-Before classifying mode or dispatching any grounding, check whether the subject of ideation is identifiable. downstream agent — grounding and ideation — needs to know what it's working on. If the subject is ambiguous enough that reasonable sub-agents would diverge on what the topic even is (bare words like `improvements`, `ideas`, `birthday cakes`, `vacation destinations`), the output will be scattered.
+Downstream agents need to know what they are working on. The test: would a reader, seeing only this prompt, know what subject to ideate on? Judge by what the words *refer to*, not their length — a two-word phrase can name a feature (identifiable) or a catch-all quality like "quick wins" (vague). Being inside a repo does not settle vagueness: "improvements" is still scattered across DX, reliability, features, and docs — the repo supplies grounding after a subject is settled, not the subject itself. When judgment leaves real doubt on a short phrase in repo mode, a cheap Glob/Grep for the phrase settles it: repo footprint means identifiable.
 
-**Questioning principles (apply in this phase and in 0.4):**
+Questions exist only to supply what sub-agents need: an identifiable subject here, and substance in 0.4. Never ask about solution direction, constraints, audience, tone, or success criteria — those belong to `ce-brainstorm`. If a question or two doesn't settle the subject, suggest `ce-brainstorm` instead.
 
-- Questions exist only to supply what sub-agents need to operate: an identifiable subject (this phase) and enough context for the agent to say something specific about it (0.4, elsewhere modes only). Nothing else.
-- Never ask about solution direction, constraints, audience, tone, success criteria, or anything that characterizes the subject — those belong to `ce-brainstorm`.
-- Always keep "Surprise me" (letting the agent decide the focus) as a real option, not a fallback for when the user can't name a subject. Ideation is allowed to be greenfield by design.
-- Stop as soon as the subject is identifiable or the user has delegated to "Surprise me." More than 3 total questions across 0.2 and 0.4 is a smell that ideation is not the right workflow — consider suggesting `ce-brainstorm`.
+**Issue-tracker intent (repo mode only).** Trigger only on an explicit reference to the tracker or reports filed in it (`open issues`, `issue themes`, `what users are reporting`, `bug reports`). Mentions of a bug as a focus (`bug in auth`, `top 3 bugs in authentication`) are focus hints on regular ideation, not tracker intent. When combined, tracker intent sets the mode, the volume override goes to 0.5, and the remainder narrows which issues matter.
 
-**Detection — issue-tracker intent (repo mode only; subject-identifying).**
+**When the subject is vague, ask the scope question** with options: specify a subject / "Surprise me — let the agent decide what to focus on" / cancel. On specify, re-apply the test once (keep Surprise me on the retry menu). On cancel, exit cleanly.
 
-Issue-tracker intent requires an explicit reference to the tracker or to reports filed in it. Trigger only when the prompt uses phrases like `github issues`, `open issues`, `issue patterns`, `issue themes`, `what users are reporting`, or `bug reports` — the subject is "issues in the tracker." Proceed to 0.3 with issue-tracker intent flagged.
+**Surprise-me mode** — a first-class mode, never a fallback for users who can't name a subject; ideation is allowed to be greenfield by design. Its whole contract:
 
-Do NOT trigger on arguments that merely mention bugs as a focus: `bug in auth`, `fix the login issue`, `the signup bug`, `top 3 bugs in authentication` — these are focus hints on regular ideation, not requests to analyze the issue tracker. A bare `bugs` with no tracker phrasing is handled by the vagueness check below, not here.
-
-When combined (e.g., `top 3 issue themes in authentication`, `biggest bug reports about checkout`): detect issue-tracker intent first, volume override in 0.5, remainder is the focus hint. The focus narrows which issues matter; the volume override controls survivor count.
-
-**Detection — subject identifiability.**
-
-The test: would a reader, seeing only this prompt, know what subject the agent should ideate on? Apply judgment to what the words *refer to*, not to their length or surface form.
-
-- **Vague — ask the scope question.** The prompt refers to a quality, category, or placeholder without naming a specific thing. Reasonable readers would pick different subjects. Illustrative cases: `improvements`, `ideas`, `things to fix`, `quick wins`, `what to build`, `bugs` (as the whole prompt, not as a topic like "bugs in auth"), an empty prompt. These are examples of the pattern, not a lookup table — recognize vagueness by what the words point to (a catch-all quality), not by matching specific words.
-
-- **Identifiable — proceed to 0.3.** The prompt names or plausibly names a specific subject: a feature, concept, document, subsystem, page, flow, or concrete topic. A reader would know where to direct thought even without knowing the domain. Illustrative cases: `authentication system`, `our sign-up page`, `browser sniff`, `dark mode`, `cache invalidation`, `a unicorn cake for my 7-year-old`, `plot ideas for a short story`.
-
-**Key distinction:** vagueness is about what the words *refer to*, not phrase length. `browser sniff` is two words but plausibly names a feature, so it is identifiable. `quick wins` is two words but refers only to a quality, so it is vague. Do not treat short phrases as vague by default.
-
-**Being inside a repo does not settle vagueness.** `improvements` in any repo is still scattered across DX, reliability, features, docs, tests, architecture. The repo provides material for grounding *after* a subject is settled, not the subject itself. Do not silently interpret a vague prompt as "about this repo" and proceed.
-
-**Genuine ambiguity (repo mode).** When judgment leaves real doubt on a short phrase — it could be a named feature or a vague concept — a single cheap check settles it: Glob for the phrase in filenames, or Grep for it in README/docs. If it appears anywhere, treat as identifiable and proceed. If it has no repo footprint and still reads vaguely, ask the scope question.
-
-When in doubt otherwise, err toward asking — one question is trivial compared to dispatching ~9 agents on a scattered interpretation.
-
-**The scope question.**
-
-Use the platform's blocking question tool: `AskUserQuestion` in Claude Code (call `ToolSearch` with `select:AskUserQuestion` first if its schema isn't loaded), `request_user_input` in Codex, `ask_user` in Gemini, `ask_user` in Pi (requires the `pi-ask-user` extension). Fall back to numbered options in chat only when no blocking tool exists or the call errors — not because a schema load is required. Never silently skip.
-
-- **Stem:** "What should the agent ideate about?"
-- **Options:**
-  - "Specify a subject the agent should ideate on"
-  - "Surprise me — let the agent decide what to focus on"
-  - "Cancel — let me rephrase"
-
-Routing:
-
-- **Specify** → accept the user's follow-up as the subject. Re-apply the identifiability check once. If still ambiguous, ask once more with "Surprise me" still on the menu. Do not cascade toward specificity about *how* to solve — only about *what* the subject is.
-- **Surprise me** → mark the run as **surprise-me mode**. The agent will discover subjects from Phase 1 material rather than carry a user-specified subject. This is a first-class mode — it changes how Phase 1 scans and how Phase 2 sub-agents operate (see those phases). **Dispatch routing for surprise-me is deterministic:** if CWD is inside a git repo, route to repo-grounded (the codebase supplies substance); otherwise route to elsewhere-software and require Phase 0.4 to collect at least one piece of substance (URL, description, draft, or paste) before dispatching — "surprise me" outside a repo is only viable once the user has supplied something to surprise them about. Skip Decision 1/2 in Phase 0.3: with no user subject there is no prompt content to weigh, and surprise-me never routes to elsewhere-non-software (no way to infer naming/narrative/personal intent without a subject). The user can correct by interrupting and re-invoking with a named subject.
-- **Cancel** → exit cleanly. Narrate that the user can rephrase and re-invoke.
+- Repo CWD → repo-grounded. Agents discover their own subjects from Phase 1 grounding, so grounding must be richer than specified mode (sample representative files per area, recent PR/commit activity, issue themes as first-class input) and each agent explores more deeply through its frame's lens. Different frames finding different subjects is the feature; cross-cutting synthesis is the magic layer (expect 5-8 combinations). An idea's basis may include why the subject itself is worth ideating on, citing the grounding signal.
+- Non-repo CWD → elsewhere-software, and at least one piece of substance (URL, description, draft, paste) is required before dispatch — after one refused ask, say the run needs material and end cleanly.
+- Skip mode classification (0.3), topic decomposition (1.5, note `Decomposition skipped — surprise-me mode`), and the axis-coverage machinery — there is no settled subject. The user corrects by re-invoking with a named subject.
 
 #### 0.3 Mode Classification
 
-Classify the **subject of ideation** (settled in 0.2) into one of three modes for dispatch routing. A user inside any repo can ideate about something unrelated to that repo; a user in `/tmp` can ideate about code they hold in their head.
+Classify the settled subject for dispatch routing — a user in any repo can ideate about something unrelated to it:
 
-**Surprise-me short-circuit.** When Phase 0.2 routed to surprise-me mode, skip the two-decision classification below and use the deterministic rule stated in 0.2: repo-grounded when CWD is inside a git repo, elsewhere-software otherwise. The ambiguity-confirmation step at the end of this section also does not fire for surprise-me — there is no user subject to be ambiguous about. State the chosen mode in one sentence and proceed to 0.4.
+- **Repo-grounded** when the topic lives in this codebase (repo files, architecture, workflows; issue-tracker intent is always repo-grounded).
+- **Elsewhere-software** when the subject is a software artifact outside this repo — product, app, page, flow — even when the ideas are about copy, UX, or pricing *for* it.
+- **Elsewhere-non-software** for topics with no software surface: naming, narrative, personal decisions, non-digital business, physical products.
 
-For specified subjects, make two sequential binary decisions, enumerating negative signals at each:
+State the inferred approach in one plain-language sentence (never print these internal labels); the user corrects in their own words if wrong. Ask a confirmation question only on genuine ambiguity ("our docs": repo docs vs public marketing docs), with two plain-language options.
 
-**Decision 1 — repo-grounded vs elsewhere.** Weigh prompt content first, topic-repo coherence second, and CWD repo presence as supporting evidence only.
-
-- Positive signals for **repo-grounded**: prompt references repo files, code, architecture, modules, tests, or workflows; topic is clearly bounded by the current codebase. Issue-tracker intent from 0.2 is always repo-grounded.
-- Negative signals (push toward **elsewhere**): prompt names things absent from the repo (pricing, naming, narrative, business model, personal decisions, brand, content, market positioning); topic is creative, business, or personal with no code surface.
-
-**Decision 2 (only fires if Decision 1 = elsewhere) — software vs non-software.** Classify by whether the *subject* of ideation is a software artifact or system, not by where the individual ideas will eventually land. If the topic concerns a product, app, SaaS, web/mobile UI, feature, page, or service, it is **elsewhere-software** — even when the ideas themselves are about copy, UX, CRO, pricing, onboarding, visual design, or positioning *for that software product*. **Elsewhere-non-software** is reserved for topics with no software surface at all: company or brand naming (independent of product), narrative and creative writing, personal decisions, non-digital business strategy, physical-product design.
-
-Sample classifications:
-
-- "Improve conversion on our sign-up page" → elsewhere-software (the subject is a page)
-- "Redesign the onboarding flow" → elsewhere-software (the subject is a flow)
-- "Pricing page A/B test ideas" → elsewhere-software (the subject is a page)
-- "Features to add to our note-taking app" → elsewhere-software
-- "Name my new coffee shop" → elsewhere-non-software (the subject is a brand)
-- "Plot ideas for a short story" → elsewhere-non-software (the subject is a narrative)
-- "Options for my next career move" → elsewhere-non-software (the subject is a personal decision)
-
-State the inferred approach in one sentence at the top, using plain language the user will recognize. Never print the internal taxonomy label (`repo-grounded`, `elsewhere-software`, `elsewhere-non-software`) to the user — those names are for routing only. Adapt the template below to the actual topic; pick a domain word from the topic itself (e.g., "landing page", "onboarding flow", "naming", "career decision") instead of a mode label.
-
-- **Repo-grounded:** "Treating this as a topic in this codebase — about X."
-- **Elsewhere-software:** "Treating this as a product/software topic outside this repo — about X."
-- **Elsewhere-non-software:** "Treating this as a [naming | narrative | business | personal] topic — about X."
-
-Do not prescribe correction phrases ("say X to switch"). State the inferred mode plainly and proceed. If the user disagrees, they will correct in their own words or interrupt to re-invoke — reclassify and re-run any affected routing when that happens.
-
-**Active confirmation on mode ambiguity.** Only fire when mode classification is genuinely ambiguous *after* 0.2 settled the subject — e.g., "our docs" could mean repo docs (repo-grounded) or public marketing docs (elsewhere-software). Most subjects settled in 0.2 classify cleanly here. When ambiguous, ask one confirmation question via the blocking tool with two self-contained labels naming the two candidate interpretations in plain language (e.g., "Treat as repo docs in this codebase" vs "Treat as public marketing docs") — never leak internal mode names. Otherwise the one-sentence inferred-mode statement is sufficient; do not ask.
-
-**Routing rule (non-software mode).** When Decision 2 = non-software, still run Phase 1 Elsewhere-mode grounding (user-context synthesis + web-research by default; skip phrases honored). Learnings-researcher is skipped by default in this mode — the CWD's `.ai/solutions/` rarely transfers to naming, narrative, personal, or non-digital business topics; see Phase 1 for the full rationale. Then load `references/universal-ideation.md` and follow it in place of Phase 2's software frame dispatch and the Phase 6 menu narrative. This load is non-optional — the file contains the domain-agnostic generation frames, critique rubric, and wrap-up menu that replace Phase 2 and the post-ideation menu for this mode, and none of those details live in this main body. Improvising from memory produces the wrong facilitation for non-software topics. Do not run the repo-specific codebase scan at any point.
+For non-software: run Phase 1 elsewhere grounding (skip learnings-researcher — `.ai/solutions/` engineering patterns rarely transfer to non-digital topics), then follow `references/universal-ideation.md`, which adapts generation and wrap-up for non-software domains. Never run the codebase scan.
 
 #### 0.4 Context-Substance Gate (Elsewhere Modes Only)
 
-Skip in repo mode — the repo provides the substance Phase 1 agents work from. In elsewhere modes (both software and non-software), Phase 1 agents depend on user-supplied context for substance. A bare prompt with no description, URL, or artifact leaves the user-context-synthesis agent with nothing to synthesize and weakens web research's relevance.
+Skip in repo mode. Elsewhere, apply the discrimination test: would swapping one piece of the user's stated context for a contrasting alternative change which ideas survive? If yes, context is load-bearing — proceed. If no, ask 1-3 questions supplying substance (a URL or file, a description of current state, a paste), re-applying the test after each answer. Stop on dismissive responses — treat "no context" as a real answer and note thin context so Phase 2 compensates with broader generation. Rich up-front context: confirm in one line and skip. If intake shifts the subject (not just adds context), re-run 0.2/0.3 before dispatching.
 
-Apply the discrimination test: would swapping one piece of the user's stated context for a contrasting alternative materially change which ideas survive? If yes, context is load-bearing — proceed. If no, ask 1-3 narrowly chosen questions focused on **supplying substance, not characterizing the subject**:
+#### 0.5 Focus and Volume
 
-- A URL or file to read
-- A brief description of the current state
-- A paste of an existing draft or brief
+Infer the focus context (concept, path, constraint, or open-ended) and any volume override (`top 3`, `100 ideas`, `go deep`, `raise the bar`) by reasonable interpretation, not formal parsing. **Tactical scope:** signals like `polish`, `typos`, `quick wins`, `cleanup` mean the user opted into tactical scope — lower the Phase 2 ambition floor.
 
-Build on what the user already provided rather than starting from a template. Default to free-form questions; use single-select only when the answer space is small and discrete. After each answer, re-apply the test before asking another. Stop on dismissive responses ("idk just go") — treat genuine "no context" answers as real answers and note context is thin in the summary so Phase 2 can compensate with broader generation.
+#### 0.6 Cost Notice
 
-**Surprise-me exception.** When the run is in surprise-me mode and routed to elsewhere-software (per 0.2's deterministic routing for no-repo CWDs), at least one piece of substance is required — there is no subject AND no repo, so Phase 1 and 2 agents would have nothing to discover subjects from. Dismissive responses are not acceptable here; if the user still has no context after one ask, tell them the run needs a URL, description, or paste to proceed and end cleanly so they can re-invoke with material.
-
-When the user provides rich context up front (a paste, a brief, an existing draft, a URL), confirm understanding in one line and skip this step entirely.
-
-If this step materially changes the topic (not just adds context but shifts the subject), re-run 0.2 and 0.3 against the refined scope before dispatching Phase 1 — classify on what's actually being ideated on, not the scope at first read.
-
-#### 0.5 Interpret Focus and Volume
-
-Infer two things from the argument and any intake so far:
-
-- **Focus context** — concept, path, constraint, or open-ended
-- **Volume override** — any hint that changes candidate or survivor counts
-
-Default volume:
-
-- each ideation sub-agent generates about 6-8 ideas (yielding ~36-48 raw ideas across 6 frames in the default path, or ~24-32 across 4 frames in issue-tracker mode; roughly 25-30 survivors after dedupe in the 6-frame path and fewer in the 4-frame path)
-- keep the top 5-7 survivors
-
-Honor clear overrides such as:
-
-- `top 3`
-- `100 ideas`
-- `go deep`
-- `raise the bar`
-
-**Tactical scope detection.** Parse the focus hint (and any intake answers from 0.2 specify path) for tactical signals: `polish`, `typo`, `typos`, `quick wins`, `small improvements`, `cleanup`, `small fixes`. When present, lower the Phase 2 ambition floor — the user has explicitly opted into tactical scope. Default otherwise is step-function (see Phase 2 meeting-test floor).
-
-Use reasonable interpretation rather than formal parsing.
-
-#### 0.6 Cost Transparency Notice
-
-Before dispatching Phase 1, surface the agent count for the inferred mode in one short line so multi-agent cost is not invisible. Compute the count from the actual dispatch decision: 1 grounding-context agent (codebase scan in repo mode; user-context synthesis in elsewhere) + 1 learnings (skip in elsewhere-non-software) + 1 web researcher + 6 ideation = baseline 9 in repo mode and elsewhere-software, 8 in elsewhere-non-software. When issue-tracker intent triggers (repo mode only): add 1 for the issue-intelligence agent and drop ideation from 6 to 4, for a net -1 (baseline 8). Add 1 if the user opted into Slack research. Subtract 1 if the user issued a web-research skip phrase or V15 reuse will fire. In **surprise-me mode**, agent count is the same but per-agent exploration is deeper — note "(surprise-me mode: deeper exploration per agent)" when active. Phase 2's axis-coverage check may dispatch up to 2 additional recovery sub-agents when generation leaves any topic axis empty (skipped in surprise-me mode); when not in surprise-me, append "(+up to 2 if axis-coverage requires recovery)" to the count line.
-
-Examples (defaults, no skips, no opt-ins):
-
-- **Repo mode, specified subject:** "Will dispatch ~9 agents: codebase scan + learnings + web research + 6 ideation sub-agents. Skip phrases: 'no external research', 'no slack'."
-- **Repo mode, surprise-me:** "Will dispatch ~9 agents (surprise-me mode: deeper exploration per agent): codebase scan + learnings + web research + 6 ideation sub-agents. Skip phrases: 'no external research', 'no slack'."
-- **Repo mode, issue-tracker intent:** "Will dispatch ~8 agents: codebase scan + learnings + web research + issue intelligence + 4 ideation sub-agents. Skip phrases: 'no external research', 'no slack'." Reflects the successful-theme path; if issue intelligence returns insufficient signal (see Phase 1), ideation falls back to 6 sub-agents and the total becomes ~9.
-- **Elsewhere-software:** "Will dispatch ~9 agents: context synthesis + learnings + web research + 6 ideation sub-agents. Skip phrases: 'no external research'."
-- **Elsewhere-non-software:** "Will dispatch ~8 agents: context synthesis + web research + 6 ideation sub-agents. Skip phrases: 'no external research'."
-
-The line is informational; users do not need to acknowledge it.
+Before dispatching, state the agent count and skip phrases in one informational line (no acknowledgment needed), computed from the actual dispatch decision.
 
 ### Phase 1: Mode-Aware Grounding
 
-Before generating ideas, gather grounding. The dispatch set depends on the mode chosen in Phase 0.3. Web research runs in all modes (skip phrases honored). Learnings runs in repo mode and elsewhere-software, and is **skipped by default in elsewhere-non-software** — the CWD repo's `.ai/solutions/` almost always contains engineering patterns that do not transfer to naming, narrative, personal, or non-digital business topics.
+Set up per-run scratch once: `SCRATCH_DIR="/tmp/compound-engineering/ce-ideate/<run-id>"` (8-hex run-id; use `/tmp`, not `$TMPDIR`, so artifacts stay findable across sessions), `mkdir -p` it, and use the echoed absolute path for checkpoints. Leave it in place at the end of the run.
 
-**Surprise-me grounding depth.** When Phase 0.2 routed to surprise-me mode, Phase 1 must produce richer material than specified mode — Phase 2 sub-agents will discover their own subjects from what Phase 1 returns, so texture matters:
+Run grounding agents in parallel in the foreground. Failures never block: warn ("... unavailable: {reason}. Proceeding.") and continue.
 
-- **Repo mode surprise-me:** the codebase-scan sub-agent samples a few representative files per top-level area (not just reads the top-level layout + AGENTS.md), surfaces recent PR/commit activity as signal about what's actively being worked on, and — when issue intelligence runs — passes issue themes as first-class input rather than footnote. Keep the scan bounded: representative, not exhaustive.
-- **Elsewhere mode surprise-me:** user-context synthesis extracts themes, recurring language, tensions, and omissions from whatever the user supplied, rather than just restating it. Web research broadens beyond narrow prior-art for a single subject toward the domain's landscape.
-- Specified mode keeps the current shallower scan — the user's named subject anchors what's relevant, so broader exploration is unnecessary.
+**Repo mode:** (1) a quick context scan by a cheap general-purpose sub-agent — read AGENTS.md/CLAUDE.md/README.md and STRATEGY.md when present, discover top-level layout, return a concise summary of project shape, patterns, pain points, leverage points, and strategy tracks. When the focus hint names root-level `*.md` files, the scan reads those fully and returns them under `User-named references` (Phase 2 treats them as constraint); other root-level markdown gets one-line gists under `Additional context` (background). Keep the scan shallow otherwise. (2) `learnings-researcher` with a brief focus summary. (3) `web-researcher` (below). (4) Issue intelligence, only when tracker intent fired and an issue-intelligence agent exists — on error or fewer than 5 issues, note it and fall back to default frames.
 
-Generate a `<run-id>` once at the start of Phase 1 (8 hex chars). Reuse it for the V15 cache file (this phase) and the V17 checkpoints (Phases 2 and 4) so they share one per-run scratch directory.
+**Elsewhere modes:** (1) user-context synthesis by a cheap sub-agent — structure the user-supplied context to mirror the codebase-scan shape (topic shape, stated constraints, named pain points, opportunity hooks) so Phase 2 stays agnostic to grounding source. (2) `learnings-researcher` (elsewhere-software only). (3) `web-researcher`.
 
-**Pre-resolve the scratch directory path.** Scratch lives directly under `/tmp` (not under `$TMPDIR` and not under `.context/`). `$TMPDIR` on macOS resolves to an obscure per-user path like `/var/folders/64/.../T/` that is hostile for users who want to inspect checkpoints, copy them elsewhere, or reference them later — `/tmp` is universally accessible on macOS, Linux, and WSL, and the per-user isolation `$TMPDIR` provides is not valuable for ephemeral ideation scratch. Run one bash command to create the directory and capture its absolute path for downstream use.
+**Web research** is always-on in every mode; honor skip phrases ("no external research") and note the skip. If web research already ran this session for this topic or repo, reuse it instead of re-dispatching and note "(reused from earlier dispatch)". Pass the focus hint, a one-sentence context summary, and the mode — no codebase content.
 
-```bash
-SCRATCH_DIR="/tmp/compound-engineering/ce-ideate/<run-id>"
-mkdir -p "$SCRATCH_DIR"
-echo "$SCRATCH_DIR"
-```
+**Slack context** is opt-in in every mode — never auto-dispatch. When Slack tools exist but the user didn't ask, mention availability; when asked but unreachable, surface the install hint.
 
-Use the echoed absolute path (`/tmp/compound-engineering/ce-ideate/<run-id>`) as `<scratch-dir>` for every subsequent checkpoint write and cache read in this run. The run directory is not deleted on Phase 6 completion — the V15 cache is session-scoped and reused across run-ids, and the checkpoints follow the cross-invocation-reusable convention of leaving session-scoped artifacts for later invocations to find.
-
-Run grounding agents in parallel in the **foreground** (do not background — results are needed before Phase 2):
-
-**Repo mode dispatch:**
-
-1. **Quick context scan** — dispatch a general-purpose sub-agent using the platform's cheapest capable model (e.g., `model: "haiku"` in Claude Code) with this prompt:
-
-   > Read the project's AGENTS.md (or CLAUDE.md only as compatibility fallback, then README.md if neither exists), then discover the top-level directory layout using the native file-search/glob tool (e.g., `Glob` with pattern `*` or `*/*` in Claude Code). Also read `STRATEGY.md` if it exists — it captures the product's target problem, approach, persona, metrics, and tracks.
-   >
-   > **Two paths for other root-level `*.md` files**, depending on whether the focus hint names them:
-   >
-   > - **User-named references** — if the focus hint names a specific root-level `*.md` file (e.g., focus is "ideate based on FEEDBACK.md", "use NOTES.md as input", "review the gaps in TODO.md"), fully read that file and include its content under a heading `User-named references`. Phase 2 treats these as *constraint*, so sub-agents need actual content, not a gist. Quote or summarize substantive sections; keep one-line gists for files that are mentioned but not the actual subject.
-   > - **Additional context** — for any other root-level `*.md` files (not named in the focus), read briefly and include a one-line gist under a heading `Additional context`. Phase 2 treats these as *background*, so a gist is sufficient.
-   >
-   > Return a concise summary (under 40 lines, longer if user-named references include substantive content) covering:
-   >
-   > - project shape (language, framework, top-level directory layout)
-   > - notable patterns or conventions
-   > - obvious pain points or gaps
-   > - likely leverage points for improvement
-   > - product strategy summary, if `STRATEGY.md` was present — include the approach and active tracks verbatim so ideation can weight toward strategy-aligned directions
-   > - `User-named references` section (when the focus hint named root-level `*.md` files)
-   > - `Additional context` section (when other root-level `*.md` files exist that the focus did not name)
-   >
-   > Keep the scan shallow otherwise — read only top-level documentation and directory structure. Do not analyze GitHub issues, templates, or contribution guidelines. Do not do deep code search.
-   >
-   > Focus hint: {focus_hint}
-
-2. **Learnings search** — dispatch `learnings-researcher` with a brief summary of the ideation focus.
-
-3. **Web research** (always-on; see "Web research" subsection below for skip-phrase and V15 cache handling).
-
-4. **Issue intelligence** (conditional) — if issue-tracker intent was detected in Phase 0.3 and the active agent shelf includes an issue-intelligence agent, dispatch it with the focus hint. Run in parallel with the other agents. If no such agent exists, skip this dispatch and note the unavailable issue-intelligence surface in the grounding summary.
-
-   If the agent returns an error (gh not installed, no remote, auth failure), log a warning to the user ("Issue analysis unavailable: {reason}. Proceeding with standard ideation.") and continue with the remaining grounding.
-
-   If the agent reports fewer than 5 total issues, note "Insufficient issue signal for theme analysis" and proceed with default ideation frames in Phase 2.
-
-**Elsewhere mode dispatch (skip the codebase scan; user-supplied context is the primary grounding):**
-
-1. **User-context synthesis** — dispatch a general-purpose sub-agent (cheapest capable model) to read the user-supplied context from Phase 0.4 intake plus any rich-prompt material, and return a structured grounding summary that mirrors the codebase-context shape (project shape → topic shape; notable patterns → stated constraints; pain points → user-named pain points; leverage points → opportunity hooks the context implies). This keeps Phase 2 sub-agents agnostic to grounding source.
-
-2. **Learnings search** *(elsewhere-software only; skipped by default in elsewhere-non-software)* — dispatch `learnings-researcher` with the topic summary in case relevant institutional knowledge exists (skill-design patterns, prior solutions in similar shape). Skip for elsewhere-non-software: the CWD's `.ai/solutions/` is unlikely to be topically relevant for non-digital topics, and running it risks polluting generation with unrelated engineering patterns.
-
-3. **Web research** — same as repo mode (see subsection below).
-
-Issue intelligence does not apply in elsewhere mode. Slack research is opt-in for both modes (see "Slack context" below).
-
-#### Web Research (V5, V15)
-
-Always-on for both modes. Skip when the user said "no external research", "skip web research", or equivalent in their prompt or earlier answers; in that case, omit `web-researcher` from dispatch and note the skip in the consolidated grounding summary.
-
-Reuse prior web research within a session via a sidecar cache — see `references/web-research-cache.md` for the cache file shape, reuse check, append behavior, and platform-degradation rules. Read it the first time `web-researcher` would be dispatched in this run (and on every subsequent dispatch where the cache might apply).
-
-When dispatching `web-researcher`, pass: the focus hint, a brief planning context summary (one or two sentences), and the mode. Do not pass codebase content — the agent operates externally.
-
-#### Consolidated Grounding Summary
-
-Consolidate all dispatched results into a short grounding summary using these sections (omit any section that produced nothing). Phase 1.5 will append a `Topic axes` section to this same summary after consolidation completes:
-
-- **Codebase context** *(repo mode)* — project shape, notable patterns, pain points, leverage points (project-defining files: AGENTS.md/CLAUDE.md/README.md/STRATEGY.md) OR **Topic context** *(elsewhere mode)* — topic shape, stated constraints, user-named pain points, opportunity hooks
-- **User-named references** *(repo mode, when the focus hint named root-level `*.md` files)* — full content from files the user explicitly named in their prompt or focus. Phase 2 treats these as constraint
-- **Additional context** *(repo mode, when other root-level markdown was discovered but not named)* — one-line gists per file. Phase 2 treats these as background, not direction
-- **Past learnings** — relevant institutional knowledge from `.ai/solutions/`
-- **Issue intelligence** *(when present, repo mode only)* — theme summaries with titles, descriptions, issue counts, and trend directions
-- **External context** *(when web research ran)* — prior art, adjacent solutions, market signals, cross-domain analogies. Note "(reused from earlier dispatch)" when V15 reuse fired
-- **Slack context** *(when present)* — organizational context
-
-**Failure handling.** Grounding agent failures follow "warn and proceed" — never block on grounding failure. If `web-researcher` fails (network, tool unavailable), log a warning ("External research unavailable: {reason}. Proceeding with internal grounding only.") and continue. If elsewhere-mode intake produced no usable context, note in the grounding summary that context is thin so Phase 2 sub-agents can compensate with broader generation.
-
-**Slack context** (opt-in, both modes) — never auto-dispatch. When the user asks for Slack context and Slack tools are available (look for any `slack-researcher` agent or `slack` MCP tools in the current environment), dispatch `slack-researcher` with the focus hint in parallel with other Phase 1 agents. When tools are present but the user did not ask, mention availability in the grounding summary so they can opt in. When the user asked but no Slack tools are reachable, surface the install hint instead.
+Consolidate results into a short grounding summary with sections (omit empty ones): Codebase/Topic context, User-named references, Additional context, Past learnings, Issue intelligence, External context, Slack context.
 
 ### Phase 1.5: Topic-Surface Decomposition
 
-Before dispatching frame agents in Phase 2, decompose the topic into 3-5 orthogonal **axes** that name *what aspects of the subject to think about*. Phase 2 frames determine *how to think* (the lens); axes determine *what to think on* (the surface). Without an explicit axis list, parallel frames tend to converge on whichever interpretation of the subject is most salient at first read — other parts of the surface go unexamined regardless of how many frames run. Lens diversity alone does not produce surface coverage.
+Decompose the topic into 3-5 orthogonal **axes** naming *what aspects of the subject to think about*. Frames determine *how to think* (the lens); axes determine *what to think on* (the surface) — lens diversity alone does not produce surface coverage, because parallel frames converge on whichever interpretation is most salient. This is orchestrator-side analysis of the grounding summary: no sub-agent, no user question.
 
-This step is a single orchestrator-side analysis against the grounding summary already in context. No sub-agent dispatch, no additional grounding read, no user-facing question.
+Axes must be orthogonal (one idea falls on one axis), derived from the grounding rather than a generic template, at the same level of granularity, and named in the topic's language ("send mechanics", not "outbound flow optimization"). Example: "dark mode for our app" → visual surfaces; toggle UX; system-preference detection; asset variants; third-party content edge cases.
 
-**Axis criteria:**
-
-- **3-5 axes.** Fewer than 3 means the topic is atomic — skip per the rule below. More than 5 fragments dispatch and produces thin coverage on each.
-- **Orthogonal.** A single idea should naturally fall on one axis, not span multiple. Merge axes that overlap heavily.
-- **Derived from grounding.** The grounding summary contains the substance the axes name; do not pick axes from a generic template (e.g., "discovery / engagement / retention" applied to every topic).
-- **At the same level.** Don't mix "the entire pricing page" with "the $9.99 tier copy" in the same list.
-- **Named in the topic's language.** "Send mechanics" beats "outbound flow optimization." Use words a reader of the topic would recognize, not meta-language about ideation.
-
-**Worked examples (illustrative, not a template — derive from actual grounding):**
-
-| Topic | Axes |
-|---|---|
-| Social sharing of crossfire and convergence pages | Send mechanics; discovery (receive side); arrival/dwell experience; compounding over time; actor types (first-party, expert, reader) |
-| Improve our authentication system | Sign-in flow; session management; account recovery; permissions; identity providers |
-| Dark mode for our app | Visual surfaces; toggle UX; system-preference detection; asset variants; edge cases (third-party content) |
-| Cache invalidation in the data layer | Trigger surfaces; coordination across replicas; staleness tolerance per data class; observability of invalidation events |
-
-**Skip condition.** Some subjects are atomic and resist meaningful decomposition — a single string output (a name, a tagline), a narrowly-scoped tactical fix ("the typo on line 47 of README"), or a topic where the candidate axes *are* the deliverable (e.g., "what surface should the API expose?"). When 3+ orthogonal axes that pass the criteria above cannot be generated, skip decomposition. Note `Decomposition skipped — atomic subject` in the grounding summary so the artifact records the choice.
-
-**Surprise-me skip.** In surprise-me mode there is no settled subject to decompose — different frames will surface different subjects in Phase 2, and the cross-cutting synthesis step there serves the analogous coverage role. Skip Phase 1.5 in surprise-me mode and note `Decomposition skipped — surprise-me mode` in the grounding summary.
-
-Append the axis list (or skip-reason) to the consolidated grounding summary under a section labeled `Topic axes`. Phase 2 reads this section to thread axes into sub-agent prompts; Phase 3 uses it for axis-spread scoring; Phase 5's artifact template includes it under Grounding Context.
+**Skip when atomic** — the deliverable is a single string (a name, a tagline), a tactical fix, or the candidate axes *are* the deliverable. When 3+ qualifying axes don't emerge, note `Decomposition skipped — atomic subject`. (Surprise-me always skips, per 0.2.) Append the axis list or skip-reason to the grounding summary under `Topic axes`.
 
 ### Phase 2: Divergent Ideation
 
-Generate the full candidate list before critiquing any idea.
+Generate the full candidate list before critiquing any idea. Dispatch parallel ideation sub-agents on the inherited model (creative ideation needs the orchestrator's reasoning level; omit the `mode` parameter). Six sub-agents by default; four when issue-tracker intent fired AND issue intelligence returned usable themes. Each generates ~6-8 ideas; volume overrides adjust per-agent targets or survivor counts.
 
-Dispatch parallel ideation sub-agents on the inherited model (do not tier down -- creative ideation needs the orchestrator's reasoning level). Omit the `mode` parameter so the user's configured permission settings apply. Dispatch count is mode-conditional: **4 sub-agents only when issue-tracker intent was detected in Phase 0.2 AND the issue intelligence agent returned usable themes** (see override below — cluster-derived frames capped at 4); **6 sub-agents otherwise**, including the insufficient-issue-signal fallback from Phase 1 where intent triggered but themes were not returned. Each targets ~6-8 ideas (yielding ~36-48 raw ideas across 6 frames or ~24-32 across 4 frames, roughly 25-30 survivors after dedupe in the 6-frame path and fewer in the 4-frame path). Adjust per-agent targets when volume overrides apply (e.g., "100 ideas" raises it, "top 3" may lower the survivor count instead).
+Give each sub-agent: the grounding summary, the focus hint, the volume target, the axis list when one exists, and an instruction to generate raw candidates only — the first few ideas tend to be obvious, push past them.
 
-Give each sub-agent: the grounding summary, the focus hint, the per-agent volume target, the **topic axis list from Phase 1.5** (when decomposition produced one), and an instruction to generate raw candidates only (not critique). Each agent's first few ideas tend to be obvious -- push past them. Ground every idea in the Phase 1 grounding summary.
+**Constraint vs background.** Mark the user's prompt, focus hint, and User-named references as *constraints* — ideas violating them are out regardless of basis. Mark the rest of the grounding as *background* — it can support a basis but must not pull ideation toward whatever was loudest in the corpus when the user named a different focus.
 
-**Axis spread instruction.** When an axis list is present, instruct each sub-agent to distribute its ideas across multiple axes — the frame's lens applies to every axis, but ideas should not all cluster on one. Each idea must be tagged with the axis it targets. The frame is a lens; the axis list is the surface map. A frame that plausibly reaches an axis should produce at least one idea there before doubling up on a different axis. When decomposition was skipped (atomic subject or surprise-me), omit the axis instruction entirely — do not invent axes at dispatch time.
+**Axis spread.** When axes exist, each idea is tagged with the one axis it most centrally targets, and each agent distributes ideas across the axes its frame plausibly reaches. When decomposition was skipped, omit axis instructions entirely.
 
-**Constraint vs background.** In the dispatch prompt, mark the user's prompt, focus hint, and any *User-named references* (root-level files the user named in their focus and the codebase-scan fully read) as *constraints* — ideas that violate them are out regardless of basis. Mark the rest of the grounding summary (codebase context, additional context, learnings, external context) as *background* — informative, not directive. Background can support an idea's basis and inform direction; it must not pull ideation toward whatever was loudest in the corpus when the user named a different focus. This is the primary defense against grounding noise (an unrelated `FEEDBACK.md` the user did not name, a tangentially-cited prior-art result) shaping survivors against user intent.
+Assign each sub-agent a different frame as a **starting bias, not a constraint** — begin from the assigned perspective, follow promising threads, and value cross-cutting ideas:
 
-Assign each sub-agent a different ideation frame as a **starting bias, not a constraint**. Prompt each to begin from its assigned perspective but follow any promising thread -- cross-cutting ideas that span multiple frames are valuable.
+1. **Pain and friction** — what is consistently slow, broken, or annoying.
+2. **Inversion, removal, or automation** — invert a painful step, remove it, or automate it away.
+3. **Assumption-breaking and reframing** — what is treated as fixed that is actually a choice.
+4. **Leverage and compounding** — choices that make many future moves cheaper or stronger.
+5. **Cross-domain analogy** — how structurally analogous problems are solved anywhere else; push past the obvious analogy.
+6. **Constraint-flipping** — invert the obvious constraint to its opposite or extreme; the resulting design is a candidate even when the flip isn't realistic.
 
-**Frame selection (mode-symmetric — same six frames in repo and elsewhere modes):**
+**Issue-tracker override:** each high/medium-confidence theme becomes a frame; pad from the default pool to at least 3, cap at 4 total.
 
-1. **Pain and friction** — user, operator, or topic-level pain points; what is consistently slow, broken, or annoying.
-2. **Inversion, removal, or automation** — invert a painful step, remove it entirely, or automate it away.
-3. **Assumption-breaking and reframing** — what is being treated as fixed that is actually a choice; reframe one level up or sideways.
-4. **Leverage and compounding** — choices that, once made, make many future moves cheaper or stronger; second-order effects.
-5. **Cross-domain analogy** — generate ideas by asking how completely different fields solve a structurally analogous problem. The grounding domain is the user's topic; the analogy domain is anywhere else (other industries, biology, games, infrastructure, history). Push past the obvious analogy to non-obvious ones.
-6. **Constraint-flipping** — invert the obvious constraint to its opposite or extreme. What if the budget were 10x or 0? What if the team were 100 people or 1? What if there were no users, or 1M? Use the resulting design as a candidate even if the constraint flip itself is not realistic.
+**Per-idea contract (uniform everywhere):** title; summary (2-4 sentences); axis (when axes exist); **basis** (required, tagged): `direct:` quoted line / specific file / named issue / explicit user context, `external:` named prior art or research with source, or `reasoned:` a written-out first-principles argument, not a gesture; why_it_matters connecting basis to significance; meeting_test — one line confirming this would warrant team discussion (waived under tactical scope). An idea without an articulable basis does not surface — the failure mode to prevent is plausible-sounding AI slop the user cannot verify.
 
-**Issue-tracker mode override (repo mode only).** When issue-tracker intent is active and themes were returned by the issue intelligence agent: each high/medium-confidence theme becomes a frame. Pad with frames from the 6-frame default pool (in the order listed above) if fewer than 3 cluster-derived frames. Cap at 4 total — issue-tracker mode keeps its tighter dispatch by design.
+**Generation rules:** bias toward the basis type the frame naturally produces without excluding others; apply the meeting-test floor unless tactical scope waived it; stay within the subject's identity (expansions and pivots are fair game with basis; subject-replacement is out regardless); honor the asked scope — when the focus names a slice, ideate at full ambition *within* it rather than widening the surface.
 
-**Per-idea output contract (uniform across all frames, all modes):**
+After sub-agents return: merge and dedupe; synthesize cross-cutting combinations (3-5 additions in specified mode); when axes exist, check per-axis coverage and dispatch at most 2 recovery sub-agents (~3-5 ideas each) for empty axes, noting unrecovered gaps in the rejection summary; weight toward the focus without excluding stronger adjacent ideas. Then write `<scratch-dir>/raw-candidates.md` with the full attributed candidate list (best-effort checkpoint — warn and proceed on failure).
 
-Each sub-agent returns this structure per idea:
-
-- **title**
-- **summary** (2-4 sentences)
-- **axis** — required when Phase 1.5 produced an axis list. Pick the one axis this idea most centrally targets; do not span. Omit entirely when decomposition was skipped.
-- **basis** (required, tagged) — one of:
-  - `direct:` quoted line / specific file / named issue / explicit user-supplied context
-  - `external:` named prior art, domain research, adjacent pattern, with source
-  - `reasoned:` explicit first-principles argument for why this move likely applies — not a gesture; the argument is written out
-- **why_it_matters** — connects the basis to the move's significance
-- **meeting_test** — one line confirming this would warrant team discussion (waived when Phase 0.5 detected tactical focus signals)
-
-Basis is required, not optional. If a sub-agent cannot articulate a basis of at least one type, the idea does not surface. The failure mode to prevent is generic "AI-slop" ideas that sound plausible but lack a basis the user can verify.
-
-**Generation rules (uniform across frames, all modes):**
-
-- idea carries an articulated basis. Unjustified speculation does not surface, regardless of how plausible it sounds.
-- Bias toward the basis type your frame naturally produces — pain/inversion/leverage tend toward `direct:`; analogy and constraint-flipping tend toward `reasoned:`; assumption-breaking is mixed — but don't exclude other basis types.
-- Apply the meeting-test as a default floor: would this idea warrant team discussion? If not, it's below the floor and does not surface. The floor is relaxed only when Phase 0.5 detected tactical focus signals.
-- Stay within the subject's identity. Product expansions, new surfaces, new markets, retirements, and architectural pivots are fair game when the basis supports them. Subject-replacement moves (abandoning the project, pivoting to unrelated domains, becoming a different organization) are out regardless of basis.
-- **Honor the asked scope.** When the focus hint names a part of the subject (a flow, a stage, a section, a feature within a larger product — e.g., "account settings", "onboarding flow", "pricing page copy", "gameplay rules"), ideate at full ambition *within that scope*. Expanding the surface to the whole subject — proposing fundamental changes to the broader product when the user named one slice — is a scope mismatch even when no subject-replacement occurred. Big-picture thinking still applies; it just operates inside the bounded surface the user named, not by widening the surface.
-
-**Surprise-me mode addendum.** When Phase 0.2 routed to surprise-me, include this additional instruction in each sub-agent's dispatch prompt:
-
-> No user-specified subject. Through your frame's lens, explore the Phase 1 material and identify the subject(s) you find most interesting for this frame. Different frames finding different subjects is the feature — cross-subject divergence is what makes surprise-me valuable. Each idea still carries a basis; the basis may include identification of the subject itself (why *this* subject is worth ideating on through your lens, citing what in the Phase 1 material signals it).
-
-After all sub-agents return:
-
-1. Merge and dedupe into one master candidate list.
-2. Synthesize cross-cutting combinations -- scan for ideas from different frames that combine into something stronger. In specified mode, expect 3-5 additions at most. **In surprise-me mode, cross-cutting is the magic layer** — frames often converge on overlapping subjects or find complementary angles; expect 5-8 additions and give this step more attention. Surface combinations that span multiple frame-chosen subjects as a distinctive surprise-me output pattern.
-3. **Axis-coverage check (when Phase 1.5 produced an axis list; skipped otherwise).** Count ideas per axis after dedupe. For any axis with zero ideas, dispatch one recovery sub-agent (any unused frame, or the frame whose lens fits the missing axis best — e.g., Pain & friction for usability axes, Cross-domain analogy for distribution or compounding axes) targeting that axis specifically. The recovery dispatch carries the same per-idea output contract and ~3-5 ideas as its target. **Cap recovery at 2 axes total** — if more than 2 axes are empty after the first round, accept thin coverage rather than fanning out further. After recovery returns, merge into the master list and dedupe again. Note empty axes that were not recovered in the rejection summary as "axis: <name> — recovery skipped (cap reached)" so the gap is visible to the user.
-4. If a focus was provided, weight the merged list toward it without excluding stronger adjacent ideas.
-5. Spread ideas across multiple dimensions when justified: workflow/DX, reliability, extensibility, missing capabilities, docs/knowledge compounding, quality/maintenance, leverage on future work.
-
-**Checkpoint A (V17).** Immediately after the cross-cutting synthesis step completes and the raw candidate list is consolidated, write `<scratch-dir>/raw-candidates.md` (using the absolute path captured in Phase 1) containing the full candidate list with sub-agent attribution. This protects the most expensive output (6 parallel sub-agent dispatches + dedupe) before Phase 3 critique potentially compacts context. Best-effort: if the write fails (disk full, permissions), log a warning and proceed; the checkpoint is not load-bearing. Not cleaned up at the end of the run (the run directory is preserved so the V15 cache remains reusable across run-ids in the same session — see Phase 6).
-
-After merging and synthesis — and before presenting survivors — load `references/post-ideation-workflow.md`. This load is non-optional in both modes: even in non-software mode (where `references/universal-ideation.md` overrides the generation frames, critique rubric, and menu narrative), the persistence and artifact contract still lives here — `universal-ideation.md` delegates its save path to the §6.2 contract in this file. The file contains the adversarial filtering rubric, artifact template, quality bar, and the canonical Phase 6 handoff menu (Refine, Brainstorm, Save and end) — these options do not appear anywhere in this main body. Skipping the load silently degrades every subsequent step; the agent improvises the menu from memory instead of presenting the documented options. "Quickly" means fewer Phase 2 sub-agents, not skipping references. Do not load this file before Phase 2 agent dispatch completes.
+Then load `references/post-ideation-workflow.md` — it carries the critique rubric, artifact contract, and wrap-up menu for both modes (universal-ideation delegates persistence here). Do not load it before dispatch completes.

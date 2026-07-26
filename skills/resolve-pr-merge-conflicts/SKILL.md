@@ -9,7 +9,7 @@ allowed-tools: Bash(git *), Bash(gh *), Read, Edit
 > **Rebase-only. Never a merge commit.**
 > A PR that conflicts with its base is fixed by replaying this branch's commits on top of the updated base (`git rebase`), then `git push --force-with-lease`. `git merge <base>`, `git pull` without `--rebase`, and any move that lands a **merge commit** on the branch are forbidden — the goal is linear history. When a rebase gets hard, the only escape is `git rebase --abort`, never a merge. Plain `git push --force` is also forbidden; always `--force-with-lease`.
 
-**Asking the user:** where a step says "ask the user", use the platform's blocking question tool: `AskUserQuestion` in Claude Code (call `ToolSearch` with `select:AskUserQuestion` first if its schema isn't loaded), `request_user_input` in Codex, `ask_user` in Gemini/Pi. Fall back to asking in chat only when no blocking tool exists. Never silently skip the question.
+**Asking the user:** where a step says "ask the user", use the platform's blocking question tool (see `../ce-conventions/SKILL.md`).
 
 ## Context
 

@@ -41,18 +41,6 @@ In either case, identify which sections apply to the file types in the diff. A s
 
 - **Protected artifact violations** -- findings, suggestions, or instructions that recommend deleting or gitignoring files in paths the standards designate as protected (e.g., `.ai/brainstorms/`, `.ai/plans/`, `.ai/solutions/`).
 
-## Confidence calibration
-
-Use the anchored confidence rubric in the subagent template. Persona-specific guidance:
-
-**Anchor 100** — the violation is verifiable from the code: the standards file has a quotable rule, the diff has a line that mechanically violates it (e.g., "do not use absolute paths in skills" + a literal absolute path), and no interpretation is needed.
-
-**Anchor 75** — you can quote the specific rule from the standards file and point to the specific line in the diff that violates it. Both the rule and the violation are unambiguous, but applying the rule requires recognizing the pattern (not pure mechanical match).
-
-**Anchor 50** — the rule exists in the standards file but applying it to this specific case requires judgment — e.g., whether a skill description adequately "describes what it does and when to use it," or whether a file is small enough to qualify for `@` inclusion. Surfaces only as P0 escape or soft buckets.
-
-**Anchor 25 or below — suppress** — the standards file is ambiguous about whether this constitutes a violation, or the rule might not apply to this file type.
-
 ## What you don't flag
 
 - **Rules that don't apply to the changed file type.** Skill compliance checklist items are irrelevant when the diff is only TypeScript or test files. Commit conventions don't apply to markdown content changes. Match rules to what they govern.
@@ -70,15 +58,11 @@ Every finding must include:
 
 A finding without both a cited rule and a cited violation is not a finding. Drop it.
 
-## Output format
+## Reporting
 
-Return your findings as JSON matching the findings schema. No prose outside the JSON.
-
-```json
-{
-  "reviewer": "project-standards",
-  "findings": [],
-  "residual_risks": [],
-  "testing_gaps": []
-}
-```
+Return a flat findings list, ranked by impact -- at most five. For each finding:
+file and line, what is wrong, the concrete consequence, a specific fix
+direction, and a severity (`must-fix`, `should-fix`, or `nit`). Only report
+findings you can trace concretely from the diff and surrounding code --
+suppress anything that depends on runtime conditions you have no evidence for.
+If nothing clears the bar, say `No issues.`

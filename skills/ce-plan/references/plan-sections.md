@@ -216,7 +216,7 @@ plan.
   ship. `ce-plan`'s Phase 0.1 resume fast path keys on `active`. In HTML,
   status MUST render as `<span class="status">{value}</span>` so the flip
   mechanic can locate and rewrite it by selector (see
-  `references/html-rendering.md`).
+  `../ce-conventions/references/html-rendering.md`).
 - **`date`** — creation date in ISO 8601 (`YYYY-MM-DD`), ASCII digits only.
 
 ### Optional but well-known
@@ -275,8 +275,8 @@ These apply regardless of rendering format.
 The format-specific references describe how to render these sections in each
 output format:
 
-- **Markdown rendering:** `references/markdown-rendering.md`
-- **HTML rendering:** `references/html-rendering.md`
+- **Markdown rendering:** `../ce-conventions/references/markdown-rendering.md`
+- **HTML rendering:** `../ce-conventions/references/html-rendering.md`
 
 This reference (`plan-sections.md`) is about WHAT the plan contains;
 rendering references are about HOW each format presents it. The plan is

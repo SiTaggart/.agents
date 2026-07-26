@@ -14,7 +14,7 @@ You arrive here with code already written. Your ideate → brainstorm → plan �
 
 ## When To Reach For This
 
-- A change in your working tree, on a branch, or in an open PR is too big to review with confidence — rule of thumb **~1500+ changed lines**, but the real test is *your* review-ability, not the number.
+- A change in your working tree, on a branch, or in an open PR is too big to review with confidence.
 - The user says "this diff is too big", "break this down", "decompose this", "split this up", or "too big to review".
 
 Do **not** reach for this at the front of the funnel. If requirements are unresolved, use `ce-brainstorm`; if the work isn't built yet, use `ce-plan` → `ce-work`. Decomposition operates on an existing diff — there must be code to carve.
@@ -30,13 +30,7 @@ The core heuristic: **any change large enough that you cannot hold it in your he
 
 The number is a proxy. Every step returns to the real question: *can a careful human review this piece and be confident it is correct?* If no, it is still too big.
 
-## Interaction Method
-
-When asking the user a question, use the platform's blocking question tool: `AskUserQuestion` in Claude Code (call `ToolSearch` with `select:AskUserQuestion` first if its schema isn't loaded), `request_user_input` in Codex, `ask_user` in Gemini, `ask_user` in Pi (requires the `pi-ask-user` extension). Fall back to numbered options in chat only when no blocking tool exists in the harness or the call errors — not because a schema load is required. Never silently skip the question.
-
-Dispatch parallel work using the platform's subagent primitive: `Agent`/`Task` in Claude Code, `spawn_agent` in Codex, `subagent` in Pi. When several pieces have no dependency between them, launch their agents in a single batch so they run concurrently. Use the current harness's subagent instructions for the dispatch pattern, and `orchestration` when the fan-out needs structured coordination.
-
-This loop is **human-in-the-loop by default.** It is for feature work, which touches human boundaries (UI, API) and where net-new code can introduce architectural pathologies that violate invariants the specs and tests do not yet capture. Confirm the carve strategy and the seams before executing; do not run the full loop autonomously unless the user explicitly asks.
+This loop is **human-in-the-loop by default**: confirm the carve strategy and the seams before executing (ask via the platform's blocking question tool — see `../ce-conventions/SKILL.md`). Do not run the full loop autonomously unless the user explicitly asks. Launch independent pieces as concurrent subagents in one batch; dependent pieces run in sequence.
 
 ## The Loop
 
@@ -119,18 +113,6 @@ Each unit — whether split off or rebuilt — goes through normal review as it 
 
 The loop terminates when every remaining piece is something a careful human can review with confidence. That is the exit condition — not a fully-specified plan, and not a green test suite alone.
 
-## Relationship To Other Skills
-
-- **ideate → brainstorm → `ce-plan` → `ce-work`** — your normal build loop, upstream of this skill. It produces the diff; this skill carves it.
-- **`ce-plan`** — the natural home for the Step 3 unit breakdown when the set warrants a durable plan with test scenarios and dependency ordering.
-- **`ce-work`** — builds each unit on the rebuild path, and finishes any unit a split leaves incomplete.
-- **`git-commit`** — create each unit's commits before the stack is published.
-- **`gh-stack`** — publish, rebase, sync, and inspect dependent PR stacks when the extension and repository feature are available.
-- **`git-commit-push-pr`** — ship a unit only when it is an independent PR rather than a layer in the dependent stack.
-- **`ce-quality-gate`** / **`ce-review`** — gate each unit as it lands; review incrementally, not in one giant pass.
-- **`git-worktree`** — isolates parallel rebuild agents that touch overlapping files.
-- **`orchestration`** — use when the parallel fan-out needs structured coordination beyond a single concurrent batch.
-
 ## Output
 
 Keep the user oriented with a compact status:
@@ -143,17 +125,4 @@ Keep the user oriented with a compact status:
 
 ## Next Step
 
-After the status, recommend what to run next and fire it — do not end on a bare status. The menu is gated by the carve state, not a fixed list: show only the options that fit, mark the recommended one, and renumber so options stay contiguous from 1.
-
-Use the platform's blocking question tool (`AskUserQuestion` in Claude Code, `request_user_input` in Codex, `ask_user` in Gemini, `ask_user` in Pi (requires the `pi-ask-user` extension)). In Claude Code, call `ToolSearch` with `select:AskUserQuestion` first if its schema isn't loaded — a pending schema load is not a reason to fall back. Fall back to a numbered chat list ("Pick a number or describe what you want.") only when no blocking tool exists or the call errors. Act on the selection — invoke the routed skill via the platform's skill primitive — do not merely name it.
-
-Gate the options on the carve state:
-
-- **The set warrants a durable plan with test scenarios and dependency ordering:** `ce-plan` (recommended).
-- **A unit is incomplete or needs building on the rebuild path:** `ce-work` on that unit.
-- **A unit has landed and is ready to gate:** `ce-quality-gate` then `ce-review` on that unit, incrementally — not one giant pass.
-- **A reviewed unit is ready to land:** `git-commit` for a commit stack, `gh-stack` for a dependent PR stack, or `git-commit-push-pr` for an independent PR.
-
-Always include a `Done for now` option that ends the turn with the stack/dispatch state saved.
-
-**Sub-step guard:** When another skill invoked this as a sub-step, skip the menu — return the status and let the caller route. Present the menu only when this skill owns the turn's endpoint.
+Recommend the next step for the current carve state and fire it (see `../ce-conventions/SKILL.md` for menu conventions): `ce-plan` when the unit set warrants a durable plan, `ce-work` for an incomplete or rebuild-path unit, `ce-quality-gate` → `ce-review` per landed unit, and `git-commit` / `gh-stack` / `git-commit-push-pr` to land reviewed units (stacked units go through `gh-stack`; only independent PRs ship via `git-commit-push-pr`).

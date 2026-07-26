@@ -12,28 +12,16 @@ clean and checks that the code shape matches the project's standards.
 This is not a product review and does not replace real-surface proof. It answers
 "is the changed code complete enough to review or ship?"
 
-## Loop Role
-
 `ce-work` calls this after implementation and behavioral proof. `ce-review` may
 still run after this when the work is substantial, risky, or explicitly under
 review.
 
 ## Contract
 
-For the touched surface:
-
-- formatting is clean
-- lint is clean
-- TypeScript or language-specific type checks are clean
-- relevant tests pass
-- relevant taste-skill issues are fixed
-- warnings count when the project treats warnings as failures
-- no `any`, non-null assertions, skipped tests, weakened tests, or ignored
-  rules were added to make checks pass
-- no speculative type guards, casts, wrappers, adapters, defensive helpers,
-  `useEffect` misuse, or premature abstractions remain unless required by the
-  accepted contract and reported as an exception
-- local `AGENTS.md`, `CLAUDE.md`, and nearby code conventions are followed
+For the touched surface: formatting, lint, and type checks are clean, relevant
+tests pass, relevant taste-skill issues are fixed, warnings count when the
+project treats warnings as failures, and local `AGENTS.md`, `CLAUDE.md`, and
+nearby code conventions are followed.
 
 If broad repo checks are noisy, separate unrelated baseline failures from
 touched-file failures. Do not hide them and do not claim the whole repo is clean.
@@ -42,116 +30,59 @@ touched-file failures. Do not hide them and do not claim the whole repo is clean
 
 ### 1. Resolve Scope
 
-Use the provided file list when present. Otherwise derive the touched surface
-from the current diff.
+Use the provided file list when present; otherwise derive the touched surface
+from the current diff. Include edited source, tests and fixtures, generated
+files that are part of the accepted contract, and package/config/schema/lockfile
+changes that affect checks.
 
-Include:
+### 2. Choose The Check Bundle
 
-- edited source files
-- edited tests and fixtures
-- generated files that are part of the accepted contract
-- package, config, schema, or lockfile changes that affect checks
+Read the closest applicable instructions (project `AGENTS.md`/`CLAUDE.md`,
+package scripts, CI config, local examples) and find the narrowest trustworthy
+bundle for the touched surface: formatter, touched-file or package lint,
+type/compile check, and focused tests for the lowest meaningful behavior. Do
+not invent commands when the repo already has scripts. If no suitable command
+exists, say which proof is unavailable and use the closest representative check.
 
-### 2. Read Governing Standards
-
-Read the closest applicable instructions and conventions:
-
-- project `AGENTS.md` and `CLAUDE.md`
-- nearby package scripts, test docs, or CI config
-- local examples around touched files
-
-Use these to choose the check shape. Do not invent commands when the repo
-already has scripts.
-
-### 3. Discover The Check Bundle
-
-Find the narrowest trustworthy bundle for the touched surface.
-
-For TypeScript and React, prefer:
-
-- relevant formatter or format check
-- touched-file or package lint
-- package type-check
-- focused tests for the lowest meaningful behavior
-
-For other stacks, use the same principle: formatter, lint/static checks,
-type/compile checks, and focused tests where the project provides them.
-
-If no suitable command exists, say which proof is unavailable and use the
-closest representative check.
-
-### 4. Iterate Until Clean
+### 3. Iterate Until Clean
 
 Run checks and fix failures caused by the changed surface. Treat relevant
-taste-skill violations like lint failures for touched code.
+taste-skill violations like lint failures for touched code. Never make a check
+pass by weakening it (the global Non-Negotiables apply), and do not expand
+scope into unrelated cleanup. If a check fails from unrelated baseline noise,
+capture the exact failure and prove the touched surface with the narrower
+available command.
 
-Do not:
+### 4. Code-Shape Pass
 
-- skip tests
-- delete assertions
-- disable lint rules
-- weaken types
-- use casts, `any`, or non-null assertions to silence errors
-- expand scope into unrelated cleanup
-
-If a check fails from unrelated baseline noise, capture the exact failure and
-then prove the touched surface with the narrower available command.
-
-### 5. Code-Shape Pass
-
-Review the changed code for local taste:
-
-- use `code-taste` for TypeScript or React helper-boundary, effect, test-shape,
-  and maintainability concerns
-- use `spade-python-taste` for Spade Python service, FastAPI, Pydantic-boundary,
-  router, dependency, runtime-cost, and deployed-seam concerns
-- for TypeScript or React changes, verify `ce-work` used `code-taste` before or
-  during implementation and that `typescript-advanced-types` or
-  `vercel-react-best-practices` was consulted when the surface justified it
-- for Spade Python service changes, verify `ce-work` used `spade-python-taste`
-  before or during implementation
-- use both taste skills only when the change crosses those language surfaces
-- no dead code, duplicate branches, or speculative abstractions
-- behavior still lives at the owner boundary accepted by `ce-work`
-- comments explain why, not what
-
-The gate is not complete while relevant taste-skill violations remain. Fix them,
-or report a necessary exception with the accepted-contract reason.
-If the relevant taste route was skipped earlier, do a narrow pass now, fix only
-issues in the accepted contract, and report the status as `fixed late`. Do not
-turn the quality gate into the main architecture phase.
+Review the changed code for local taste: `code-taste` for TypeScript/React,
+`spade-python-taste` for Spade Python services, both only when the change
+crosses those surfaces. No dead code, duplicate branches, or speculative
+abstractions; behavior still lives at the owner boundary accepted by `ce-work`;
+comments explain why, not what. Fix relevant violations or report a necessary
+exception with the accepted-contract reason — do not turn the gate into the
+main architecture phase.
 
 Use `ce-simplify-code` only when simplification is non-trivial or the user asks
 for it. Do not turn simplification into a mandatory ritual.
 
-### 6. Report Proof
+### 5. Report Proof
 
-Return a compact status:
+Return a compact status: touched files checked, commands run and results,
+code-shape issues fixed or still present, unrelated baseline failures if any,
+and what this gate did not prove — especially product/browser behavior.
 
-- touched files checked
-- commands run and results
-- taste-skill route and gate status: applied early, fixed late, not relevant, or
-  necessary exception
-- code-shape issues fixed or still present
-- unrelated baseline failures, if any
-- what this gate did not prove, especially product/browser behavior
+### 6. Recommend The Next Step
 
-### 7. Recommend The Next Step
+Recommend what to run next based on the result and risk, and fire it via the
+platform's blocking question tool (see `../ce-conventions/SKILL.md`). Missing
+or inconclusive product/browser proof wins over every clean branch: route back
+to `ce-work` to complete the proof, and never offer shipping from a
+mechanically clean but behaviorally unproven gate. Otherwise: `ce-review` for
+substantial or risky work, `git-commit-push-pr` / `git-commit` for narrow
+low-risk proven work, `ce-simplify-code` when a non-trivial simplification or
+reported exception remains, `ce-debug` when a touched-file failure persists —
+never review or ship while the surface is failing.
 
-After the report, recommend what to run next and fire it — do not end on a bare report. The menu is gated by the gate result and the change's risk, not a fixed list: show only the options that fit, mark the recommended one, and renumber so options stay contiguous from 1.
-
-Use the platform's blocking question tool (`AskUserQuestion` in Claude Code, `request_user_input` in Codex, `ask_user` in Gemini, `ask_user` in Pi (requires the `pi-ask-user` extension)). In Claude Code, call `ToolSearch` with `select:AskUserQuestion` first if its schema isn't loaded — a pending schema load is not a reason to fall back. Fall back to a numbered chat list ("Pick a number or describe what you want.") only when no blocking tool exists or the call errors. Never end the turn without collecting a response. Act on the selection — invoke the routed skill via the platform's skill primitive — do not merely name it.
-
-Gate the options on the result and the proof status reported in §6. If required
-product/browser proof is missing or inconclusive, that wins over the clean/risk
-branches below.
-
-- **Clean, but required product/browser proof is missing or inconclusive:** `ce-work` to complete the real-surface proof (recommended). If proof is blocked, report the blocker and offer only `Done for now`; do not route to `ce-review`, `git-commit-push-pr`, or any other path that can later offer shipping from a mechanically clean but behaviorally unproven gate.
-- **Clean, substantial or risky, and the required product/browser proof is present or not applicable:** `ce-review` for a first-principles pass (recommended), then ship.
-- **Clean, narrow, low-risk, and the required product/browser proof is present or not applicable:** `git-commit-push-pr` to ship (recommended), or `git-commit` for a local commit only. Offer `ce-review` only if the user wants a second pass.
-- **A non-trivial simplification opportunity remains, or a code-shape exception was reported:** `ce-simplify-code` before review or ship.
-- **Still blocked by a touched-file failure this gate could not resolve:** `ce-debug` to find the root cause (recommended). Do not route to review or ship while the surface is failing.
-
-Always include a `Done for now` option that ends the turn without follow-up work.
-
-**Sub-step guard:** When `ce-work` (or another skill) invoked this gate as a sub-step, skip the menu — return the report and let the caller own the terminal next-step recommendation. Present the menu only when the gate owns the turn's endpoint.
+**Sub-step guard:** when `ce-work` (or another skill) invoked this gate as a
+sub-step, skip the menu — return the report and let the caller own the routing.

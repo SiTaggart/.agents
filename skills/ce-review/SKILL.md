@@ -1,7 +1,7 @@
 ---
 name: ce-review
 description: Review recent code changes for bugs, regressions, product fit, conventions, performance, security, and blast radius.
-argument-hint: "[quick|deep] [mode:* ignored] [base:<ref>] [plan:<path>] [PR number, PR URL, branch name, or blank for current branch]"
+argument-hint: "[quick|deep] [base:<ref>] [plan:<path>] [PR number, PR URL, branch name, or blank for current branch]"
 ---
 
 # First-Principles Code Review
@@ -54,9 +54,6 @@ Parse arguments before resolving the target:
   specialist reviewers more readily, inspect relevant callers/importers for
   changed contracts, and run every applicable pass even when the diff is small.
   If both `quick` and `deep` are present, prefer `deep` and note the conflict.
-- `mode:*` tokens are legacy caller flags. Strip and ignore them before target
-  resolution; do not treat values such as `mode:agent`, `mode:headless`, or
-  `mode:autofix` as PRs, branches, paths, or review targets.
 - `base:<ref>` selects the diff base for the current checkout.
 - `plan:<path>` is an optional intent source; read it for requirements context when it exists.
 
@@ -67,7 +64,7 @@ Parse arguments before resolving the target:
    - No argument means review the current branch against its PR base if an open PR exists; otherwise review against the default branch. Mark the target as `current-checkout`.
 2. Collect the changed file list and full diff.
 3. Exclude submodules, generated files, lockfiles, and vendored/minified assets unless the change is specifically about them.
-4. Include staged and unstaged tracked changes for current-checkout reviews. List untracked files as excluded unless the user explicitly asked to include them.
+4. Include staged and unstaged tracked changes for current-checkout reviews. In `quick` mode, list untracked files as excluded unless the user explicitly asked to include them. In `deep` mode (and whenever the user asks), include untracked files in scope — surface each via `git diff --no-index -- /dev/null <file> || true` (exit 1 is expected when the file has content) — but first exclude likely secret or local-config paths such as `.env*`, `.npmrc`, `.pypirc`, `*.pem`, `*.key`, `*.p12`, `*.pfx`, `id_rsa*`, `*_rsa`, `*credentials*`, `*secret*`, `*.local.*`, and `config.local.*` unless the review is specifically about that file and the sensitive values are redacted.
 5. Find project instruction files that govern the changed files, especially `AGENTS.md` and `CLAUDE.md` ancestors.
 6. If an obvious fast lint, typecheck, or touched-surface test command exists, run it once here in the parent before any fan-out, and carry the output into Step 3 so reviewers reason from it. If basics fail, report those failures before deeper review. Continue only when the user explicitly wants conceptual review despite red checks.
 
@@ -114,7 +111,20 @@ passes, including small diffs with subtle state, data-flow, contract, security,
 performance, or test-proof risk. Deep mode should increase scrutiny and caller
 coverage; it should not lower the evidence bar or add speculative findings.
 
-Each pass returns at most five findings, ranked by impact. A pass with no issues says `No issues.`
+In `deep` mode, when implementation shape is a primary risk — large or
+1000-line-crossing files, sprawling new conditionals, major refactors or
+changed ownership boundaries, new abstractions or shared helpers, cast-heavy
+or optionality-heavy code — add the
+`ce-thermo-nuclear-code-quality-review` rubric as an extra maintainability
+pass. Label its findings separately and deduplicate them against the normal
+passes; skip it for small, direct changes where correctness, contracts, or
+tests are the main questions.
+
+If the current repository provides its own pass prompt files (e.g.,
+`.claude/review/prompts/passes/*.md`), use those as the detailed pass
+definitions in place of the lens summaries below.
+
+Each pass returns at most five findings, ranked by impact — suppress the tail rather than raising the cap. A pass with no issues says `No issues.`
 
 Every pass uses this shared bar:
 
@@ -138,89 +148,33 @@ sockets that tsx, Vite, and Vitest create at startup. When a check never ran,
 report it as blocked rather than logging the sandbox error as a product test
 failure.
 
-Dispatch the smallest useful set:
-
-- `correctness-reviewer` for product intent, logic, state transitions, async
-  ordering, error propagation, and edge cases.
-- `maintainability-reviewer` for traceability, data flow, coupling, naming,
-  abstraction debt, and broad code-shape concerns.
-- `code-simplicity-reviewer` when the implementation looks over-built, includes
-  scaffolding, or needs a final minimalism pass.
-- `project-standards-reviewer` for AGENTS.md/CLAUDE.md and local instruction
-  compliance.
-- `testing-reviewer` for changed-code test gaps, weak assertions, brittle
-  tests, and missing proof.
-- `react-test-architect` only when the review needs a broader React test
-  strategy, suite reshaping, or CI test-performance assessment.
-- `kieran-typescript-reviewer` for TypeScript diffs where type safety,
-  compile-time contracts, casts, nullability, helper boundaries, or TS-specific
-  maintainability are material.
-- `kieran-python-reviewer` for Python diffs.
-- `api-contract-reviewer` for API routes, request/response schemas,
-  serialization, versioning, exported type signatures, and public contracts.
-- `reliability-reviewer` for retries, timeouts, async handlers, background jobs,
-  health checks, circuit breakers, and failure modes.
-- `performance-reviewer` for query shapes, caching, I/O volume, hot paths,
-  loops over large data, bundle impact, or frequently rendered UI.
-- `previous-comments-reviewer` when an open PR has prior review comments or
-  review threads.
-- `julik-frontend-races-reviewer` for JavaScript, Stimulus, Turbo, DOM
-  lifecycle, or timing-sensitive frontend diffs.
-- `architecture-strategist` when the diff changes boundaries, service shape,
-  shared interfaces, module layering, or architectural direction.
-- `design-implementation-reviewer` when the task includes matching a Figma
-  design or visual implementation fidelity.
-- `adversarial-reviewer` for large or high-risk diffs where constructing
-  failure scenarios is likely to find issues the normal passes miss.
-
-Do not dispatch an agent solely because it exists. If a concern is small enough
-to evaluate in the parent context, run it inline. If an agent returns findings,
-deduplicate and re-check them against this skill's evidence bar before
-including them in the final review.
+Dispatch the smallest useful set of reviewer agents — their descriptions say
+when each applies; do not dispatch an agent solely because it exists. Evaluate
+small concerns inline in the parent. When an open PR has prior review comments,
+include `previous-comments-reviewer`. Deduplicate returned findings and
+re-check them against this skill's evidence bar before including them in the
+final review.
 
 ### Pass 1: Product Intent And Correctness
 
-Ask whether the implementation actually satisfies the intended product contract.
-
-Look for:
-
-- wrong conditions, comparisons, or edge-case handling
-- broken state transitions or inconsistent data after early returns
-- API misuse, ignored return values, unchecked failures, or async ordering mistakes
-- UI state and rendered output drifting apart
-- missing behavior from the stated or inferred requirement
-
-If the code is clean but solves the wrong problem, that is a must-fix.
+Ask whether the implementation actually satisfies the intended product
+contract — conditions, state transitions, async ordering, error propagation,
+and edge cases, judged against the stated or inferred requirement. If the code
+is clean but solves the wrong problem, that is a must-fix.
 
 ### Pass 2: Traceability And Data Flow
 
-Ask whether a reader can follow what the code does without holding the whole system in their head.
-
-Look for:
-
-- helpers that accept broad objects but only use one field
-- hidden store/context reads buried inside pure-looking helpers
-- duplicated derived state
-- deeply nested conditionals, callbacks, or ternaries
-- vague names that describe type rather than intent
-- comments compensating for structure that should be clearer
-
-Prefer explicit dependencies and flat data flow. Do not demand extraction for its own sake.
+Ask whether a reader can follow what the code does without holding the whole
+system in their head — honest helper signatures, explicit dependencies, flat
+data flow, names that describe intent. Do not demand extraction for its own
+sake.
 
 ### Pass 3: Elegance And Minimalism
 
-Ask whether less code would do the same thing just as clearly.
-
-Look for:
-
-- dead code, unused exports, or leftover scaffolding
-- unnecessary wrappers, adapters, indirection, or configuration layers
-- over-generalization for hypothetical future cases
-- duplicate logic that should share an existing local helper
-- verbose patterns with an obvious idiomatic alternative
-- undisclosed broad refactors hiding inside a narrow product change (a deliberate, surfaced restructure that produces a simpler result is not this)
-
-This is the taste pass. It should improve the shape of the implementation, not make it clever.
+Ask whether less code would do the same thing just as clearly — dead code,
+unnecessary indirection, over-generalization, duplicated logic, undisclosed
+broad refactors hiding inside a narrow product change. This is the taste pass.
+It should improve the shape of the implementation, not make it clever.
 
 For UI diffs, include the `frontend-design` taste bar: the implementation should
 match the existing system, expose expected states, avoid generic AI chrome, and
@@ -228,84 +182,45 @@ prove the rendered surface when a route, story, or preview exists.
 
 ### Pass 4: Project Conventions
 
-Read the governing `AGENTS.md` and `CLAUDE.md` files. Check only rules relevant to the changed files.
-
-Look for:
-
-- ownership-boundary violations
-- TypeScript or React conventions ignored by new code
-- Spade Python service conventions ignored by new code
-- test harness conventions violated by new tests
-- local naming, file placement, or helper patterns bypassed without reason
-- forbidden shortcuts such as `any`, non-null assertions, weakened tests, or broad casts
-
-Project conventions are evidence, not bureaucracy. If the local pattern is bad but entrenched, name the tradeoff instead of blindly enforcing it.
+Read the governing `AGENTS.md` and `CLAUDE.md` files and check only rules
+relevant to the changed files — ownership boundaries, local patterns, and
+forbidden shortcuts. Project conventions are evidence, not bureaucracy. If the
+local pattern is bad but entrenched, name the tradeoff instead of blindly
+enforcing it.
 
 ### Pass 5: Tests And Proof
 
-Ask whether the changed contract is proven at the lowest meaningful seam.
-
-Look for:
-
-- missing test coverage for changed behavior
-- tests that only prove wiring or mocks
-- weak assertions that would pass if the bug remained
-- browser/runtime proof missing for UI behavior when a route, story, or preview surface exists
-- backend/request contracts not exercised with representative data
-
-Do not demand tests for pure formatting or non-behavioral churn. Do not treat passing commands as product proof when the product surface still needs checking.
+Ask whether the changed contract is proven at the lowest meaningful seam —
+real assertions for changed behavior, browser/runtime proof for UI when a
+route, story, or preview surface exists, representative data for
+backend/request contracts. Do not demand tests for non-behavioral churn. Do
+not treat passing commands as product proof when the product surface still
+needs checking.
 
 ### Pass 6: Performance And Operational Cost
 
-Run this pass proportionally. It is not a license to invent scale concerns.
-
-Look for:
-
-- N+1 queries, redundant network fetches, or repeated expensive transforms
-- unnecessary allocations, copies, or conversions in hot paths
-- unstable React references or avoidable rerenders in frequently used UI
-- avoidable bundle impact
-- polling, subscriptions, or cache invalidation that can duplicate work
-
-Flag only when the cost is likely to matter for this product surface.
+Run this pass proportionally — query shapes, repeated expensive work,
+avoidable rerenders, bundle impact. Flag only when the cost is likely to
+matter for this product surface; this pass is not a license to invent scale
+concerns.
 
 ### Pass 7: Security And Robustness
 
-Run this pass on real trust boundaries, not every line of code.
-
-When the diff touches a boundary, first map what crosses it: external inputs,
-auth/authz decisions, persistence or session state, external calls, and any
-crypto, secrets, or private data.
-
-Look for:
-
-- unvalidated external input crossing a boundary
-- auth/authz gaps
-- injection, XSS, path traversal, command execution, or secret leakage
-- error messages exposing private internals
-- failure paths that leave persistent state inconsistent
-
-Before reporting a finding, check whether the local owner already validates,
-guards, escapes, or tests that path. Report the real gap, not the checklist
-item.
-
-If the diff does not touch a trust boundary, this pass should usually have no findings.
+Run this pass on real trust boundaries, not every line of code. When the diff
+touches a boundary, map what crosses it, then judge validation, auth/authz,
+injection and leakage risks, and failure paths that leave persistent state
+inconsistent. Before reporting a finding, check whether the local owner
+already validates, guards, escapes, or tests that path — report the real gap,
+not the checklist item. If the diff does not touch a trust boundary, this pass
+should usually have no findings.
 
 ### Pass 8: Blast Radius
 
-Ask whether changed public behavior has affected callers.
-
-Early exit when no exported symbol, API shape, schema, shared state, public component contract, config default, or externally observable behavior changed.
-
-Otherwise inspect likely callers/importers and look for:
-
-- stale assumptions about argument order, return shape, side effects, defaults, or error behavior
-- fixtures, mocks, schemas, or tests that should have changed
-- re-exports or barrels exposing stale names
-- shared state shape changes that consumers silently depend on
-- migrations, deployment, or rollback concerns only when migration/schema/backfill files are actually in scope
-
-Do not turn this into a production-support checklist. Stay tied to changed contracts.
+Ask whether changed public behavior has affected callers. Early exit when no
+exported symbol, API shape, schema, shared state, public component contract,
+config default, or externally observable behavior changed. Otherwise inspect
+likely callers/importers for stale assumptions and for fixtures, mocks,
+schemas, or tests that should have changed. Stay tied to changed contracts.
 
 ## Step 4: Synthesize
 
@@ -380,36 +295,24 @@ Drop anything that fails those questions.
 
 ## Next Step
 
-After the verdict, recommend what to run next and fire it — do not end on a bare report. The menu is gated by the verdict, not a fixed list: show only the options that fit, mark the recommended one, and renumber so options stay contiguous from 1.
+After the verdict, recommend what to run next and fire it — do not end on a
+bare report. Follow the shared menu conventions (see
+`../ce-conventions/SKILL.md`), including the sub-step guard: when another
+skill invoked this as a sub-step, return the verdict and findings and let the
+caller route.
 
-Use the platform's blocking question tool (`AskUserQuestion` in Claude Code, `request_user_input` in Codex, `ask_user` in Gemini, `ask_user` in Pi (requires the `pi-ask-user` extension)). In Claude Code, call `ToolSearch` with `select:AskUserQuestion` first if its schema isn't loaded — a pending schema load is not a reason to fall back. Fall back to a numbered chat list ("Pick a number or describe what you want.") only when no blocking tool exists or the call errors. Never end the turn without collecting a response. Act on the selection — invoke the routed skill via the platform's skill primitive — do not merely name it.
+Gate the routes on the target marker from Step 0. Mutating or apply routes
+(`git-commit-push-pr`, `git-commit`, `ce-work`, `ce-debug`,
+`ce-simplify-code`, or any fix workflow) are visible only when the reviewed
+target is `current-checkout`. For `remote-readonly` targets, render guidance
+only — the review response or fix list tied to the remote diff — and tell the
+user to check out the target before asking for commits or fixes.
 
-Before offering routes, check the target marker from Step 0. Mutating or
-current-checkout routes (`git-commit-push-pr`, `git-commit`, `ce-work`,
-`ce-debug`, `ce-simplify-code`, or any apply/fix workflow) are visible only when
-the reviewed target is `current-checkout`.
-
-If the reviewed target is `remote-readonly`, render only non-mutating options or
-guidance. Do not invoke an apply or shipping skill against the local checkout:
-
-- **`Ship it` / `Minor nits`:** state that the reviewed PR or branch appears
-  shippable from the review evidence, and tell the user to check out that target
-  before asking for commits or fixes.
-- **`Needs changes`:** provide a concise review response or fix list tied to the
-  remote diff, and tell the user to check out the target branch before applying
-  changes.
-- **`Rethink approach`:** summarize the planning concern and recommend a planning
-  pass after the target branch is checked out.
-- **Done for now:** leave the review as guidance only.
-
-For `current-checkout` targets, gate the options on the verdict:
-
-- **`Ship it` / `Minor nits`:** `git-commit-push-pr` to ship (recommended), or `git-commit` for a local commit only. Add `ce-simplify-code` only when nits worth cleaning remain.
-- **`Needs changes`:** `ce-work` to address the findings (recommended), or `ce-debug` when the findings are bugs, regressions, or failing tests. After the fix lands, re-review the changed surface.
-- **`Rethink approach`:** `ce-plan` to rework the approach (recommended), or `ce-brainstorm` / `ce-grill` when the product framing itself is in question, not just the implementation. Offer `ce-work` only for any contained finding safe to fix in place.
-
-Always include a `Done for now` option that ends the turn without follow-up work.
-
-**Sub-step guard:** When another skill invoked this as a sub-step (e.g., `ce-work` owns the finish), skip the menu — return the verdict and findings and let the caller route. Present the menu only when this skill owns the turn's endpoint.
-
-This skill is review-only — routing to `ce-work` or `ce-debug` is the apply path; never apply fixes from here.
+For `current-checkout` targets, route by verdict: `Ship it` / `Minor nits` →
+`git-commit-push-pr` (recommended) or `git-commit`, adding `ce-simplify-code`
+only when nits worth cleaning remain; `Needs changes` → `ce-work`
+(or `ce-debug` when the findings are bugs, regressions, or failing tests),
+then re-review the changed surface; `Rethink approach` → `ce-plan`
+(or `ce-brainstorm` / `ce-grill` when the product framing itself is in
+question). Routing to `ce-work` or `ce-debug` is the apply path — never apply
+fixes from here.

@@ -1,6 +1,6 @@
 # Approach Altitude
 
-Loaded from SKILL.md Phase 0.1a when a request is answered one level up — produce a grounded **approach-plan** (a plan for *how the deliverable will be made*), hold at a checkpoint, then execute now or save for later. Entered explicitly ("plan for a plan") or via an accepted proactive offer. Domain-general: the deliverable may be a document, a synthesis, a study artifact, or a software implementation plan. The boundary this preserves is **code vs. knowledge-work**, not plan vs. execute — `ce-plan` never writes or runs code (Phase 4 / SKILL.md line 15); code execution always belongs to `ce-work`.
+Loaded from SKILL.md Phase 0.1a when a request is answered one level up — produce a grounded **approach-plan** (a plan for *how the deliverable will be made*), hold at a checkpoint, then execute now or save for later. Entered explicitly ("plan for a plan") or via an accepted proactive offer. Domain-general: the deliverable may be a document, a synthesis, a study artifact, or a software implementation plan. The boundary this preserves is **code vs. knowledge-work**, not plan vs. execute — `ce-plan` never writes or runs code; code execution always belongs to `ce-work`.
 
 ## Stage 1: Light recon (cheap grounding)
 
@@ -25,7 +25,7 @@ This is not a software plan template (no implementation units / test scenarios) 
 
 ## Stage 3: Checkpoint
 
-Hold at the approach. Use the platform's blocking question tool (`AskUserQuestion` in Claude Code — call `ToolSearch` with `select:AskUserQuestion` first if its schema isn't loaded; `request_user_input` in Codex; `ask_user` in Gemini/Pi). Fall back to numbered options in chat only when no blocking tool exists or the call errors — never silently skip.
+Hold at the approach. Use the platform's blocking question tool (see `../ce-conventions/SKILL.md`).
 
 **Sequence orthogonal axes** rather than cramming them into one menu (per the "split orthogonal decisions" rule and the 4-option cap):
 

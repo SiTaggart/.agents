@@ -44,13 +44,12 @@ If a doc cluster has 3+ overlapping docs, process pairwise: consolidate the two 
 
 ## Replace Flow
 
-Process Replace candidates **one at a time, sequentially**. Each replacement is written by a subagent to protect the main context window.
+Each replacement is written by a subagent to protect the main context window; independent candidates may run in parallel. The orchestrator owns all deletions.
 
 When a replacement is needed, read the documentation contract files and pass their contents into the replacement subagent's task prompt:
 
-- `references/schema.yaml` — frontmatter fields and enum values
-- `references/yaml-schema.md` — category mapping
-- `assets/resolution-template.md` — section structure
+- `../ce-compound/references/schema.yaml` — frontmatter fields and enum values
+- `../ce-compound/assets/resolution-template.md` — section structure
 
 Do not let replacement subagents invent frontmatter fields, enum values, or section order from memory.
 
@@ -61,8 +60,8 @@ Do not let replacement subagents invent frontmatter fields, enum values, or sect
    - A summary of the investigation evidence (what changed, what the current code does, why the old guidance is misleading)
    - The target path and category (same category as the old learning unless the category itself changed)
    - The relevant contents of the three support files listed above
-2. The subagent writes the new learning using the support files as the source of truth: `references/schema.yaml` for frontmatter fields and enum values, `references/yaml-schema.md` for category mapping and YAML-safety rules for array items, and `assets/resolution-template.md` for section order. It should use dedicated file search and read tools if it needs additional context beyond what was passed.
-3. **Run `python3 scripts/validate-frontmatter.py <new-learning-path>`** to catch silent-corruption parser-safety issues that the prose rules miss: malformed `---` delimiter lines, unquoted ` #` in scalar values (silent comment truncation), and unquoted `: ` in scalar values (silent mapping confusion). Exit 0 means the doc is parser-safe; exit 1 means the script's stderr names the offending field(s) and what to fix — quote the value(s), re-write the doc, and re-run until exit 0. Do not declare success while validation fails. The script does not enforce schema rules and does not flag YAML reserved-indicator characters (those produce loud parser errors downstream rather than silent corruption — out of scope). Uses Python 3 stdlib only (no PyYAML or other deps).
+2. The subagent writes the new learning using the support files as the source of truth for frontmatter, enum values, category mapping, YAML-safety rules, and section order. It should use dedicated file search and read tools if it needs additional context beyond what was passed.
+3. Run `python3 ../ce-compound/scripts/validate-frontmatter.py <new-learning-path>` (path relative to this skill's directory) to catch silent YAML corruption; its stderr names what to fix — fix and re-run until exit 0. Do not declare success while validation fails.
 4. After the subagent completes, the orchestrator deletes the old learning file. The new learning's frontmatter may include `supersedes: [old learning filename]` for traceability, but this is optional — the git history and commit message provide the same information.
 
 **When evidence is insufficient:**
@@ -80,4 +79,4 @@ Before unlinking the file, run a final inbound-link check across the repo's mark
 
 Each match is a citation that will dangle after delete. Cleanup is mechanical — Phase 2 already classified the citations and confirmed Delete was right. Don't re-litigate.
 
-If any citation surfaces here that wasn't seen in Phase 1 and is anything other than unambiguously decorative (substantive or mixed/unclear), stop and reclassify: autofix mode stale-marks; interactive mode asks the user whether Replace fits. Only proceed with cleanup when all late-discovered citations are unambiguously decorative.
+If any citation surfaces here that wasn't seen in Phase 1 and is anything other than unambiguously decorative (substantive or mixed/unclear), stop and reclassify: headless mode stale-marks; interactive mode asks the user whether Replace fits. Only proceed with cleanup when all late-discovered citations are unambiguously decorative.

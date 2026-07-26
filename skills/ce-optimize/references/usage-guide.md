@@ -57,22 +57,16 @@ The pattern is:
 The core rule is simple:
 
 - If a hard metric captures "better," optimize the hard metric.
-- If a hard metric can be gamed, add LLM-as-judge.
+- If a hard metric can be gamed, add LLM-as-judge: hard gates reject broken
+  outputs, judge mode scores the survivors for actual usefulness. That hybrid
+  is often the best default for ranking, clustering, and prompt work.
 
 Example: lowering a clustering threshold may increase cluster coverage. That sounds good until everything ends up in one giant cluster. Hard metrics may say "improved"; an LLM judge sampling real clusters can say "this is trash."
 
 ## First-Run Advice
 
-For the first run:
-
-- Prefer `execution.mode: serial`
-- Set `execution.max_concurrent: 1`
-- Keep `stopping.max_iterations` small
-- Keep `stopping.max_hours` small
-- Avoid new dependencies until the baseline is trustworthy
-- In judge mode, use a small sample and a low cost cap
-
-The goal of the first run is to validate the harness, not to win the optimization immediately.
+Apply the Quick Start settings in `SKILL.md`. The goal of the first run is to
+validate the harness, not to win the optimization immediately.
 
 ## Example Prompts
 
@@ -109,19 +103,3 @@ Use /ce-optimize to create a summarization prompt for issues and PRs that minimi
 I want the loop to compare prompt variants, measure token cost, and judge whether the summaries preserve the distinctions needed to cluster related issues together without merging unrelated ones.
 ```
 
-## Choosing Between Hard Metrics And Judge Mode
-
-Use hard metrics alone when:
-
-- "Better" is obvious from the numbers.
-
-Add judge mode when:
-
-- The numbers can improve while the real output gets worse.
-
-Common pattern:
-
-- Hard gates reject broken outputs.
-- Judge mode scores the surviving candidates for actual usefulness.
-
-That hybrid setup is often the best default for ranking, clustering, and prompt work.

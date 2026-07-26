@@ -40,42 +40,7 @@ Divert from fixing only on a concrete signal:
 3. **If fixing**: implement the change. Keep it focused -- address the feedback, don't refactor the neighborhood. Write a test when the fix warrants one and none exists.
 
    **Test scope rule.** Run only targeted tests for what you changed: a specific test file, a test pattern, or the test you just wrote. Examples: `bun test path/foo.test.ts`, `pytest tests/module/test_foo.py`, `rspec spec/models/user_spec.rb`. **Never run the full project test suite** (bare `bun test`, `pytest`, `rspec` with no path) -- the parent skill runs it once against the combined diff from all resolvers. Skip targeted tests entirely for pure doc/comment/string-literal edits with no behavioral impact. If you can't locate targeted tests, note it in `reason` and let the combined run catch any issues; do not downgrade your verdict.
-4. **Compose the reply text** for the parent to post. Quote the specific sentence or passage being addressed -- not the entire comment if it's long. This helps readers follow the conversation without scrolling.
-
-For fixed items:
-```markdown
-> [quote the relevant part of the reviewer's comment]
-
-Addressed: [brief description of the fix]
-```
-
-For fixed-differently:
-```markdown
-> [quote the relevant part of the reviewer's comment]
-
-Addressed differently: [what was done instead and why]
-```
-
-For replied (a question, discussion, or a correct-but-immaterial point you're not changing):
-```markdown
-> [quote the relevant part of the reviewer's comment]
-
-[Direct answer to the question, explanation of the design decision, or brief reason no change is warranted]
-```
-
-For not-addressing:
-```markdown
-> [quote the relevant part of the reviewer's comment]
-
-Not addressing: [reason with evidence, e.g., "null check already exists at line 85"]
-```
-
-For declined:
-```markdown
-> [quote the relevant part of the reviewer's comment]
-
-Declined: [specific harm cited, e.g., "this would add a defensive null check the type system already guarantees" or "violates the no-premature-abstraction guidance in CLAUDE.md"]
-```
+4. **Compose the reply text** for the parent to post. Open by quoting the specific sentence or passage being addressed -- not the entire comment if it's long -- then state the outcome in the verdict's register: `fixed` -> "Addressed: [brief description]"; `fixed-differently` -> "Addressed differently: [what was done instead and why]"; `replied` -> the direct answer, design rationale, or brief reason no change is warranted; `not-addressing` -> "Not addressing: [reason with evidence, e.g., 'null check already exists at line 85']"; `declined` -> "Declined: [the specific harm, e.g., 'adds a defensive null check the type system already guarantees']".
 
 For needs-human -- do the investigation work before escalating. Don't punt with "this is complex." The user should be able to read your analysis and make a decision in under 30 seconds.
 
