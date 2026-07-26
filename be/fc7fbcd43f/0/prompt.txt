@@ -1,0 +1,9 @@
+026-07-26/. Hard rules from the runbook: never commit; never edit anything under skills/ except the documented run-history notes updates; scratch work under /tmp/ce-evals/; on a suite failure, record it with the capture path and stop that suite — do not patch skills. Narrate progress as you go (which suite, which eval, which run) so a human watching this terminal can follow along.
+
+---
+
+continue, we lost internet for a second there
+
+---
+
+sorry, restart again
