@@ -1,251 +1,69 @@
 # Deepening Workflow
 
-This file contains the confidence-check execution path (5.3.3-5.3.7). Load it only when the deepening gate at 5.3.2 determines that deepening is warranted.
+The confidence-check execution path (5.3.3–5.3.7). Load only when the 5.3.2 gate determines deepening is warranted.
 
 ## 5.3.3 Score Confidence Gaps
 
-Use a checklist-first, risk-weighted scoring pass.
+Checklist-first, risk-weighted. Per section: count checklist triggers, +1 when the topic is high-risk and the section is materially relevant, +1 for critical sections (Key Technical Decisions, Implementation Units, System-Wide Impact, Risks & Dependencies, Open Questions) in Standard/Deep plans. A section is a candidate at 2+ points, or 1+ in a high-risk domain when materially important. Strengthen only the top few sections; on an already-`deepened:` plan, prefer sections not yet strengthened.
 
-For each section, compute:
-- **Trigger count** - number of checklist problems that apply
-- **Risk bonus** - add 1 if the topic is high-risk and this section is materially relevant to that risk
-- **Critical-section bonus** - add 1 for `Key Technical Decisions`, `Implementation Units`, `System-Wide Impact`, `Risks & Dependencies`, or `Open Questions` in `Standard` or `Deep` plans
-
-Treat a section as a candidate if:
-- it hits **2+ total points**, or
-- it hits **1+ point** in a high-risk domain and the section is materially important
-
-Choose only the top **2-5** sections by score. If deepening a lightweight plan (high-risk exception), cap at **1-2** sections.
-
-If the plan already has a `deepened:` date:
-- Prefer sections that have not yet been substantially strengthened, if their scores are comparable
-- Revisit an already-deepened section only when it still scores clearly higher than alternatives
-
-**Section Checklists:**
+**Section checklists (rubrics — hand these to the verifier agents):**
 
 **Requirements**
-- Requirements are vague or disconnected from implementation units
-- Success criteria are missing or not reflected downstream
-- Units do not clearly advance the traced requirements
-- Origin requirements are not clearly carried forward
-- Origin A/F/AE IDs (when supplied by the upstream brainstorm) are not preserved where planning decisions touch them, or are referenced inconsistently across Requirements, units, and test scenarios
+- Vague or disconnected from implementation units; success criteria missing or not reflected downstream
+- Units don't clearly advance the traced requirements; origin requirements not carried forward
+- Origin A/F/AE IDs (when supplied) not preserved where planning decisions touch them, or referenced inconsistently
 
-**Context & Research / Sources & References**
-- Relevant repo patterns are named but never used in decisions or implementation units
-- Cited learnings or references do not materially shape the plan
-- High-risk work lacks appropriate external or internal grounding
-- Research is generic instead of tied to this repo or this plan
+**Context & Research / Sources**
+- Cited patterns, learnings, or references never shape a decision or unit
+- High-risk work lacks appropriate grounding; research is generic rather than tied to this repo and plan
 
 **Key Technical Decisions**
-- A decision is stated without rationale
-- Rationale does not explain tradeoffs or rejected alternatives
-- The decision does not connect back to scope, requirements, or origin context
-- An obvious design fork exists but the plan never addresses why one path won
+- A decision stated without rationale, or rationale without tradeoffs and rejected alternatives
+- The decision doesn't connect to scope, requirements, or origin context; an obvious fork is never addressed
 
 **Open Questions**
-- Product blockers are hidden as assumptions
-- Planning-owned questions are incorrectly deferred to implementation
-- Resolved questions have no clear basis in repo context, research, or origin decisions
-- Deferred items are too vague to be useful later
+- Product blockers hidden as assumptions; planning-owned questions wrongly deferred to implementation
+- Resolved questions with no basis; deferred items too vague to be useful later
 
-**High-Level Technical Design (when present)**
-- The sketch uses the wrong medium for the work
-- The sketch contains implementation code rather than pseudo-code
-- The non-prescriptive framing is missing or weak
-- The sketch does not connect to the key technical decisions or implementation units
+**High-Level Technical Design (present)**
+- Wrong medium; implementation code instead of pseudo-code; missing non-prescriptive framing; disconnected from KTDs and units
 
-**High-Level Technical Design (when absent)** *(Standard or Deep plans only)*
-- The work involves DSL design, API surface design, multi-component integration, complex data flow, or state-heavy lifecycle
-- Key technical decisions would be easier to validate with a visual or pseudo-code representation
-- The approach section of implementation units is thin and a higher-level technical design would provide context
+**High-Level Technical Design (absent — Standard/Deep only)**
+- The work involves DSL/API-surface design, multi-component integration, complex data flow, or state-heavy lifecycle that a sketch would make easier to validate
 
 **Implementation Units**
-- Dependency order is unclear or likely wrong
-- File paths or test file paths are missing where they should be explicit
-- Units are too large, too vague, or broken into micro-steps
-- Approach notes are thin or do not name the pattern to follow
-- Test scenarios are vague (don't name inputs and expected outcomes), skip applicable categories (e.g., no error paths for a unit with failure modes, no integration scenarios for a unit crossing layers), or are disproportionate to the unit's complexity
-- Feature-bearing units have blank or missing test scenarios (feature-bearing units require actual test scenarios; the `Test expectation: none` annotation is only valid for non-feature-bearing units)
-- Verification outcomes are vague or not expressed as observable results
-- Existing U-IDs were renumbered after a unit was reordered, split, or deleted (U-IDs are stable: never renumber existing IDs; gaps from deletions are preserved; new units take the next unused number)
-- A unit realizing an origin Key Flow does not cite the F-ID, or a unit enforcing an origin Acceptance Example does not cite the AE-ID, when origin supplies them
+- Dependency order unclear or wrong; file/test paths missing; units too large, too vague, or micro-stepped
+- Approach notes thin or pattern-less; test scenarios vague, category-skipping, or disproportionate; feature-bearing units without real scenarios
+- Verification not expressed as observable results; U-IDs renumbered (stability rule violated); origin F/AE IDs uncited where a unit realizes them
 
 **System-Wide Impact**
-- Affected interfaces, callbacks, middleware, entry points, or parity surfaces are missing
-- Failure propagation is underexplored
-- State lifecycle, caching, or data integrity risks are absent where relevant
-- Integration coverage is weak for cross-layer work
+- Missing affected interfaces, callbacks, entry points, or parity surfaces; underexplored failure propagation; absent state-lifecycle/caching/data-integrity risks; weak integration coverage for cross-layer work
 
 **Risks & Dependencies / Documentation / Operational Notes**
-- Risks are listed without mitigation
-- Rollout, monitoring, migration, or support implications are missing when warranted
-- External dependency assumptions are weak or unstated
-- Security, privacy, performance, or data risks are absent where they obviously apply
+- Risks without mitigation; missing rollout/monitoring/migration/support implications where warranted; unstated dependency assumptions; obviously applicable security/privacy/performance/data risks absent
 
-Use the plan's own `Context & Research` and `Sources & References` as evidence. If those sections cite a pattern, learning, or risk that never affects decisions, implementation units, or verification, treat that as a confidence gap.
+Use the plan's own Context & Research and Sources as evidence: a cited pattern that never affects a decision, unit, or verification is itself a confidence gap.
 
 ## 5.3.4 Report and Dispatch Targeted Research
 
-Before dispatching agents, report what sections are being strengthened and why:
+Report what is being strengthened and why in one line ("Strengthening [sections] — [reason each]"). Then hand each selected section's checklist — with the section text, why it fired, the plan depth and risk profile, and a specific question to answer — to a verifier agent of your choosing; scale the agent count to plan size and gap severity. Match the agent to the information need: repo grounding (`repo-research-analyst`, scoped), institutional knowledge (`learnings-researcher`), external docs or patterns (`docs-researcher`), landscape/prior art (`web-researcher`), flow completeness (`spec-flow-analyzer`), design integrity (`architecture-strategist`), consistency/duplication (`maintainability-reviewer`), history (`git-history-analyzer`); use the `security-review`/`security-best-practices` skills for security guidance and keep migration/persistent-data analysis in the parent. Instruct each agent to return findings that change planning quality — stronger rationale, sequencing, verification, risk treatment, or references — with no implementation code and no shell commands.
 
-```text
-Strengthening [section names] — [brief reason for each, e.g., "decision rationale is thin", "cross-boundary effects aren't mapped"]
-```
+## 5.3.5 Execution Mode
 
-For each selected section, choose the smallest useful agent set. Do **not** run every agent. Use at most **1-3 agents per section** and usually no more than **8 agents total**.
-
-Use fully-qualified agent names inside Task calls.
-
-**Deterministic Section-to-Agent Mapping:**
-
-**Requirements / Open Questions classification**
-- `spec-flow-analyzer` for missing user flows, edge cases, and handoff gaps
-- `repo-research-analyst` (Scope: `architecture, patterns`) for repo-grounded patterns, conventions, and implementation reality checks
-
-**Context & Research / Sources & References gaps**
-- `learnings-researcher` for institutional knowledge and past solved problems
-- `framework-docs-researcher` for official framework or library behavior
-- `best-practices-researcher` for current external patterns and industry guidance
-- `web-researcher` for landscape/prior-art gaps — competitor patterns, market signals, or an unsettled external option set (which library/provider/approach) that recommendations depend on
-- Add `git-history-analyzer` only when historical rationale or prior art is materially missing
-
-**Key Technical Decisions**
-- `architecture-strategist` for design integrity, boundaries, and architectural tradeoffs
-- Add `framework-docs-researcher` or `best-practices-researcher` when the decision needs external grounding beyond repo evidence
-
-**High-Level Technical Design**
-- `architecture-strategist` for validating that the technical design accurately represents the intended approach and identifying gaps
-- `repo-research-analyst` (Scope: `architecture, patterns`) for grounding the technical design in existing repo patterns and conventions
-- Add `best-practices-researcher` when the technical design involves a DSL, API surface, or pattern that benefits from external validation
-
-**Implementation Units / Verification**
-- `repo-research-analyst` (Scope: `patterns`) for concrete file targets, patterns to follow, and repo-specific sequencing clues
-- `pattern-recognition-specialist` for consistency, duplication risks, and alignment with existing patterns
-- Add `spec-flow-analyzer` when sequencing depends on user flow or handoff completeness
-
-**System-Wide Impact**
-- `architecture-strategist` for cross-boundary effects, interface surfaces, and architectural knock-on impact
-- Add the specific review surface that matches the risk:
-  - Use the `performance-reviewer` persona only when the plan names concrete hot paths, query shapes, caching behavior, or I/O volume that would be reviewed against code.
-  - Use the `security-review` or `security-best-practices` skill for explicit auth, validation, exploit-surface, or secure-default guidance.
-  - For migrations, backfills, schema snapshots, and persistent data transformations, keep the analysis in the parent plan unless a current migration specialist agent exists in the active agent shelf.
-
-**Risks & Dependencies / Operational Notes**
-- Use the review surface that matches the actual risk:
-  - `security-review` or `security-best-practices` for security, auth, privacy, and exploit risk
-  - parent-owned planning for migrations, backfills, persistent data safety, constraints, transaction boundaries, production data transformation risk, rollout checklists, rollback planning, and launch verification
-  - `performance-reviewer` for concrete capacity, latency, and scaling concerns visible in implementation or verification plans
-
-**Agent Prompt Shape:**
-
-For each selected section, pass:
-- The scope prefix from the mapping above when the agent supports scoped invocation
-- A short plan summary
-- The exact section text
-- Why the section was selected, including which checklist triggers fired
-- The plan depth and risk profile
-- A specific question to answer
-
-Instruct the agent to return:
-- findings that change planning quality
-- stronger rationale, sequencing, verification, risk treatment, or references
-- no implementation code
-- no shell commands
-
-## 5.3.5 Choose Research Execution Mode
-
-Use the lightest mode that will work:
-
-- **Direct mode** - Default. Use when the selected section set is small and the parent can safely read the agent outputs inline.
-- **Artifact-backed mode** - Use only when the selected research scope is large enough that inline returns would create unnecessary context pressure.
-
-Signals that justify artifact-backed mode:
-- More than 5 agents are likely to return meaningful findings
-- The selected section excerpts are long enough that repeating them in multiple agent outputs would be wasteful
-- The topic is high-risk and likely to attract bulky source-backed analysis
-
-If artifact-backed mode is not clearly warranted, stay in direct mode.
-
-Artifact-backed mode uses a per-run OS-temp scratch directory. Create it once before dispatching sub-agents and capture its **absolute path** — pass that absolute path to each sub-agent so they write to it directly. Do not use `.context/`; the artifacts are per-run throwaway that are cleaned up when deepening ends (see 5.3.6b), matching the repo Scratch Space convention for one-shot artifacts. Do not pass unresolved shell-variable strings to sub-agents; they need the resolved absolute path.
-
-```bash
-SCRATCH_DIR="$(mktemp -d -t plan-deepen-XXXXXX)"
-echo "$SCRATCH_DIR"
-```
-
-Refer to the echoed absolute path as `<scratch-dir>` throughout the rest of this workflow.
+Default to direct returns. Use artifact-backed mode only when inline returns would create real context pressure (many agents with meaningful findings, long section excerpts, bulky source-backed analysis). For artifact-backed mode, create one per-run OS-temp scratch dir (`mktemp -d -t plan-deepen-XXXXXX`), pass the resolved absolute path to each agent, and have each write one compact artifact (target section, why selected, 3-7 findings with source-backed rationale and the plan change each implies) plus a short completion summary. Re-run or fall back to direct reasoning for missing/malformed artifacts.
 
 ## 5.3.6 Run Targeted Research
 
-Launch the selected agents in parallel using the execution mode chosen above. If the current platform does not support parallel dispatch, run them sequentially instead. Omit the `mode` parameter when dispatching so the user's configured permission settings apply.
-
-Prefer local repo and institutional evidence first. Use external research only when the gap cannot be closed responsibly from repo context or already-cited sources.
-
-If a selected section can be improved by reading the origin document more carefully, do that before dispatching external agents.
-
-**Direct mode:** Have each selected agent return its findings directly to the parent. Keep the return payload focused: strongest findings only, the evidence or sources that matter, the concrete planning improvement implied by the finding.
-
-**Artifact-backed mode:** For each selected agent, pass the absolute `<scratch-dir>` path captured earlier and instruct the agent to write one compact artifact file inside that directory, then return only a short completion summary. Each artifact should contain: target section, why selected, 3-7 findings, source-backed rationale, the specific plan change implied by each finding. No implementation code, no shell commands.
-
-If an artifact is missing or clearly malformed, re-run that agent or fall back to direct-mode reasoning for that section.
-
-If agent outputs conflict:
-- Prefer repo-grounded and origin-grounded evidence over generic advice
-- Prefer official framework documentation over secondary best-practice summaries when the conflict is about library behavior
-- If a real tradeoff remains, record it explicitly in the plan
+Launch selected agents in parallel (sequential if the platform can't), omitting the `mode` parameter so the user's permission settings apply. Prefer local repo and institutional evidence first; read the origin document more carefully before dispatching external agents when that would close the gap. On conflicts: repo/origin-grounded evidence beats generic advice; official docs beat secondary summaries for library behavior; record real remaining tradeoffs explicitly in the plan.
 
 ## 5.3.6b Interactive Finding Review (Interactive Mode Only)
 
-Skip this step in auto mode — proceed directly to 5.3.7.
+Skip in auto mode. Present each agent's findings concisely — target section, what it found, the evidence, the implied plan change — one agent at a time so the user decides independently. Ask Accept / Reject / Discuss via the blocking question tool (see `../ce-conventions/SKILL.md`); after discussion, get a deliberate accept-or-reject. Carry only accepted findings to 5.3.7.
 
-In interactive mode, present each agent's findings to the user before integration. For each agent that returned findings:
-
-1. **Summarize the agent and its target section** — e.g., "The architecture-strategist reviewed Key Technical Decisions and found:"
-2. **Present the findings concisely** — bullet the key points, not the raw agent output. Include enough context for the user to evaluate: what the agent found, what evidence supports it, and what plan change it implies.
-3. **Ask the user** using the platform's blocking question tool when available (see Interaction Method):
-   - **Accept** — integrate these findings into the plan
-   - **Reject** — discard these findings entirely
-   - **Discuss** — the user wants to talk through the findings before deciding
-
-If the user chooses "Discuss", engage in brief dialogue about the findings and then re-ask with only accept/reject (no discuss option on the second ask). The user makes a deliberate choice either way.
-
-When presenting findings from multiple agents targeting the same section, present them one agent at a time so the user can make independent decisions. Do not merge findings from different agents before showing them.
-
-After all agents have been reviewed, carry only the accepted findings forward to 5.3.7.
-
-If the user accepted no findings, report "No findings accepted — plan unchanged." Skip only synthesis (5.3.7), then return to SKILL.md and load `references/plan-handoff.md` so the normal 5.3.8 document-review gate, final checks, and post-generation menu still run. This preserves the planning loop contract: markdown plans pass through `document-review` even when the optional deepening pass made no changes. No explicit scratch cleanup needed — `$SCRATCH_DIR` is OS temp and will be cleaned up by the OS; leaving it in place preserves the rejected agent artifacts for debugging.
-
-If findings were accepted and the plan was modified, proceed through 5.3.7 and 5.3.8 as normal — document-review acts as a quality gate on the changes.
+If nothing was accepted, report "No findings accepted — plan unchanged", skip 5.3.7, and still return to SKILL.md 5.3.8 — markdown plans pass through document-review even when deepening changed nothing.
 
 ## 5.3.7 Synthesize and Update the Plan
 
-Strengthen only the selected sections. Keep the plan coherent and preserve its overall structure.
+Strengthen only the selected sections; keep the plan coherent. Deepening may tighten as well as grow — collapse multi-idea sentences, drop hedges, delete superseded text in place. Allowed: stronger rationale, tighter requirements trace, reordering/splitting units (**never renumbering existing U-IDs** — that breaks ce-work references), added pattern references and file/test paths, expanded impact/risk treatment where justified, reclassified open questions, strengthened or added HTD and per-unit design fields, and a `deepened: YYYY-MM-DD` frontmatter stamp on substantive improvement.
 
-**In interactive mode:** Only integrate findings the user accepted in 5.3.6b. If some findings from different agents touch the same section, reconcile them coherently but do not reintroduce rejected findings.
-
-Deepening may tighten, not only grow. A section can be strengthened by cutting as well as adding — collapse multi-idea sentences, drop hedges, and delete superseded text outright rather than leaving it as strikethrough or stacking a separate "resolutions" layer on top of it. A shorter, contradiction-free section is a stronger one. This is distinct from "rewrite the entire plan from scratch" below, which stays forbidden.
-
-Allowed changes:
-- Tighten prose in a strengthened section: cut hedges, split sentences carrying more than one idea, and remove superseded text in place (version control holds the history)
-- Clarify or strengthen decision rationale
-- Tighten requirements trace or origin fidelity
-- Reorder or split implementation units when sequencing is weak — but **never renumber existing U-IDs**. Reordering preserves U-IDs in their new order (e.g., U1, U3, U5 reordered is correct; renumbering to U1, U2, U3 is not). Splitting keeps the original U-ID on the original concept and assigns the next unused number to the new unit. Renumbering breaks ce-work blocker and verification references that were written against the original IDs
-- Add missing pattern references, file/test paths, or verification outcomes
-- Expand system-wide impact, risks, or rollout treatment where justified
-- Reclassify open questions between `Resolved During Planning` and `Deferred to Implementation` when evidence supports the change
-- Strengthen, replace, or add a High-Level Technical Design section when the work warrants it and the current representation is weak
-- Strengthen or add per-unit technical design fields where the unit's approach is non-obvious
-- Add or update `deepened: YYYY-MM-DD` in frontmatter when the plan was substantively improved
-
-Do **not**:
-- Add implementation code — no imports, exact method signatures, or framework-specific syntax. Pseudo-code sketches and DSL grammars are allowed
-- Add git commands, commit choreography, or exact test command recipes
-- Add generic `Research Insights` subsections everywhere
-- Rewrite the entire plan from scratch
-- Invent new product requirements, scope changes, or success criteria without surfacing them explicitly
-- Renumber existing U-IDs as part of reordering, splitting, deletion, or "tidying" the unit list. Deepening is the most likely accidental-renumber vector — preserve U-IDs even when the new order would look cleaner with sequential numbering
-
-If research reveals a product-level ambiguity that should change behavior or scope:
-- Do not silently decide it here
-- Record it under `Open Questions`
-- Recommend `ce-brainstorm` if the gap is truly product-defining
+Do not: add implementation code (pseudo-code sketches allowed), git/test command choreography, or generic "Research Insights" subsections; rewrite the plan from scratch; or invent product requirements or scope changes silently. If research reveals a product-level ambiguity, record it under Open Questions and recommend `ce-brainstorm` when it is truly product-defining.

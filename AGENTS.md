@@ -156,30 +156,22 @@ files add local context and override only overlapping instructions.
 
 ## Phase Skills
 
-- Discover/context: use `qmd-knowledge-base`, Obsidian skills, `ce-sessions`,
-  `ce-slack-research`, and `repoprompt` when prior or broad codebase context is
-  needed.
-- Frame: use `qmd-knowledge-base` when prior context could affect the product
-  frame, then `ce-brainstorm`; add `ce-grill` for branchy or strategic
-  ambiguity; use `document-review` for requirements docs.
-- Plan: use `qmd-knowledge-base` when prior context could affect the plan, then
-  `ce-plan`; layer in `repoprompt` for broad codebase context and
-  `document-review` for markdown plans.
-- Work: use `ce-work`; use `qmd-knowledge-base` when intent, expected behavior,
-  ownership, location, convention, or history is unclear; route TypeScript or
-  React code-shape decisions through `code-taste`, and Spade Python service
-  decisions through `spade-python-taste`, before implementation; fold in
-  `frontend-design` for UI; run `ce-quality-gate` after code edits. Applicable
-  taste-skill cleanliness is part of the completion gate for touched code.
-- Review: use `ce-review` for built work; use `qmd-knowledge-base` only when
-  intent, convention, or historical context is unclear; use `code-taste` for
-  TypeScript and React shape, and `spade-python-taste` for Spade Python service
-  shape; use `ce-simplify-code` for cleanup; use `security-review` only for real
-  trust-boundary or security asks.
-- Ship/feedback: use `git-commit`, `git-commit-push-pr`, `gh-fix-ci`, and
-  `resolve-pr-feedback` for git and PR ops.
-- Remember: use `ce-compound` and `ce-compound-refresh` to create durable
-  `.ai` knowledge for later QMD discovery passes.
+Skill descriptions carry the when-to-use detail; this is the phase map:
+
+- Discover/context: `qmd-knowledge-base`, `ce-sessions`, `ce-slack-research`,
+  `repoprompt`.
+- Frame: `ce-brainstorm`; `ce-grill` for branchy or strategic ambiguity;
+  `document-review` for requirements docs.
+- Plan: `ce-plan`; `document-review` for markdown plans.
+- Work: `ce-work`, then `ce-quality-gate`. Taste skills (`code-taste`,
+  `spade-python-taste`) route code-shape decisions before implementation and
+  are part of the completion gate for touched code; `frontend-design` for UI.
+- Review: `ce-review`; `ce-simplify-code` for cleanup; `security-review` only
+  for real trust-boundary asks.
+- Ship/feedback: `git-commit`, `git-commit-push-pr`, `gh-fix-ci`,
+  `resolve-pr-feedback`.
+- Remember: `ce-compound` and `ce-compound-refresh` for durable `.ai`
+  knowledge.
 
 ## Tooling
 

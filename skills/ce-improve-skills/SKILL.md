@@ -36,7 +36,8 @@ Gather the smallest evidence set that can justify a change:
    metadata search with the CE skill names and behaviors surfaced by QMD, but
    inventory every available store: Claude Code, standard and Orca-managed
    Codex, Cursor, and Hermes. Use metadata or redacted user-prompt inventories
-   to rank candidates, then extract at most five selected session skeletons.
+   to rank candidates, then extract a handful of selected session skeletons —
+   extraction is the expensive step, so keep the cut selective.
 5. Check coverage before deciding. Report unavailable or empty stores rather
    than silently treating the scanned platforms as machine-wide coverage. QMD
    plus session evidence must overlap the requested window and address `ce-*`
@@ -78,7 +79,7 @@ Use the first outcome that fits:
 3. **No change** - the evidence is one-off, stale, contradicted, or already
    covered by the current skill.
 
-If a patch would touch more than 3-4 files, stop and write a proposal instead.
+If a patch would touch more than a handful of files, stop and write a proposal instead — blast radius that size deserves review before it lands.
 
 ## Owner Map
 

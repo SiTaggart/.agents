@@ -22,46 +22,25 @@ checkout state.
 The output is one markdown file that preserves decision context, current state,
 and the next useful move. It should reduce steering in the next session.
 
-Do not duplicate content already captured in canonical artifacts such as PRDs,
-requirements docs, plans, ADRs, issues, PRs, commits, review reports, or diffs.
-Reference those artifacts by path, URL, branch, commit, or command instead.
-
-Use the user's conventions:
-
-- Keep repo-local handoffs under `.ai/handoffs/`.
-- Keep the business reason and changed product contract visible.
-- Prefer exact paths, commands, issue URLs, branches, commits, and verification
-  evidence over prose memory.
-- Mark uncertainty explicitly instead of smoothing it over.
-- Suggest only the skills that should actually be used next.
+Do not duplicate content already captured in canonical artifacts (PRDs, plans,
+ADRs, issues, PRs, commits, review reports, diffs) — reference them by path,
+URL, branch, commit, or command instead. Keep the business reason and changed
+product contract visible, prefer exact paths and verification evidence over
+prose memory, mark uncertainty explicitly instead of smoothing it over, and
+suggest only the skills that should actually be used next.
 
 ## Destination
 
-1. Detect the workspace root.
-   - If inside a git repo, use the repo root.
-   - If there is no repo root, use the current working directory.
-2. Prefer `.ai/handoffs/YYYY-MM-DD-<topic>-handoff.md`.
-   - Create `.ai/handoffs/` if needed.
-   - Use a short slug from the handoff focus or primary task.
-   - If the path already exists, read it first. Update it only when it is
-     clearly the same handoff; otherwise choose a unique suffix.
-3. Use an OS temp file only when there is no sensible workspace-local artifact
-   home. If you do, explain why the handoff is not under `.ai/handoffs/`.
+Write to `.ai/handoffs/YYYY-MM-DD-<topic>-handoff.md` at the workspace root
+(repo root when inside a git repo; create the directory if needed; if the path
+exists, update it only when it is clearly the same handoff). Use an OS temp
+file only when there is no sensible workspace-local home, and say why.
 
 ## Context Scan
 
-Before writing, gather only the context needed for a useful handoff:
-
-- Current repo, branch, and dirty state.
-- Recent relevant commits or PR metadata when they explain the state.
-- Referenced files, docs, plans, issues, review comments, or external artifacts.
-- Existing `.ai/brainstorms/`, `.ai/plans/`, `.ai/solutions/`, `.ai/reviews/`,
-  and `.ai/handoffs/` artifacts that match the topic.
-- The latest user correction or scope boundary that the next session must not
-  lose.
-
-Use exact-term search first. If vocabulary is uncertain, add semantic or
-broader searches only as needed.
+Gather only the context a useful handoff needs — repo state, matching `.ai/`
+artifacts, referenced docs and PRs — and above all **the latest user
+correction or scope boundary that the next session must not lose**.
 
 ## Document Shape
 
@@ -131,15 +110,8 @@ For a tiny handoff, keep only `Next Session Goal`, `Current State`,
 
 ## Quality Bar
 
-Before finalizing:
-
-- Read the written file back.
-- Confirm the next session can start without asking "what happened?"
-- Confirm paths are actionable from the repo or are absolute when outside it.
-- Confirm canonical artifacts are linked instead of copied.
-- Confirm the latest user correction or scope boundary is present.
-- Confirm verification distinguishes proved, unproved, and blocked work.
-- Confirm suggested skills are specific and not a generic list.
+Read the written file back. The bar: the next session must be able to start
+without asking "what happened?"
 
 ## Final Response
 

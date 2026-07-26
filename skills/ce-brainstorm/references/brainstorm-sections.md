@@ -139,29 +139,15 @@ worse than omitting it.
   together prevent downstream invention of paths. When omitting from a
   behavioral brainstorm, note the reason in the doc.
 
-- **Visualizations** — include a diagram when the brainstorm contains a
-  diagram-shaped concept that a picture carries faster than prose. Common
-  shapes: a data-shape transformation (before/after schema or field
-  mapping), a source-of-truth fan-out (one authority feeding many derived
-  surfaces), state-or-lifecycle logic, a multi-step flow, or a quantitative
-  comparison. A diagram is cross-cutting, not a section of its own — it sits
-  next to the Key Decision, Requirements group, or Flow it illustrates. The
-  named test: *does the picture let a reader grasp the concept faster than
-  the paragraph alone?* If yes, add it; if the prose already conveys it at a
-  glance, skip it. One diagram per load-bearing concept — don't add visuals
-  for ceremony. This affordance is the conceptual-diagram path; it is
-  distinct from the wireframe affordance (a wireframe is for visual-product
-  UI and does not apply to non-visual systems like data models or agent
-  workflows, but a conceptual diagram does).
-
-  **Diagrams complement prose; they never replace it.** A diagram is an
-  on-ramp to the prose it illustrates, not a substitute. The IDed prose
-  (Requirements, Key Decisions, Acceptance Examples) stays complete and
-  standalone — a reader who ignores every diagram still gets the full
-  content in text, and a downstream agent that reads the artifact as linear
-  text is never left with a relationship that exists only in an SVG. Adding
-  a before/after diagram is not license to thin the requirement or decision
-  prose it depicts.
+- **Visualizations** — include a diagram when a picture carries a concept
+  faster than the paragraph alone (data-shape transformation, source-of-truth
+  fan-out, state/lifecycle logic, multi-step flow, quantitative comparison).
+  Diagrams are cross-cutting — each sits next to the Key Decision,
+  Requirements group, or Flow it illustrates; one per load-bearing concept,
+  none for ceremony. **Diagrams complement prose; they never replace it** —
+  the IDed prose stays complete and standalone, so a reader (or downstream
+  agent reading linear text) never depends on a relationship that exists only
+  in an SVG.
 
 - **Acceptance Examples** — include when any requirement has a
   state-dependent or conditional shape ("When X, Y") where prose alone leaves
@@ -291,8 +277,8 @@ to different purposes:
 The format-specific references describe how to render these sections in each
 output format:
 
-- **Markdown rendering:** `references/markdown-rendering.md`
-- **HTML rendering:** `references/html-rendering.md`
+- **Markdown rendering:** `../ce-conventions/references/markdown-rendering.md`
+- **HTML rendering:** `../ce-conventions/references/html-rendering.md`
 
 This reference (`brainstorm-sections.md`) is about WHAT the brainstorm
 contains; rendering references are about HOW each format presents it. The

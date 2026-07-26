@@ -1,55 +1,28 @@
 ---
 name: ce-plan
-description: "Create structured plans for multi-step tasks once the goal is clear enough to plan. Use after ce-brainstorm or ce-grill, or directly for clear planning requests. If the request has branchy product/scope ambiguity, run ce-grill first. After markdown plans, document-review runs before handoff."
+description: "Create structured plans for multi-step tasks once the goal is clear enough to plan. Use after ce-brainstorm or ce-grill, or directly for clear planning requests. If the request has branchy product/scope ambiguity, run ce-grill first."
 argument-hint: "[optional: feature description, requirements doc path, plan path to deepen, or any task to plan] [output:html]"
 ---
 
 # Create Technical Plan
 
-**Note: The current year is 2026.** Use this when dating plans and searching for recent documentation.
-
 `ce-brainstorm` defines **WHAT** to build. `ce-plan` defines **HOW** to build it. `ce-work` executes the plan. A prior brainstorm is useful context but never required — `ce-plan` works from any input: a requirements doc, a bug report, a feature idea, or a rough description.
 
-**When directly invoked, always plan.** Never classify a direct invocation as "not a planning task" and abandon the workflow. If the input is unclear, ask clarifying questions or use the planning bootstrap (Phase 0.4) to establish enough context — but always stay in the planning workflow.
-
-This workflow produces a durable implementation plan. It does **not** implement code, run tests, or learn from execution-time results. If the answer depends on changing code and seeing what happens, that belongs in `ce-work`, not here.
+If invoked, plan; ask rather than exit. This workflow produces a durable implementation plan. It does **not** implement code, run tests, or learn from execution-time results — if the answer depends on changing code and seeing what happens, that belongs in `ce-work`.
 
 ## Loop Contract
 
-The planning loop is:
+1. **Clarify with `ce-grill` when needed** — branchy, strategically important, or product-shaky input that would produce materially different plans. One or two ordinary missing facts are asked inside this workflow instead.
+2. **Plan with `ce-plan`** — produce the technical implementation plan.
+3. **Review with `document-review`** — markdown plans run the headless document-review gate before handoff (see `references/plan-handoff.md`).
 
-1. **Clarify with `ce-grill` when needed** - if the input is branchy,
-   strategically important, or missing product/scope clarity that would cause
-   different plans.
-2. **Plan with `ce-plan`** - produce the technical implementation plan.
-3. **Review with `document-review`** - markdown plans run the headless
-   document-review gate before handoff; interactive review remains available
-   when actionable findings remain.
+Use `ce-review` only after work exists as a branch, PR, or local diff — it reviews work, not plans.
 
-Use `ce-review` only after work exists as a branch, PR, or local diff. It is a
-work-review skill, not a requirements or plan-review skill.
-
-If a direct `ce-plan` invocation reveals only one or two ordinary missing facts,
-ask those questions inside this workflow. If it reveals a decision tree where
-the answer would materially change the plan, invoke `ce-grill` first and then
-resume planning from its handoff.
-
-For UI work, fold in `frontend-design` while planning states, layout ownership,
-accessibility, responsive behavior, and browser proof. When prior context could
-change the plan, use `qmd-knowledge-base` before treating missing background as
-an assumption.
-
-Build curated codebase context with RepoPromptCE `context_builder` (see the
-`repoprompt` skill) before finalizing the plan. Skip it only for a trivial
-single-file change in already-known code. Fold the result into owner boundaries,
-existing patterns, data flow, and tests. Do not let RepoPromptCE widen the
-accepted product contract.
+For UI work, fold in `frontend-design` while planning states, layout ownership, accessibility, responsive behavior, and browser proof. When prior context could change the plan, use `qmd-knowledge-base` before treating missing background as an assumption. Build curated codebase context with RepoPromptCE `context_builder` (see the `repoprompt` skill) before finalizing a non-trivial plan; do not let it widen the accepted product contract.
 
 ## Interaction Method
 
-When asking the user a question, use the platform's blocking question tool: `AskUserQuestion` in Claude Code (call `ToolSearch` with `select:AskUserQuestion` first if its schema isn't loaded), `request_user_input` in Codex, `ask_user` in Gemini, `ask_user` in Pi (requires the `pi-ask-user` extension). Fall back to numbered options in chat only when no blocking tool exists in the harness or the call errors (e.g., Codex edit modes) — not because a schema load is required. Never silently skip the question.
-
-Ask one question at a time. Prefer a concise single-select choice when natural options exist.
+When asking the user a question, use the platform's blocking question tool (see `../ce-conventions/SKILL.md`). Ask one question at a time; prefer a concise single-select choice when natural options exist.
 
 ## Feature Description
 
@@ -57,33 +30,23 @@ Ask one question at a time. Prefer a concise single-select choice when natural o
 
 **If the feature description above is empty, ask the user:** "What would you like to plan? Describe the task, goal, or project you have in mind." Then wait for their response before continuing.
 
-If the input is present but unclear or underspecified, do not abandon — ask one or two clarifying questions, or proceed to Phase 0.4's planning bootstrap to establish enough context. The goal is always to help the user plan, never to exit the workflow.
-
-**IMPORTANT: All file references in the plan document must use repo-relative paths (e.g., `src/models/user.rb`), never absolute paths (e.g., `/Users/name/Code/project/src/models/user.rb`). This applies everywhere — implementation unit file lists, pattern references, origin document links, and prose mentions. Absolute paths break portability across machines, worktrees, and teammates.**
+All file references in plan content are repo-relative (`src/models/user.rb`), never absolute — absolute paths break portability across machines, worktrees, and teammates.
 
 ## Core Principles
 
-1. **Use requirements as the source of truth** - If `ce-brainstorm` produced a requirements document, planning should build from it rather than re-inventing behavior.
-2. **Decisions, not code** - Capture approach, boundaries, files, dependencies, risks, and test scenarios. Do not pre-write implementation code or shell command choreography. Pseudo-code sketches or DSL grammars that communicate high-level technical design are welcome when they help a reviewer validate direction — but they must be explicitly framed as directional guidance, not implementation specification.
-3. **Research before structuring** - Explore the codebase, institutional learnings, and external guidance when warranted before finalizing the plan.
-4. **Right-size the artifact** - Small work gets a compact plan. Large work gets more structure. The philosophy stays the same at every depth.
-5. **Separate planning from execution discovery** - Resolve planning-time questions here. Explicitly defer execution-time unknowns to implementation.
-6. **Keep the plan portable** - The plan should work as a living document, review artifact, or issue body without embedding tool-specific executor instructions.
-7. **Carry execution posture lightly when it matters** - If the request, origin document, or repo context clearly implies test-first, characterization-first, or another non-default execution posture, reflect that in the plan as a lightweight signal. Do not turn the plan into step-by-step execution choreography.
-8. **Honor user-named resources** - When the user names a specific resource — a CLI, MCP server, URL, file, doc link, or prior artifact — treat it as authoritative input, not a suggestion. Discover it if unknown (`command -v`, fetch, read) before assuming it's unavailable. Use it in place of generic alternatives. If it fails or doesn't exist, say so explicitly rather than silently substituting.
-9. **The current architecture is a candidate, not a constraint** - Plan toward the smallest *resulting* system — least complexity carried forward (concepts, indirection, special cases, total code) — not the smallest diff against today's structure. When the existing architecture is itself the source of the difficulty, plan its replacement as a real option and weigh it by resulting complexity, not blast radius or files touched. A prior plan or a settled decision — even one the user or an earlier session made — can be reopened when new evidence shows it was wrong; do not build forward on a base you have concluded is broken to protect work already committed. Surface the reframe and the tradeoff rather than choosing unilaterally.
+1. **Use requirements as the source of truth** — if `ce-brainstorm` produced a requirements document, build from it rather than re-inventing behavior.
+2. **Decisions, not code** — capture approach, boundaries, files, dependencies, risks, and test scenarios. Do not pre-write implementation code or shell choreography. Pseudo-code sketches or DSL grammars that communicate high-level design are welcome when framed as directional guidance, not implementation specification.
+3. **Research before structuring** — explore the codebase, institutional learnings, and external guidance when warranted before finalizing the plan.
+4. **Right-size the artifact** — small work gets a compact plan; large work gets more structure. The philosophy stays the same at every depth.
+5. **Separate planning from execution discovery** — resolve planning-time questions here; explicitly defer execution-time unknowns to implementation.
+6. **Keep the plan portable** — a living document, review artifact, or issue body without tool-specific executor instructions.
+7. **Carry execution posture lightly when it matters** — if test-first or characterization-first posture is clearly implied, reflect it as a lightweight signal, not choreography.
+8. **Honor user-named resources** — a named CLI, MCP server, URL, file, or prior artifact is authoritative input. Discover it before assuming it's unavailable; if it fails, say so rather than silently substituting.
+9. **The current architecture is a candidate, not a constraint** — the global candidate-not-constraint principle applies to planning: aim for the smallest resulting system, keep replacement of a problematic structure on the table, and surface the reframe and tradeoff rather than choosing unilaterally.
 
 ## Plan Quality Bar
 
-Every plan should contain:
-- A clear problem frame and scope boundary
-- Concrete requirements traceability back to the request or origin document
-- Repo-relative file paths for the work being proposed (never absolute paths — see Planning Rules)
-- Explicit test file paths for feature-bearing implementation units
-- Decisions with rationale, not just tasks
-- Existing patterns or code references to follow
-- Enumerated test scenarios for each feature-bearing unit, specific enough that an implementer knows exactly what to test without inventing coverage themselves
-- Clear dependencies and sequencing
+Every plan should contain: a clear problem frame and scope boundary; requirements traceability back to the request or origin document; repo-relative file paths; explicit test file paths for feature-bearing units; decisions with rationale; existing patterns to follow; enumerated test scenarios specific enough that an implementer knows exactly what to test; clear dependencies and sequencing.
 
 A plan is ready when an implementer can start confidently without needing the plan to write the code for them.
 
@@ -93,727 +56,220 @@ A plan is ready when an implementer can start confidently without needing the pl
 
 #### 0.0 Resolve Output Mode
 
-Determine `OUTPUT_FORMAT` before any other phase fires. Output mode is **exclusive** — the plan is written as either markdown (`.md`) OR HTML (`.html`), never both. Precedence: CLI arg > config > default (`md`), with a hard pipeline-mode override.
+Output mode is exclusive — the plan is written as either markdown (`.md`) OR HTML (`.html`), never both.
 
 **Read config (pre-resolved at skill load):**
 !`cat "$(git rev-parse --show-toplevel 2>/dev/null)/.compound-engineering/config.local.yaml" 2>/dev/null || echo '__NO_CONFIG__'`
 
-Resolution steps:
+Resolve `OUTPUT_FORMAT` per `../ce-conventions/SKILL.md` §"Output-mode resolution": `output:` arg > active `plan_output:` config key above > `md`; pipeline and sub-step invocations force `md`. Strip consumed flag tokens from the arguments before treating the remainder as the feature description.
 
-1. **CLI arg.** Scan `$ARGUMENTS` for a token starting with the literal prefix `output:`. If found, strip it from arguments before treating the remainder as the feature description, and match its value case-insensitively against `md` and `html`.
-   - `output:` alone (no value) → no-op, fall through to step 2.
-   - `output:<unknown>` (e.g., `output:pdf`) → drop the token, fall through to step 2, and remember to emit a one-line note above the post-generation menu after final resolution: `Ignored unknown output: value '<value>' — using <resolved_format> instead.` where `<resolved_format>` is the value `OUTPUT_FORMAT` actually resolved to after steps 2-4. Do not hardcode `md` in the note — that misleads users when config has set HTML.
-2. **Config.** If step 1 did not resolve and the pre-resolved YAML above has an **active (non-commented)** `plan_output:` key whose value matches `md` or `html` (case-insensitive), use it. Missing, invalid, or commented values fall through silently. Critical: lines starting with `#` are YAML comments and must be ignored — the shipped config template includes commented examples like `# plan_output: html` to document the option, and matching those as active settings would silently force HTML mode on every run without the user having opted in.
-3. **Default.** Otherwise `OUTPUT_FORMAT=md`.
-4. **Pipeline override.** When invoked from an automated pipeline or any `disable-model-invocation` context, force `OUTPUT_FORMAT=md` regardless of steps 1-3. `ce-work` and other automated downstream consumers parse markdown reliably; HTML in pipeline runs is unnecessary friction.
-
-**Token-parsing convention:** only literal-prefix flag tokens (`output:`, `mode:`, `delegate:` where applicable) are consumed and stripped. Other `<word>:<word>` tokens — including conventional commit prefixes like `feat:`, `fix:`, `chore:` that may appear inside a feature description — pass through verbatim.
-
-**Load the format-rendering reference based on the resolved value.** Section content is the same in either format; presentation differs. Both references are paired with `references/plan-sections.md`, which describes what the plan contains regardless of format.
-
-- When `OUTPUT_FORMAT=md`, read `references/markdown-rendering.md` for format principles.
-- When `OUTPUT_FORMAT=html`, read `references/html-rendering.md` for format principles.
+Load the format-rendering reference for the resolved value — `../ce-conventions/references/markdown-rendering.md` or `../ce-conventions/references/html-rendering.md`. Both pair with `references/plan-sections.md`, which describes what the plan contains regardless of format.
 
 #### 0.1 Resume Existing Plan Work When Appropriate
 
-If the user references an existing plan file or there is an obvious recent matching plan in `.ai/plans/`:
-- Read it
-- Confirm whether to update it in place or create a new plan
-- If updating, revise only the still-relevant sections. Plans do not carry per-unit progress state — progress is derived from git by `ce-work`, so there is no progress to preserve across edits
+If the user references an existing plan file or there is an obvious recent matching plan in `.ai/plans/`: read it, confirm update-in-place vs new plan, and revise only the still-relevant sections. Plans carry no per-unit progress state — progress is derived from git by `ce-work`.
 
-**Deepen intent:** The word "deepen" (or "deepening") in reference to a plan is the primary trigger for the deepening fast path. When the user says "deepen the plan", "deepen my plan", "run a deepening pass", or similar, the target document is a **plan** in `.ai/plans/`, not a requirements document. Use any path, keyword, or context the user provides to identify the right plan. If a path is provided, verify it is actually a plan document. If the match is not obvious, confirm with the user before proceeding.
+**Deepen intent:** "deepen" targets a plan in `.ai/plans/` and triggers the deepening fast path. Deepen = a holistic strengthening pass on an existing plan; confirm when ambiguous, and treat section-specific editing requests ("strengthen the risk section") as normal edits, not deepening.
 
-Words like "strengthen", "confidence", "gaps", and "rigor" are NOT sufficient on their own to trigger deepening. These words appear in normal editing requests ("strengthen that section about the diagram", "there are gaps in the test scenarios") and should not cause a holistic deepening pass. Only treat them as deepening intent when the request clearly targets the plan as a whole and does not name a specific section or content area to change — and even then, prefer to confirm with the user before entering the deepening flow.
+Once the plan is identified and complete (`status: active`), route by file extension first, then frontmatter:
 
-Once the plan is identified and appears complete (all major sections present, implementation units defined, `status: active`):
-- **Routing is keyed on file extension first, then frontmatter.** HTML plans (`.html`) are always software plans — the html-rendering invariant forbids YAML frontmatter, so frontmatter absence is not a non-software signal for HTML. Treat the visible-header metadata (title, status, date) as the frontmatter equivalent.
-  - **`.html` plan:** short-circuit to Phase 5.3 (Confidence Check and Deepening) in **interactive mode**. Never route to `references/universal-planning.md` based on missing YAML.
-  - **`.md` plan WITH YAML frontmatter:** short-circuit to Phase 5.3 in **interactive mode**.
-  - **`.md` plan WITHOUT YAML frontmatter** (non-software plans use a simple `# Title` heading with `Created:` date instead): route to `references/universal-planning.md` for editing or deepening instead of Phase 5.3. Non-software plans do not use the software confidence check.
+- **`.html` plan:** short-circuit to Phase 5.3 in **interactive mode** (HTML plans are always software plans — the html-rendering invariant forbids YAML frontmatter, so its absence is not a non-software signal).
+- **`.md` plan WITH YAML frontmatter:** short-circuit to Phase 5.3 in **interactive mode**.
+- **`.md` plan WITHOUT frontmatter** (non-software plans use `# Title` + `Created:` instead): route to `references/universal-planning.md`.
 
-Normal editing requests (e.g., "update the test scenarios", "add a new implementation unit", "strengthen the risk section") should NOT trigger the fast path — they follow the standard resume flow.
-
-If the plan already has a `deepened: YYYY-MM-DD` frontmatter field and there is no explicit user request to re-deepen, the fast path still applies the same confidence-gap evaluation — it does not force deepening.
-
-**Resume preserves the existing artifact's format, except pipeline mode.** When resuming an existing plan, the resume run writes back in whatever format the existing artifact uses — markdown if the existing file is `.md`, HTML if it is `.html` — so a resume doesn't silently change the artifact shape. Explicit `output:` arguments on this run override (e.g., resuming an `.html` plan with `output:md` switches the artifact to markdown). Pipeline mode (automated pipeline or any `disable-model-invocation` context) always wins per Phase 0.0: even when resuming an existing `.html` plan, pipeline runs force `OUTPUT_FORMAT=md` so downstream automation receives the markdown shape it expects. The resume rewrites the markdown file at the parallel path (`<plan-basename>.md`) and the original `.html` is left in place untouched.
+**Resume preserves the existing artifact's format**, except: an explicit `output:` argument overrides, and pipeline mode always forces `md` (writing the markdown to the parallel `<plan-basename>.md`, leaving the original `.html` untouched).
 
 #### 0.1a Recognize Approach-Altitude Requests
 
-Some requests are better answered one level up: produce a grounded **approach-plan** — a plan for *how the deliverable will be made* — and hold there, rather than zero-shotting the deliverable. This runs **after** Phase 0.1's resume and deepen fast paths (so "deepen the plan" and resume short-circuit first) and **before** Phase 0.1b's domain split (so the capability is domain-general — it applies to software and knowledge-work alike).
+Some requests are better answered one level up: a grounded **approach-plan** for *how the deliverable will be made*, held at a checkpoint. Runs after 0.1's fast paths, before 0.1b's domain split.
 
-Two entries, with very different gating:
+- **Explicit (always honored):** "plan for a plan", "plan the approach", "don't do it yet — just plan how you'd approach it" → enter approach altitude; do not begin the deliverable.
+- **Proactive (rare):** offer an approach-plan only when the method itself is genuinely unsettled AND the deliverable is expensive to redo. When in doubt, just plan — the failure mode to avoid is opening every turn with "want me to plan the approach first?". The offer is a single dismissible line, never a blocking question.
 
-**Explicit (always honored, ungated).** When the user asks for the approach itself — "plan for a plan", "plan the approach", "plan how you'll do X", "don't do it yet -- just plan how you'd approach it" — enter approach altitude and hold at the approach. Do NOT begin the deliverable. Key on language that asks for *the approach to producing something*, not the something. This is a distinct signal from "deepen"/"strengthen" (the Phase 0.1 deepening fast path) and from a normal plan request.
-
-**Proactive (rare, conservative).** When the user gives a plain request with no approach-language, offer an approach-plan **only when both of these are clearly high**:
-
-- **Method uncertainty** — the *core* approach is genuinely unsettled: competing methodologies that would yield *different deliverables*, unclear how disparate sources or constraints combine, or an outcome stated only at the value level ("something I can actually use"). This is **not** satisfied by a task whose core method is obvious but whose *rollout, sequencing, scope, or ordering* has routine variants (big-bang vs. incremental, batch order, phased vs. one-shot) — those are ordinary plan decisions the Phase 0.7 scoping synthesis already surfaces as call-outs, not method-uncertainty. A large or mechanical change (a 40-endpoint migration, a wide rename, a framework bump) is typically **costly but method-obvious**; cost alone never fires the offer.
-- **Cost of getting it wrong** — the deliverable is expensive or slow to produce and a wrong approach wastes real effort (heavy inputs to process, a long synthesis, a large or risky change).
-
-If either is low, **stay silent and plan/do normally.** When borderline, stay silent. Assess this from request shape and input metadata only — do not read the inputs yet (recon happens after the offer is accepted). When the offer does fire, it is a **single dismissible line** naming the specific signal (e.g., "Three heavy sources are about to get synthesized and you might want them weighted differently -- want my approach first, or should I just go?") — never a blocking question, never a ceremony. Because the explicit path above is always available, a missed offer is cheap; the failure mode to avoid is the **new-hammer nag** — opening turns with "want me to plan the approach first?" when the method is obvious.
-
-**Stay disjoint from the other approach surfaces (R16).** An investigative or analytical request with no approach-language and not-both-signals-high is NOT an approach-altitude request — it must pass through this gate untouched to Phase 0.1b, where answer-seeking's plan-of-attack handles it; the gate's earlier position must not intercept it. "Deepen the plan" and resume are already short-circuited by Phase 0.1. The Phase 0.7 / 5.1.5 scoping synthesis and the Phase 5.3 deepening pass operate on a deliverable already committed to; approach altitude operates *before* that commitment. Full distinctions: `references/approach-altitude.md`.
-
-On entry (explicit, or an accepted offer), read `references/approach-altitude.md` and follow it. Otherwise continue to Phase 0.1b unchanged.
+On entry, read `references/approach-altitude.md` and follow it. Otherwise continue.
 
 #### 0.1b Classify Task Domain
 
-If the task asks to build, modify, refactor, deploy, or architect software (code, schemas, infrastructure), continue to Phase 0.2.
-
-Classify by task-type, not topic. A request that merely *references* code, a repo, an API, or a database is not automatically software work: building or modifying code is software; investigating or analyzing it is an answer-seeking question. "How often does X star repos — is it a big deal?" or "how does our approach compare to Y?" route to `references/universal-planning.md` (answer-seeking), not the implementation-plan path.
-
-If the domain is genuinely ambiguous (e.g., "plan a migration" with no other context), ask the user before routing.
-
-Otherwise, read `references/universal-planning.md` and follow that workflow instead. Skip all subsequent phases. Named tools or source links don't change this routing — they're inputs, handled per Core Principle 8.
+If the task builds, modifies, refactors, deploys, or architects software (code, schemas, infrastructure), continue to Phase 0.2. Classify by task-type, not topic: investigating or analyzing code is an answer-seeking question, not software work. If genuinely ambiguous, ask before routing. Otherwise read `references/universal-planning.md` and follow that workflow instead, skipping all subsequent phases.
 
 #### 0.2 Find Upstream Requirements Document
 
-Before asking planning questions, search `.ai/brainstorms/` for files matching `*-requirements.md` or `*-requirements.html` (ce-brainstorm emits whichever extension matches its resolved output format; both are valid upstream requirements docs and either may be carried as the plan's `origin:`).
-
-**Relevance criteria:** A requirements document is relevant if:
-- The topic semantically matches the feature description
-- It was created within the last 30 days (use judgment to override if the document is clearly still relevant or clearly stale)
-- It appears to cover the same user problem or scope
-
-If multiple source documents match, ask which one to use using the platform's blocking question tool when available (see Interaction Method). Otherwise, present numbered options in chat and wait for the user's reply before proceeding.
+Search `.ai/brainstorms/` for `*-requirements.md` or `*-requirements.html` that semantically matches the feature description, is recent (~30 days, judgment overrides), and covers the same user problem. If multiple match, ask which one to use.
 
 #### 0.3 Use the Source Document as Primary Input
 
-If a relevant requirements document exists:
-1. Read it thoroughly
-2. Announce that it will serve as the origin document for planning
-3. Carry forward all of the following:
-   - Problem frame
-   - Actors (A-IDs), Key Flows (F-IDs), and Acceptance Examples (AE-IDs) when present — preserve these as constraints that implementation units must honor
-   - Requirements and success criteria
-   - Scope boundaries (including "Deferred for later" and "Outside this product's identity" subsections when present)
-   - Key decisions and rationale
-   - Dependencies or assumptions
-   - Outstanding questions, preserving whether they are blocking or deferred
-4. Use the source document as the primary input to planning and research
-5. Reference important carried-forward decisions in the plan with `(see origin: <source-path>)`
-6. Do not silently omit source content — if the origin document discussed it, the plan must address it even if briefly. Before finalizing, scan each section of the origin document to verify nothing was dropped.
-
-If no relevant requirements document exists, planning may proceed from the user's request directly.
+If a relevant requirements document exists: read it thoroughly, announce it as the origin document, and carry forward the problem frame; Actors/Key Flows/Acceptance Examples (A/F/AE-IDs) as constraints when present; requirements and success criteria; scope boundaries (including "Deferred for later" and "Outside this product's identity"); key decisions and rationale; dependencies; and outstanding questions with their blocking/deferred status. Reference carried decisions with `(see origin: <source-path>)`. Do not silently omit source content — before finalizing, scan each origin section to verify nothing was dropped.
 
 #### 0.4 Planning Bootstrap (No Requirements Doc or Unclear Input)
 
-If no relevant requirements document exists, or the input needs more structure:
-- Assess whether the request is already clear enough for direct technical planning — if so, continue to Phase 0.5
-- If the ambiguity is mainly product framing, user behavior, or scope definition, recommend `ce-brainstorm` as a suggestion — but always offer to continue planning here as well
-- If the user wants to continue here (or was already explicit about wanting a plan), run the planning bootstrap below
+If the request is already clear enough, continue to Phase 0.5. If the ambiguity is mainly product framing, recommend `ce-brainstorm` while always offering to continue here. Otherwise run a brief bootstrap establishing: problem frame, intended behavior, scope boundaries, success criteria, and blocking questions or assumptions. If major product questions remain, recommend `ce-brainstorm` again; if the user continues anyway, require explicit assumptions.
 
-The planning bootstrap should establish:
-- Problem frame
-- Intended behavior
-- Scope boundaries and obvious non-goals
-- Success criteria
-- Blocking questions or assumptions
+Route-outs the bootstrap may surface:
 
-Keep this bootstrap brief. It exists to preserve direct-entry convenience, not to replace a full brainstorm.
-
-If the bootstrap uncovers major unresolved product questions:
-- Recommend `ce-brainstorm` again
-- If the user still wants to continue, require explicit assumptions before proceeding
-
-If the bootstrap reveals that a different workflow would serve the user better:
-
-- **Bug-shaped prompt** (user describes broken behavior — "fix the bug where X", error message, regression, "doesn't work"). Surface `ce-debug` as a route-out option alongside continuing with `ce-plan` whenever the bug surface is reachable (in cwd OR named repo found at another local path). Stay in `ce-plan` silently when the named code can't be found anywhere local — paper-planning is the only useful output for unreachable surfaces.
-
-  **When the bug is at another local path (not cwd):**
-  - Announce the target explicitly **before** any cross-repo investigation: which path will be read AND where plan outputs will land (default: target repo's `.ai/plans/`, not cwd's).
-  - Default: proceed from the target repo for both investigation and plan-write. The user can interrupt to redirect (switch context, paper-plan, abandon, etc.). No location menu — the announcement makes the cross-repo nature visible, and the user can speak up if they want something unusual.
-  - **After** announcing and proceeding, fire the standard ce-debug routing menu (continue with `ce-plan` vs switch to `ce-debug`) — same shape as the in-cwd case. Cross-repo location and ce-debug skill routing are orthogonal decisions; do not merge them into a single question.
-
-  The accessibility classification is conservative and may under-suggest in monorepos, dependency bugs, or after renames. Users can always invoke `/ce-debug` manually.
-
-  **Headless mode**: skip the ce-debug suggestion menu entirely; default to continuing with `/ce-plan` (the user's explicit invocation). There is no synchronous user to resolve a route-out choice, and auto-routing to ce-debug would change the skill mid-flight without authorization.
-
-- **Clear task ready to execute** (known root cause, obvious fix, no architectural decisions) — suggest `ce-work` as a faster alternative alongside continuing with planning. The user decides.
+- **Bug-shaped prompt** (broken behavior, error message, regression): offer `ce-debug` alongside continuing, whenever the bug surface is reachable locally. When the bug lives at another local path, announce the target repo and where plan outputs will land (default: the target repo's `.ai/plans/`) before cross-repo investigation, then offer the same ce-debug choice. Stay silently in `ce-plan` when the named code can't be found anywhere local. Headless mode skips the suggestion menu and continues with `ce-plan`.
+- **Clear task ready to execute** (known root cause, no architectural decisions): suggest `ce-work` as a faster alternative. The user decides.
 
 #### 0.5 Classify Outstanding Questions Before Planning
 
-If the origin document contains `Resolve Before Planning` or similar blocking questions:
-- Review each one before proceeding
-- Reclassify it into planning-owned work **only if** it is actually a technical, architectural, or research question
-- Keep it as a blocker if it would change product behavior, scope, or success criteria
-
-If true product blockers remain:
-- Surface them clearly
-- Ask the user, using the platform's blocking question tool when available (see Interaction Method), whether to:
-  1. Resume `ce-brainstorm` to resolve them
-  2. Convert them into explicit assumptions or decisions and continue
-- Do not continue planning while true blockers remain unresolved
+For `Resolve Before Planning` questions in the origin document: reclassify into planning-owned work only if genuinely technical/architectural/research; keep as blockers if they would change product behavior, scope, or success criteria. If true product blockers remain, ask whether to resume `ce-brainstorm` or convert them into explicit assumptions — do not plan past unresolved blockers.
 
 #### 0.6 Assess Plan Depth
 
-Classify the work into one of these plan depths:
-
-- **Lightweight** - small, well-bounded, low ambiguity
-- **Standard** - normal feature or bounded refactor with some technical decisions to document
-- **Deep** - cross-cutting, strategic, high-risk, or highly ambiguous implementation work
-
-If depth is unclear, ask one targeted question and then continue.
+Classify as **Lightweight** (small, bounded, low ambiguity), **Standard** (normal feature with decisions to document), or **Deep** (cross-cutting, strategic, high-risk, or highly ambiguous). If unclear, ask one targeted question.
 
 #### 0.7 Solo-Mode Scoping Synthesis
 
-Surface call-outs to the user — the specific forks in scope or approach where user input materially changes the plan — so scope can be corrected **before Phase 1 research is spent**.
+Surface the forks where user input materially changes the plan — before Phase 1 research is spent. Fires only in solo invocation: no upstream doc (0.2), stayed in ce-plan (0.4), no unresolved blockers (0.5), and not on a 0.1 fast path. Brainstorm-sourced invocations defer to Phase 5.1.5 instead.
 
-Fires **only in solo invocation** — when Phase 0.2 found no upstream brainstorm doc AND Phase 0.4 stayed in ce-plan (did not route to ce-debug, ce-work, or universal-planning) AND Phase 0.5 cleared (no unresolved blockers) AND not on Phase 0.1 fast paths (resume normal, deepen-intent). Each guard is an explicit conditional. Skip Phase 0.7 entirely when any guard fails — brainstorm-sourced invocations defer to Phase 5.1.5 instead.
-
-**Read `references/synthesis-summary.md` before composing the scoping synthesis.** It carries the affirmability test, keep-test criteria, detail test, summary shape budgets, granularity rules, anti-patterns, revision-vs-confirmation discipline, doc-shape routing, soft-cut behavior, self-redirect support, the worked PII compression example, and full headless-mode routing — all required for a well-shaped synthesis.
-
-**Required gate output — do not skip; silent proceeding is not allowed.** Compose an internal three-bucket scope draft (Stated / Inferred / Out of scope — internal thinking that feeds plan-body routing at Phase 5.2, not the chat output below). Derive call-outs (specific forks where user input materially changes the plan), then emit one of the two literal templates below in chat before continuing to Phase 1.
-
-**Synthesis is pre-plan-write.** The agent does NOT yet know how plan-write will sequence the work. Do not claim PR count ("one PR"), commit/branch shape, effort or time estimates, Implementation Unit boundaries, or exact file paths in the synthesis. The synthesis surfaces decisions knowable at THIS point — for the solo variant, that's the user's request plus the Phase 0.4 bootstrap dialogue plus the agent's own internal three-bucket draft. Phase 1 research has not happened yet and there is no upstream brainstorm; do not claim grounding from either. Plan-write produces the rest. This rule holds even when the agent has formed plan-write opinions earlier in the session — those stay internal until plan-write.
-
-**Summary shape:** the summary is a **scope claim** — what the plan will target, what it will not — at affirm-or-redirect level. NOT an enumeration of Implementation Units. Form is prose, bullets, or mix; tier budgets are **ceilings, not targets** (Lightweight 1-3 lines; Standard up to 3-5 lines or 2-4 bullets; Deep up to 4-6 lines or 3-6 bullets). 1-2 lines per bullet, conversational not documentary. Less is correct when there isn't more to say. See reference for keep test, detail test, and source-vocabulary discipline.
-
-**Do NOT enumerate the touch surface.** Sentences like "The touch surface is...", "This plan touches...", "The implementation reaches into..." are plan-pitch leaks. File paths, module names, directory introductions, and per-file change descriptions belong in the plan body (Implementation Units at Phase 5.2), not the synthesis. The synthesis names *what* the plan targets, not *where* the code lives.
-
-**Pre-emit scans.** Before emitting the synthesis, scan the output:
-- Bare ID references (`AE\d+`, `R\d+`, `F\d+`, `A\d+`, `U\d+`) → replace with plain names.
-- File paths (`path/like.md`, `path/like.py`, etc.) → cut unless the path IS the topic of an explicit fork in the call-outs.
-
-**Tier guard on auto-proceed:** the auto-proceed path (announce without waiting for confirmation) fires only when plan depth is **Lightweight AND zero call-outs survive**. Standard and Deep plans always fire the confirmation gate, even with zero call-outs.
-
-**Confirmation template (Standard/Deep regardless of call-out count, or any tier with one or more call-outs surviving):**
-
-````text
-Based on your request and our brief discussion, here's the scope I'm proposing to plan against:
-
-[scope claim — what the plan will target, what it will not; affirm-or-redirect level; NOT an enumeration of Implementation Units]
-
-**Call outs:** (omit this header when zero forks survived the keep test)
-- [decision-level fork in 1-2 lines: name the choice and optional one-clause trade-off in parens. NO multi-sentence rationale, NO "my default is X" pitch]
-
-Confirm and I'll proceed to research, drawing on this scope. (You can also redirect to /ce-brainstorm if this is bigger than you initially thought — I'll stop here and load it for you.)
-````
-
-Wait for user confirmation before continuing to Phase 1.
-
-**Auto-proceed template (Lightweight with zero call-outs only):**
-
-````text
-Planning: [1-3 line scope claim]
-
-No open decisions to weigh in on — proceeding to research. Interrupt if I have the scope wrong.
-````
-
-Then continue to Phase 1 without a blocking question.
-
-**Headless mode**: internal draft is composed but stage 2 (chat-time call-outs) is skipped — no synchronous user to confirm to. Continue to Phase 1 research as normal. At plan-write time (Phase 5.2), Inferred bets from the internal draft route to a `## Assumptions` section in the plan instead of Key Technical Decisions. See `references/synthesis-summary.md` Headless mode for the full routing.
+Read `references/synthesis-summary.md` and follow the solo variant: compose the internal three-bucket draft, derive call-outs via the keep and detail tests, and emit the scope claim with confirmation gate. Auto-proceed (announce and continue) only for Lightweight depth with zero call-outs. In headless mode, compose the internal draft only and continue — Inferred bets route to `## Assumptions` at plan-write.
 
 ### Phase 1: Gather Context
 
 #### 1.1 Local Research (Always Runs)
 
-Prepare a concise planning context summary (a paragraph or two) to pass as input to the research agents:
-- If an origin document exists, summarize the problem frame, requirements, and key decisions from that document
-- Otherwise use the feature description directly
-- If `STRATEGY.md` exists, read it and include the relevant pieces (target problem, approach, active tracks) in the summary so downstream research and planning decisions are anchored to product strategy
-- If `CONCEPTS.md` exists at repo root, read it — its definitions are the canonical names for domain entities, named processes, and status concepts. Plan with those terms rather than synonyms.
+Prepare a concise planning context summary (a paragraph or two): origin-document problem frame and decisions when present, otherwise the feature description; relevant `STRATEGY.md` pieces when that file exists; and `CONCEPTS.md` vocabulary when present (plan with the canonical terms).
 
-Run these agents in parallel:
+Gather, in parallel, the information the plan needs — repo technology/architecture/patterns (`repo-research-analyst` with a scoped prompt) and institutional learnings from `.ai/solutions/` (`learnings-researcher`) are the usual agents; adjust the set to the task. Collect: stack and versions; architectural patterns and conventions; relevant files, modules, and tests; AGENTS.md guidance that materially affects the plan; institutional learnings; and strategy alignment flags when `STRATEGY.md` is present.
 
-- Task repo-research-analyst(Scope: technology, architecture, patterns. {planning context summary})
-- Task learnings-researcher(planning context summary)
-Collect:
-- Technology stack and versions (used in section 1.2 to make sharper external research decisions)
-- Architectural patterns and conventions to follow
-- Implementation patterns, relevant files, modules, and tests
-- AGENTS.md guidance that materially affects the plan, with CLAUDE.md used only as compatibility fallback when present
-- Institutional learnings from `.ai/solutions/`
-- Product strategy context when `STRATEGY.md` is present — flag any plan decisions that pull away from the active tracks or the stated approach
-
-**Slack context** (opt-in) — never auto-dispatch. Route by condition:
-
-- **Tools available + user asked**: Dispatch `slack-researcher` with the planning context summary in parallel with other Phase 1.1 agents. If the origin document has a Slack context section, pass it verbatim so the researcher focuses on gaps. Include findings in consolidation.
-- **Tools available + user didn't ask**: Note in output: "Slack tools detected. Ask me to search Slack for organizational context at any point, or include it in your next prompt."
-- **No tools + user asked**: Note in output: "Slack context was requested but no Slack tools are available. Install and authenticate the Slack plugin to enable organizational context search."
+**Slack context** is opt-in per `../ce-conventions/SKILL.md`. When tools are available but unrequested, note once that Slack search is available; when requested but unavailable, say so.
 
 #### 1.1b Detect Execution Posture Signals
 
-Decide whether the plan should carry a lightweight execution posture signal.
-
-Look for signals such as:
-- The user explicitly asks for TDD, test-first, or characterization-first work
-- The origin document calls for test-first implementation or exploratory hardening of legacy code
-- Local research shows the target area is legacy, weakly tested, or historically fragile, suggesting characterization coverage before changing behavior
-
-When the signal is clear, carry it forward silently in the relevant implementation units.
-
-Ask the user only if the posture would materially change sequencing or risk and cannot be responsibly inferred.
+If the user, origin document, or research clearly signals test-first, characterization-first, or similar posture (e.g., legacy weakly-tested target area), carry it forward silently in the relevant units. Ask only if the posture would materially change sequencing or risk and cannot be responsibly inferred.
 
 #### 1.2 Decide on External Research
 
-Based on the origin document, user signals, and local findings, decide **whether** external research adds value and, if so, **what kind**. Resolve this in three stages: explicit-request priority, intent classification, then the implicit signals below.
+Judgment, not a gauntlet:
 
-**Stage 1 — An explicit request takes precedence.** If the user prompt **or** the origin requirements document explicitly asks for external input — a signal that the answer lives outside the repo, such as competitor/prior-art comparison, "what should we borrow", "from the web", "best practices", "official docs", "alternatives to", a market scan, or naming a specific external technology to consult — external research is **required**, regardless of how strong local patterns look. The list is illustrative; key on the signal, not the exact phrase — any wording that clearly points outside the repo qualifies. The skip conditions below do **not** apply to an explicit request. The only thing that overrides it is an explicit opt-out ("no web research", "skip external research"): honor that, skip, and note it. Improvement or quality verbs ("improve", "make better") carry no external signal on their own and never trigger research by themselves.
+- **An explicit ask wins.** If the user or origin doc points outside the repo (competitor comparison, "best practices", "official docs", a named external technology), external research is required — key on the signal, not exact phrases. Only an explicit opt-out ("skip external research") overrides; honor it and note it. When a settled local choice already exists, narrow the research to that choice's current docs and pitfalls rather than re-surveying options.
+- **Classify the intent** so 1.3 routes correctly: *implementation-guidance* (approach settled; how to build it well), *landscape* (what options or prior art exist), or *mixed*.
+- **Otherwise use the implicit signals:** lean toward research for high-risk topics (security, payments, migrations, compliance), thin or absent local patterns (including adjacent-domain-only matches — frame the query around the domain gap), unfamiliar territory, or a genuinely external unsettled option set that materially shapes the plan. Skip when strong recent local patterns exist, the user knows the intended shape, or external context adds little. Use repo-research-analyst's technology summary to sharpen the call (exact versions → pass to `docs-researcher`; monorepo → scope to the relevant service).
 
-**Stage 2 — Classify the research intent** (whenever external research will run, from Stage 1 or the implicit signals below) so Phase 1.3 routes correctly. Use this mechanical test, not a fixed phrase list:
-- **Implementation-guidance** — the approach or technology is already settled; the question is *how to build it well* (best practices, version-specific docs, API constraints, known pitfalls, deprecations).
-- **Landscape / option-discovery** — the question is *what options or prior art exist* (competitor scans, build-vs-buy, library/provider selection, prior art, market signals, cross-domain analogies).
-- **Mixed** — both: discover an unsettled external option set first, then research the shortlisted choice for implementation guidance.
-
-**Stage 3 — Implicit signals** decide the call when no explicit request fired.
-
-**Read between the lines.** Pay attention to signals from the conversation so far:
-- **User familiarity** — Are they pointing to specific files or patterns? They likely know the codebase well.
-- **User intent** — Do they want speed or thoroughness? Exploration or execution?
-- **Topic risk** — Security, payments, external APIs warrant more caution regardless of user signals.
-- **Uncertainty level** — Is the approach clear or still open-ended?
-
-**Leverage repo-research-analyst's technology context:**
-
-The repo-research-analyst output includes a structured Technology & Infrastructure summary. Use it to make sharper external research decisions:
-
-- If specific frameworks and versions were detected (e.g., Next.js 14, Go 1.22), pass those exact identifiers to framework-docs-researcher so it fetches version-specific documentation
-- If the feature touches a technology layer the scan found well-established in the repo (e.g., existing Sidekiq jobs when planning a new background job), lean toward skipping external research -- local patterns are likely sufficient
-- If the feature touches a technology layer the scan found absent or thin (e.g., no existing proto files when planning a new gRPC service), lean toward external research -- there are no local patterns to follow
-- If the scan detected deployment infrastructure (Docker, K8s, serverless), note it in the planning context passed to downstream agents so they can account for deployment constraints
-- If the scan detected a monorepo and scoped to a specific service, pass that service's tech context to downstream research agents -- not the aggregate of all services. If the scan surfaced the workspace map without scoping, use the feature description to identify the relevant service before proceeding with research
-
-**Always lean toward external research when:**
-- The topic is high-risk: security, payments, privacy, external APIs, migrations, compliance
-- The codebase lacks relevant local patterns -- fewer than 3 direct examples of the pattern this plan needs
-- Local patterns exist for an adjacent domain but not the exact one -- e.g., the codebase has HTTP clients but not webhook receivers, or has background jobs but not event-driven pub/sub. Adjacent patterns suggest the team is comfortable with the technology layer but may not know domain-specific pitfalls. When this signal is present, frame the external research query around the domain gap specifically, not the general technology
-- The user is exploring unfamiliar territory
-- The technology scan found the relevant layer absent or thin in the codebase
-- The plan's recommendations depend on a genuinely external, **unsettled** option set — which library, provider, or approach to adopt, or what competitors and prior art do — **even when local implementation patterns are strong** (intent: landscape). Bound this implicit landscape trigger by three gates: (a) the option set genuinely lives outside the repo, (b) the decision materially shapes the plan (a KTD, dependency, or architecture choice — not an incidental detail), and (c) no settled local or team choice already exists. Improvement verbs alone never satisfy this.
-
-**Skip external research when** (only when Stage 1 found no explicit request — an explicit request is never skipped):
-- The codebase already shows a strong local pattern -- multiple direct examples (not adjacent-domain), recently touched, following current conventions
-- The user already knows the intended shape
-- Additional external context would add little practical value
-- The technology scan found the relevant layer well-established with existing examples to follow
-
-When an explicit request *did* fire but a settled local or team choice already exists, **narrow the research rather than skipping it** — research the current pitfalls, docs, and practices for the chosen library/pattern instead of re-surveying the whole option set.
-
-Announce the decision and the intent briefly before continuing. Examples:
-- "Your codebase has solid patterns for this. Proceeding without external research."
-- "This involves payment processing, so I'll research current best practices first (implementation-guidance)."
-- "You asked what to borrow from competitors, so I'll run a landscape scan first (landscape/option-discovery)."
+Announce the decision and intent in one line.
 
 #### 1.3 External Research (Conditional)
 
-If Step 1.2 indicates external research is useful, dispatch by the **intent** classified in Stage 2, using the platform's subagent primitive (`Agent`/`Task` in Claude Code, `spawn_agent` in Codex, `subagent` in Pi). For `web-researcher`, pass a focus hint plus the planning context summary and do **not** pass codebase content — it operates externally.
+Dispatch by intent using the platform's subagent primitive. **Implementation-guidance:** `docs-researcher` with the planning context summary and exact frameworks/versions. **Landscape:** `web-researcher` with a focus hint plus the planning context summary (no codebase content — it operates externally); for code-host scans, name the discovery dimensions (activity, UX shape, docs, issue themes, license — star counts are weak signal). **Mixed:** sequential — `web-researcher` maps the landscape and shortlists, then `docs-researcher` covers shortlisted technologies only when their details materially shape the plan.
 
-- **Implementation-guidance** — run in parallel:
-  - Task best-practices-researcher(planning context summary)
-  - Task framework-docs-researcher(planning context summary, with exact frameworks/versions from Phase 1.1 where available)
-- **Landscape / option-discovery** — Task web-researcher(focus hint, planning context summary). When the request targets projects on a code host (e.g., "competitors on GitHub"), name the discovery dimensions in the focus hint: project names and URLs, release recency and activity, CLI/UX shape, install path, docs and examples, plugin/extension surfaces, recurring issue themes, and license — treating star counts as a weak signal only.
-- **Mixed** — **sequential, not parallel**: run `web-researcher` first to map the landscape and produce a shortlist; then run `framework-docs-researcher` and/or `best-practices-researcher` against the shortlisted technologies only when their details materially shape the plan.
-
-**Tool-unavailable handling.** `web-researcher` self-checks for web tools and stops if they are missing. Never block on this: if it reports research unavailable, or any researcher fails, warn and proceed, and carry the gap into Phase 1.4 so the plan records it honestly — especially when the user explicitly requested external research, where a silent skip would leave the plan looking evidence-based when it is not.
+Never block on missing tools: if a researcher fails or web tools are unavailable, warn, proceed, and carry the gap into 1.4 so the plan records it honestly.
 
 #### 1.4 Consolidate Research
 
-Summarize:
-- Relevant codebase patterns and file paths
-- QMD findings that changed a decision, including the collection/document and
-  live files verified
-- Relevant institutional learnings
-- Organizational context from Slack conversations, if gathered (prior discussions, decisions, or domain knowledge relevant to the feature)
-- External references, prior art, competitor/landscape findings, and best practices, if gathered
-- Related issues, PRs, or prior art
-- Any constraints that should materially shape the plan
+Summarize: codebase patterns and file paths; QMD findings that changed a decision; institutional learnings; Slack context if gathered; external references if gathered; related issues/PRs; and constraints that materially shape the plan.
 
-**Land external findings in decisions, not an appendix.** Any external research that ran must surface where it changes a choice — Key Technical Decisions rationale, Alternatives, Risks, or Sources & Research — not as a detached list with no bearing on the plan. If a finding shaped nothing, it was not load-bearing; do not pad the plan with it.
+**Land external findings in decisions, not an appendix** — KTD rationale, Alternatives, Risks, or Sources. If a finding shaped nothing, drop it. **Mark whether external research was load-bearing** (materially shaped a KTD, Alternative, Scope boundary, or Risk) — Phase 5.3.2 reads this flag. **Record requested-but-unavailable research** as an assumption or open question rather than presenting the plan as externally grounded.
 
-**Mark whether external research was load-bearing.** Record a single internal flag: did external findings materially shape a KTD, Alternative, Scope boundary, or Risk? This flag answers only that question — it does **not** gate whether research runs (Phase 1.2 owns that decision). Phase 5.3.2 reads it to decide whether to enter a confidence-scoring pass.
+#### 1.4b Reclassify Depth on External Contract Surfaces
 
-**Record requested-but-unavailable.** If the user explicitly requested external research but it could not run (web tools unavailable, researcher failed), state that in the plan as an assumption or open question rather than presenting the plan as externally grounded.
-
-#### 1.4b Reclassify Depth When Research Reveals External Contract Surfaces
-
-If the current classification is **Lightweight** and Phase 1 research found that the work touches any of these external contract surfaces, reclassify to **Standard**:
-
-- Environment variables consumed by external systems, CI, or other repositories
-- Exported public APIs, CLI flags, or command-line interface contracts
-- CI/CD configuration files (`.github/workflows/`, `Dockerfile`, deployment scripts)
-- Shared types or interfaces imported by downstream consumers
-- Documentation referenced by external URLs or linked from other systems
-
-This ensures flow analysis (Phase 1.5) runs and the confidence check (Phase 5.3) applies critical-section bonuses. Announce the reclassification briefly: "Reclassifying to Standard — this change touches [environment variables / exported APIs / CI config] with external consumers."
+If a Lightweight plan turns out to touch external contract surfaces — env vars consumed elsewhere, exported public APIs or CLI contracts, CI/CD config, shared types with downstream consumers, externally linked docs — reclassify to Standard and announce it briefly.
 
 #### 1.5 Flow and Edge-Case Analysis (Conditional)
 
-For **Standard** or **Deep** plans, or when user flow completeness is still unclear, run:
-
-- Task spec-flow-analyzer(planning context summary, research findings)
-
-Use the output to:
-- Identify missing edge cases, state transitions, or handoff gaps
-- Tighten requirements trace or verification strategy
-- Add only the flow details that materially improve the plan
+For Standard or Deep plans, or when flow completeness is unclear, dispatch `spec-flow-analyzer` with the planning context and research findings. Use the output to close edge-case and handoff gaps and tighten requirements trace — add only what materially improves the plan.
 
 ### Phase 2: Resolve Planning Questions
 
-Build a planning question list from:
-- Deferred questions in the origin document
-- Gaps discovered in repo or external research
-- Technical decisions required to produce a useful plan
-
-For each question, decide whether it should be:
-- **Resolved during planning** - the answer is knowable from repo context, documentation, or user choice
-- **Deferred to implementation** - the answer depends on code changes, runtime behavior, or execution-time discovery
-
-Ask the user only when the answer materially affects architecture, scope, sequencing, or risk and cannot be responsibly inferred. Use the platform's blocking question tool when available (see Interaction Method).
-
-**Do not** run tests, build the app, or probe runtime behavior in this phase. The goal is a strong plan, not partial execution.
+Build the question list from origin-doc deferrals, research gaps, and required technical decisions. Resolve during planning what is knowable from repo context, documentation, or user choice; defer to implementation what depends on code changes or runtime behavior. Ask the user only when the answer materially affects architecture, scope, sequencing, or risk and cannot be responsibly inferred. Do not run tests or probe runtime behavior here.
 
 ### Phase 3: Structure the Plan
 
 #### 3.1 Title and File Naming
 
-- Draft a clear, searchable title using conventional format such as `feat: Add user authentication` or `fix: Prevent checkout double-submit`
-- Determine the plan type: `feat`, `fix`, or `refactor`
-- Build the filename following the repository convention: `.ai/plans/YYYY-MM-DD-NNN-<type>-<descriptive-name>-plan.md`
-  - Create `.ai/plans/` if it does not exist
-  - Check existing files for today's date to determine the next sequence number (zero-padded to 3 digits, starting at 001)
-  - Keep the descriptive name concise (3-5 words) and kebab-cased
-  - Examples: `2026-01-15-001-feat-user-authentication-flow-plan.md`, `2026-02-03-002-fix-checkout-race-condition-plan.md`
-  - Avoid: missing sequence numbers, vague names like "new-feature", invalid characters (colons, spaces)
+Draft a searchable conventional title (`feat: Add user authentication`), determine the type (`feat`/`fix`/`refactor`), and build the filename: `.ai/plans/YYYY-MM-DD-NNN-<type>-<descriptive-name>-plan.md` — create `.ai/plans/` if missing, derive the next zero-padded sequence number from today's existing files, keep the name concise kebab-case.
 
-#### 3.2 Stakeholder and Impact Awareness
+#### 3.2 Stakeholder Awareness
 
-For **Standard** or **Deep** plans, briefly consider who is affected by this change — end users, developers, operations, other teams — and how that should shape the plan. For cross-cutting work, note affected parties in the System-Wide Impact section.
+For Standard/Deep plans, briefly consider who is affected — users, developers, operations, other teams — and note affected parties in System-Wide Impact for cross-cutting work.
 
 #### 3.3 Break Work into Implementation Units
 
-Break the work into logical implementation units. Each unit should represent one meaningful change that an implementer could typically land as an atomic commit.
+Each unit is one meaningful change an implementer could land as an atomic commit: focused on one component or seam, touching a small cluster of related files, dependency-ordered, concrete without pre-writing code. Avoid micro-steps, multi-concern units, and units so vague the implementer must re-plan.
 
-Good units are:
-- Focused on one component, behavior, or integration seam
-- Usually touching a small cluster of related files
-- Ordered by dependency
-- Concrete enough for execution without pre-writing code
-
-Avoid:
-- 2-5 minute micro-steps
-- Units that span multiple unrelated concerns
-- Units that are so vague an implementer still has to invent the plan
-
-Each unit carries a stable plan-local **U-ID** assigned in Phase 3.5 (`U1`, `U2`, …). U-IDs survive reordering, splitting, and deletion: new units take the next unused number, gaps are fine, and existing IDs are never renumbered. This lets `ce-work` reference units unambiguously across plan edits.
+**U-ID stability (authoritative statement).** Each unit carries a stable plan-local U-ID (`U1`, `U2`, …). Once assigned, never renumbered: reordering preserves IDs in their new order, splitting keeps the original ID on the original concept and assigns the next unused number, deletion leaves gaps. This lets `ce-work` reference units unambiguously across plan edits; deepening is the most likely accidental-renumber vector.
 
 #### 3.4 High-Level Technical Design
 
-When the plan's technical approach has shape that prose alone doesn't carry well — architecture across components, sequencing across processes, state machines, branching gates, lifecycles, quantitative comparisons — include a High-Level Technical Design section that conveys the shape. The exact form (component diagram, sequence, swim lane, flowchart, state machine, decision matrix, pseudo-code grammar, bar chart for sizing concerns) is the agent's call per artifact — pick what makes the content land fastest for the reader.
-
-See `references/plan-sections.md` for the section catalog including HTD's "include when material" criterion. See the format-rendering reference loaded at Phase 0.0 for how visualizations render in the target format (mermaid in markdown, inline SVG in HTML — with the layout-legibility principles around halo, contrast, and label placement when in HTML).
-
-When the plan's approach is a one-paragraph pattern application that prose conveys directly, skip the section. The presence of HTD should earn its keep with content that genuinely benefits from visualization.
-
-Plan diagrams render authoritative content alongside the prose — they are not "directional sketches." Do not add hedging captions like *"directional guidance for review, not implementation specification"* to plan diagrams; the prose-is-authoritative rule already governs disagreement, and the hedging weakens the diagram unnecessarily.
+Include an HTD section when the approach has shape prose doesn't carry well — architecture across components, sequencing, state machines, branching gates, lifecycles, quantitative comparisons. Pick the medium that lands fastest (see `references/plan-sections.md` and the format-rendering reference for how visualizations render). Skip it when prose conveys the approach directly — HTD should earn its keep. Plan diagrams are authoritative content; do not add hedging captions.
 
 #### 3.4b Output Structure (Optional)
 
-For greenfield plans that create a new directory structure (new plugin, service, package, or module), include an `## Output Structure` section with a file tree showing the expected layout. This gives reviewers the overall shape before diving into per-unit details.
-
-**When to include it:**
-- The plan creates 3+ new files in a new directory hierarchy
-- The directory layout itself is a meaningful design decision
-
-**When to skip it:**
-- The plan only modifies existing files
-- The plan creates 1-2 files in an existing directory — the per-unit file lists are sufficient
-
-The tree is a scope declaration showing the expected output shape. It is not a constraint — the implementer may adjust the structure if implementation reveals a better layout. The per-unit `**Files:**` sections remain authoritative for what each unit creates or modifies.
+For greenfield plans creating 3+ files in a new directory hierarchy where the layout is itself a design decision, include an `## Output Structure` file tree as a scope declaration (not a constraint — per-unit `**Files:**` lists stay authoritative). Skip when only modifying existing files.
 
 #### 3.5 Define Each Implementation Unit
 
-Each unit is a level-3 heading carrying a stable U-ID prefix matching the format used for R/A/F/AE in requirements docs: `### U1. [Name]`. Number sequentially within the plan starting at U1. Do not render units as bulleted list items or prefix them with `- [ ]` / `- [x]` checkbox markers. List-based unit titles fragment in every standard renderer because the per-unit fields (`**Goal:**`, `**Files:**`, `**Approach:**`, etc.) are written flush-left, which terminates CommonMark list continuation and detaches the fields from the unit they describe. Headings render correctly everywhere, are the right semantic match for sections containing multi-block content, and give each unit an anchor link. The plan is a decision artifact; execution progress is derived from git by `ce-work` rather than stored in the plan body.
+Each unit is a level-3 heading `### U1. [Name]` — never a checkbox list item (flush-left fields terminate list continuation and fragment in every standard renderer; headings render everywhere and give anchor links).
 
-**Stability rule.** Once assigned, a U-ID is never renumbered. Reordering units leaves their IDs in place (e.g., U1, U3, U5 in their new order is correct; renumbering to U1, U2, U3 is not). Splitting a unit keeps the original U-ID on the original concept and assigns the next unused number to the new unit. Deletion leaves a gap; gaps are fine. This rule matters most during deepening (Phase 5.3), which is the most likely accidental-renumber vector.
+For each unit include:
 
-For each unit, include:
-- **Goal** - what this unit accomplishes
-- **Requirements** - which requirements or success criteria it advances (cite R-IDs, and A/F/AE IDs when origin supplies them)
-- **Dependencies** - what must exist first (cite by U-ID, e.g., "U1, U3")
-- **Files** - repo-relative file paths to create, modify, or test (never absolute paths)
-- **Approach** - key decisions, data flow, component boundaries, or integration notes
-- **Execution note** - optional, only when the unit benefits from a non-default execution posture such as test-first or characterization-first
-- **Technical design** - optional pseudo-code or diagram when the unit's approach is non-obvious and prose alone would leave it ambiguous. Frame explicitly as directional guidance, not implementation specification
-- **Patterns to follow** - existing code or conventions to mirror
-- **Test scenarios** - enumerate the specific test cases the implementer should write, right-sized to the unit's complexity and risk. Consider each category below and include scenarios from every category that applies to this unit. A simple config change may need one scenario; a payment flow may need a dozen. The quality signal is specificity — each scenario should name the input, action, and expected outcome so the implementer doesn't have to invent coverage. For units with no behavioral change (pure config, scaffolding, styling), use `Test expectation: none -- [reason]` instead of leaving the field blank. **AE-link convention:** when a test scenario directly enforces an origin Acceptance Example, prefix it with `Covers AE<N>.` (or `Covers F<N> / AE<N>.`). This is sparse-by-design — most test scenarios are finer-grained than AEs and do not link. Do not force AE links onto tests that only cover lower-level implementation details.
-  - **Happy path behaviors** - core functionality with expected inputs and outputs
-  - **Edge cases** (when the unit has meaningful boundaries) - boundary values, empty inputs, nil/null states, concurrent access
-  - **Error and failure paths** (when the unit has failure modes) - invalid input, downstream service failures, timeout behavior, permission denials
-  - **Integration scenarios** (when the unit crosses layers) - behaviors that mocks alone will not prove, e.g., "creating X triggers callback Y which persists Z". Include these for any unit touching callbacks, middleware, or multi-layer interactions
-- **Verification** - how an implementer should know the unit is complete, expressed as outcomes rather than shell command scripts
+- **Goal** — what this unit accomplishes
+- **Requirements** — R-IDs advanced (and A/F/AE IDs when origin supplies them)
+- **Dependencies** — cite by U-ID
+- **Files** — repo-relative paths to create, modify, or test
+- **Approach** — key decisions, data flow, boundaries, integration notes
+- **Execution note** — optional, only for non-default posture (e.g., `Start with a failing integration test for the request/response contract.`). Never expand into RED/GREEN/REFACTOR substeps.
+- **Technical design** — optional pseudo-code or diagram when the approach is non-obvious; directional guidance, not specification
+- **Patterns to follow** — existing code or conventions to mirror
+- **Test scenarios** — enumerate the specific cases, right-sized to complexity and risk, covering every applicable category: happy paths, edge cases (boundaries, empty/nil, concurrency), error and failure paths, and integration scenarios that mocks alone won't prove (callbacks, middleware, multi-layer). Each scenario names input, action, and expected outcome. Non-behavioral units use `Test expectation: none -- [reason]`. When a scenario directly enforces an origin Acceptance Example, prefix `Covers AE<N>.` — sparse by design; don't force links onto finer-grained tests.
+- **Verification** — completion expressed as observable outcomes, not shell scripts
 
-Every feature-bearing unit should include the test file path in `**Files:**`.
-
-Use `Execution note` sparingly. Good uses include:
-- `Execution note: Start with a failing integration test for the request/response contract.`
-- `Execution note: Add characterization coverage before modifying this legacy parser.`
-- `Execution note: Implement new domain behavior test-first.`
-
-Do not expand units into literal `RED/GREEN/REFACTOR` substeps.
+Every feature-bearing unit includes its test file path in **Files**.
 
 #### 3.6 Keep Planning-Time and Implementation-Time Unknowns Separate
 
-If something is important but not knowable yet, record it explicitly under deferred implementation notes rather than pretending to resolve it in the plan.
+If something is important but not knowable yet (exact helper names, final SQL, runtime behavior, refactors that may become unnecessary), record it explicitly under deferred implementation notes rather than pretending to resolve it.
 
-Examples:
-- Exact method or helper names
-- Final SQL or query details after touching real code
-- Runtime behavior that depends on seeing actual test failures
-- Refactors that may become unnecessary once implementation starts
+#### 3.7 Anti-Expansion
 
-#### 3.7 Anti-Expansion: Tangential Cleanup and Scope Creep Go to Deferred
-
-Distinct from 3.6 (which is about *unknowns* at plan time): 3.7 is about *known but tangential* work that the agent notices while planning but that falls outside the user's confirmed scope. When research surfaces an adjacent refactor, a "while we're here" cleanup, or a scope-adjacent nice-to-have ("we could also add rate limiting"), route it to the existing `### Deferred to Follow-Up Work` subsection in Scope Boundaries (Phase 4.2 Core Plan Template), not into active Implementation Units.
-
-This reinforces the synthesis discipline established at Phase 0.7 / Phase 5.1.5 — the user's confirmed scope is what the active plan executes; everything else is deferred. Does NOT impose architectural bias on extend-vs-invent decisions within confirmed scope — that judgment stays with the agent (and is surfaced via the Phase 5.1.5 synthesis when material). The user's explicit ask overrides this default — if the user explicitly requested a refactor, it's in-scope, not deferred.
+Known-but-tangential work noticed during planning — adjacent refactors, "while we're here" cleanups, scope-adjacent nice-to-haves — routes to `### Deferred to Follow-Up Work` in Scope Boundaries, not active units. The user's explicit ask overrides (a requested refactor is in scope).
 
 ### Phase 4: Write the Plan
 
-**NEVER CODE during this skill.** Research, decide, and write the plan — do not start implementation.
+**NEVER CODE during this skill.**
 
-Use one planning philosophy across all depths. Change the amount of detail, not the boundary between planning and execution.
+Depth changes the amount of detail, not the planning/execution boundary: **Lightweight** — compact, usually 2-4 units, omit low-value optional sections. **Standard** — full core template, usually 3-6 units, include risks/deferred/system-wide impact when relevant. **Deep** — core template plus warranted analysis sections, usually 4-8 units, phase-grouped when clearer.
 
-#### 4.1 Plan Depth Guidance
+**Optional Deep extensions** (only when they genuinely help, never boilerplate): Alternative Approaches Considered, Success Metrics, Dependencies/Prerequisites, Risk Analysis & Mitigation, Phased Delivery, Documentation Plan, Operational/Rollout Notes, Future Considerations. **Alternatives vary the HOW** — architecture, sequencing, boundaries, rollout. Tiny implementation variants belong in KTDs; product-shape alternatives belong upstream in `ce-brainstorm`.
 
-**Lightweight**
-- Keep the plan compact
-- Usually 2-4 implementation units
-- Omit optional sections that add little value
+**Section contract and rendering.** Compose from `references/plan-sections.md` (the section contract: hard floor, include-when-material catalog, agency escape hatch, ID/content rules) plus the format-rendering reference loaded at Phase 0.0. Omit immaterial sections — placeholder prose is worse than omission.
 
-**Standard**
-- Use the full core template, omitting optional sections (including High-Level Technical Design) that add no value for this particular work
-- Usually 3-6 implementation units
-- Include risks, deferred questions, and system-wide impact when relevant
-
-**Deep**
-- Use the full core template plus optional analysis sections where warranted
-- Usually 4-8 implementation units
-- Group units into phases when that improves clarity
-- Include alternatives considered, documentation impacts, and deeper risk treatment when warranted
-
-#### 4.1b Optional Deep Plan Extensions
-
-For sufficiently large, risky, or cross-cutting work, add the sections that genuinely help:
-- **Alternative Approaches Considered**
-- **Success Metrics**
-- **Dependencies / Prerequisites**
-- **Risk Analysis & Mitigation**
-- **Phased Delivery**
-- **Documentation Plan**
-- **Operational / Rollout Notes**
-- **Future Considerations** only when they materially affect current design
-
-Do not add these as boilerplate. Include them only when they improve execution quality or stakeholder alignment.
-
-**Alternatives Considered — what to vary.** When this section is included, alternatives must differ on *how* the work is built: architecture, sequencing, boundaries, integration pattern, rollout strategy. Tiny implementation variants (which hash function, which serialization format) belong in Key Technical Decisions, not Alternatives. Product-shape alternatives (different actors, different core outcome, different positioning) belong in `ce-brainstorm`, not here — surface them back upstream rather than re-litigating product questions during planning.
-
-#### 4.2 Section Contract and Rendering
-
-Compose the plan using two paired references:
-
-- `references/plan-sections.md` — the section contract. Describes what the plan contains: the outcome the plan must enable for downstream consumers, the hard floor (Summary, Problem Frame, Requirements, KTDs, Implementation Units), the include-when-material catalog (HTD, Scope Boundaries, Open Questions, System-Wide Impact, Risks & Dependencies, Acceptance Examples, Documentation/Operational Notes, Sources & Research), the agency-driven escape hatch (introduce new sections when content warrants), and the ID/content rules.
-- The format-rendering reference loaded at Phase 0.0 (`markdown-rendering.md` OR `html-rendering.md`) — how to present the sections in the resolved output format.
-
-The section catalog is the same regardless of format. Format-specific principles (table-vs-prose by content shape, ID prefix format, diagram rendering, etc.) live in the rendering reference.
-
-Omit "include when material" sections that don't carry information for this specific plan. Filling a section with placeholder prose is worse than omitting it.
-
-#### 4.3 Planning Rules
-
-- **Horizontal rules (`---`) between top-level sections** in Standard and Deep plans, mirroring the `ce-brainstorm` requirements doc convention. Improves scannability of dense plans where many H2 sections sit close together. Omit for Lightweight plans where the whole doc fits on a single screen.
-- **All file paths must be repo-relative** — never use absolute paths like `/Users/name/Code/project/src/file.ts`. Use `src/file.ts` instead. Absolute paths make plans non-portable across machines, worktrees, and teammates. When a plan targets a different repo than the document's home, state the target repo once at the top of the plan (e.g., `**Target repo:** my-other-project`) and use repo-relative paths throughout
-- Prefer path plus class/component/pattern references over brittle line numbers
-- Do not include implementation code — no imports, exact method signatures, or framework-specific syntax
-- Pseudo-code sketches and DSL grammars are allowed in the High-Level Technical Design section and per-unit technical design fields when they communicate design direction. Frame them explicitly as directional guidance, not implementation specification
-- Mermaid diagrams are encouraged when they clarify relationships or flows that prose alone would make hard to follow — ERDs for data model changes, sequence diagrams for multi-service interactions, state diagrams for lifecycle transitions, flowcharts for complex branching logic
-- Do not include git commands, commit messages, or exact test command recipes
-- Do not expand implementation units into micro-step `RED/GREEN/REFACTOR` instructions
-- Do not pretend an execution-time question is settled just to make the plan look complete
+**Planning rules:** horizontal rules between top-level sections in Standard/Deep plans; repo-relative paths (state the target repo once when planning for another repo); prefer path+pattern references over line numbers; no implementation code (directional pseudo-code/DSL sketches allowed, framed as such); mermaid diagrams encouraged where they clarify; no git commands or test command recipes; no fake certainty about execution-time questions.
 
 ### Phase 5: Final Review, Write File, and Handoff
 
 #### 5.1 Review Before Writing
 
-Before finalizing, check:
-- The plan does not invent product behavior that should have been defined in `ce-brainstorm`
-- If there was no origin document, the bounded planning bootstrap established enough product clarity to plan responsibly
-- Every major decision is grounded in the origin document or research
-- Each implementation unit is concrete, dependency-ordered, and implementation-ready
-- If test-first or characterization-first posture was explicit or strongly implied, the relevant units carry it forward with a lightweight `Execution note`
-- Each feature-bearing unit has test scenarios from every applicable category (happy path, edge cases, error paths, integration) — right-sized to the unit's complexity, not padded or skimped
-- Test scenarios name specific inputs, actions, and expected outcomes without becoming test code
-- Feature-bearing units with blank or missing test scenarios are flagged as incomplete — feature-bearing units must have actual test scenarios, not just an annotation. The `Test expectation: none -- [reason]` annotation is only valid for non-feature-bearing units (pure config, scaffolding, styling)
-- Deferred items are explicit and not hidden as fake certainty
-- **High-Level Technical Design presence audit (load-bearing).** For each architecture trigger in Phase 3.4 that the plan content satisfies (3+ components with directed relationships, 3+ protocol steps, 3+ state machine states, lifecycle, 3+ decision points, 3+ data-flow stages, mode/flag combinations, DSL/API surface design, non-obvious single-component shape), verify a corresponding sketch/diagram is present in the High-Level Technical Design section. Count the firing triggers; count the sketches; the sketch count must be at least the count of distinct trigger categories that fired. Missing the section when a trigger fired, OR including the section but skipping a triggered sketch within it, is incomplete — return to Phase 3.4 and add the missing sketch. Token cost is not a valid reason to fail this check.
-- If a High-Level Technical Design section is included, it uses the right medium for the work, carries the non-prescriptive framing, and does not contain implementation code (no imports, exact signatures, or framework-specific syntax)
-- Per-unit technical design fields, if present, are concise and directional rather than copy-paste-ready
-- If the plan creates a new directory structure, would an Output Structure tree help reviewers see the overall shape?
-- If Scope Boundaries lists items that are planned work for a separate PR, issue, or repo, are they under `### Deferred to Follow-Up Work` rather than mixed with true non-goals?
-- U-IDs are unique within the plan and follow the stability rule — no two units share an ID; reordering or splitting did not renumber existing units; gaps from deletions are preserved
-- Would a visual aid (dependency graph, interaction diagram, comparison table) help a reader grasp the plan structure faster than scanning prose alone?
+Check that: the plan invents no product behavior that belonged in `ce-brainstorm`; major decisions are grounded in origin or research; units are concrete, dependency-ordered, and implementation-ready; posture signals carry forward as Execution notes; every feature-bearing unit has real test scenarios from each applicable category (the `none` annotation is only valid for non-feature-bearing units); deferred items are explicit; U-IDs follow the stability rule; and a visual aid is present where it would beat prose.
 
-If the plan originated from a requirements document, re-read that document and verify:
-- The chosen approach still matches the product intent
-- Scope boundaries and success criteria are preserved
-- Blocking questions were either resolved, explicitly assumed, or sent back to `ce-brainstorm`
-- Every section of the origin document is addressed in the plan — scan each section to confirm nothing was silently dropped
-- If origin supplies A/F/AE IDs: every origin R/F/AE that *affects implementation* is referenced in Requirements, a U-ID unit, test scenarios, verification, scope boundaries, or explicitly deferred. Actors are carried forward when they affect behavior, permissions, UX, orchestration, handoff, or verification. The standard is preservation of product intent, not mandatory ID spam — irrelevant origin IDs may be omitted
-- If origin was Deep-product (origin contains an `Outside this product's identity` subsection): the plan's Scope Boundaries preserves the three-way split — `Deferred for later` and `Outside this product's identity` carried verbatim from origin, `Deferred to Follow-Up Work` reserved for plan-local implementation sequencing
+If the plan originated from a requirements document, re-read it and verify: the approach still matches product intent; scope boundaries and success criteria are preserved; blockers were resolved, assumed, or sent back; no origin section was silently dropped; origin R/F/AE IDs that affect implementation are referenced or explicitly deferred (preservation of intent, not ID spam); and a Deep-product origin's three-way scope split is preserved verbatim.
 
 #### 5.1.5 Brainstorm-Sourced Scoping Synthesis
 
-Surface plan-time call-outs to the user before Phase 5.2 commits the plan to disk — the latest cheap moment to catch plan-time scope errors. The brainstorm already validated WHAT to build; this phase surfaces HOW the plan will execute on the forks that matter.
+The latest cheap moment to catch plan-time scope errors, before 5.2 commits the plan to disk. Fires only when Phase 0.2 found an upstream requirements doc and not on 0.1 fast paths (solo invocations handled this at 0.7).
 
-Fires **only when the plan was sourced from an upstream brainstorm doc** (Phase 0.2 found a `*-requirements.md` or `*-requirements.html` match) AND not on Phase 0.1 fast paths (resume normal, deepen-intent). Skip Phase 5.1.5 in solo invocation — solo plans handled their synthesis in Phase 0.7.
-
-**Read `references/synthesis-summary.md` before composing the scoping synthesis.** It carries the affirmability test, keep-test criteria, detail test, summary shape budgets, granularity rules, anti-patterns, revision-vs-confirmation discipline, doc-body reading rules, doc-shape routing, soft-cut behavior, self-redirect support, the worked PII compression example, and full headless-mode routing — all required for a well-shaped synthesis.
-
-**Required gate output — do not skip; silent proceeding is not allowed.** Compose an internal three-bucket scope draft (Stated / Inferred / Out of scope — internal thinking that feeds plan-body routing at Phase 5.2, not the chat output below). Derive call-outs (specific forks where user input materially changes the plan), then emit one of the two literal templates below in chat before continuing to Phase 5.2.
-
-**Synthesis is pre-plan-write.** The agent does NOT yet know how plan-write will sequence the work. Do not claim PR count ("one PR"), commit/branch shape, effort or time estimates, Implementation Unit boundaries, or exact file paths in the synthesis. The synthesis surfaces decisions knowable at THIS point (brainstorm + research + agent posture); plan-write produces the rest. This rule holds even when the agent has formed plan-write opinions earlier in the session — those stay internal until plan-write.
-
-**Summary shape: two paragraphs.**
-
-1. **Brainstorm-scope restatement** (1-2 sentences, prose). Restates the brainstorm's scope as orientation, in the brainstorm's own vocabulary. NOT an enumeration of Implementation Units, restated constraints, or listed acceptance examples — the user wrote those.
-2. **Plan-specific scoping decisions** (prose, or bullets when multi-faceted). Scope-level commitments the agent made that the brainstorm did not: full brainstorm coverage vs. narrowed subset; adjacent refactors pulled in vs. held out; test scope at scenario level. Each item must be affirmable by the user without reading code. Form follows substance; tier budgets are **ceilings, not targets** (Lightweight 1-3 lines; Standard up to 3-5 lines or 2-4 bullets; Deep up to 4-6 lines or 3-6 bullets). 1-2 lines per bullet. Less is correct when there isn't more to say. See reference for keep test, detail test, and source-vocabulary discipline.
-
-**Do NOT enumerate the touch surface.** Sentences like "The touch surface is...", "This plan touches...", "The implementation reaches into...", "Files modified include..." are plan-pitch leaks. File paths, module names, directory introductions, and per-file change descriptions belong in the plan body (Implementation Units at Phase 5.2), not the synthesis. The synthesis names *what* the plan targets, not *where* the code lives.
-
-**Pre-emit scans.** Before emitting the synthesis, scan the output:
-- Bare ID references (`AE\d+`, `R\d+`, `F\d+`, `A\d+`, `U\d+`) → replace with plain names.
-- File paths (`path/like.md`, `path/like.py`, etc.) → cut unless the path IS the topic of an explicit fork in the call-outs.
-
-**Tier guard on auto-proceed:** the auto-proceed path (announce without waiting for confirmation) fires only when plan depth is **Lightweight AND zero call-outs survive**. Standard and Deep plans always fire the confirmation gate, even with zero call-outs.
-
-**Confirmation template (Standard/Deep regardless of call-out count, or any tier with one or more call-outs surviving):**
-
-````text
-The brainstorm scopes [1-2 sentence restatement in the brainstorm's vocabulary as orientation; NOT an enumeration of Implementation Units, constraints, or acceptance examples].
-
-This plan [plan-specific scoping decisions: full-brainstorm coverage vs. narrowed subset; adjacent refactors in or out; test scope at scenario level. NOT PR count, sequencing, IU lists, or file paths].
-
-**Call outs:** (omit this header when zero forks survived the keep test)
-- [plan-time fork in 1-2 lines: name the choice and optional one-clause trade-off in parens. NO multi-sentence rationale, NO "my default is X" pitch]
-
-Confirm and I'll write the plan next, drawing on the brainstorm, research, and this synthesis.
-````
-
-Wait for user confirmation before continuing to Phase 5.2.
-
-**Auto-proceed template (Lightweight with zero call-outs only):**
-
-````text
-Planning [brief brainstorm-scope restatement] — [plan-specific shape in one clause].
-
-No open decisions to weigh in on — proceeding to plan-write. Interrupt if I have the scope wrong.
-````
-
-Then continue to Phase 5.2 without a blocking question.
-
-**Headless mode**: internal draft is composed but stage 2 (chat-time call-outs) is skipped — no synchronous user to confirm to. Proceed to Phase 5.2 plan-write. Inferred bets from the internal draft route to a `## Assumptions` section in the plan instead of Key Technical Decisions. See `references/synthesis-summary.md` Headless mode for the full routing.
+Read `references/synthesis-summary.md` and follow the brainstorm-sourced variant: internal three-bucket draft, call-outs via the keep and detail tests, two-paragraph summary (brainstorm restatement + plan-specific scoping decisions), confirmation gate. Auto-proceed only for Lightweight with zero call-outs. Headless: internal draft only; Inferred bets route to `## Assumptions`.
 
 #### 5.2 Write Plan File
 
-**REQUIRED: Write the plan file to disk before presenting any options.**
+**Write the plan file to disk before presenting any options**: `.ai/plans/YYYY-MM-DD-NNN-<type>-<descriptive-name>-plan.<md|html>` (extension follows `OUTPUT_FORMAT`; sequence counts both extensions). Compose from `references/plan-sections.md` plus the loaded rendering reference. **Write tight** per the prose-economy discipline in plan-sections — before declaring it written, run the named test there.
 
-Use the Write tool to save the complete plan to the resolved format's extension:
+Confirm with the absolute path so the reference is clickable: `Plan written to <absolute path>`.
 
-```text
-.ai/plans/YYYY-MM-DD-NNN-<type>-<descriptive-name>-plan.<md|html>
-```
-
-Extension follows `OUTPUT_FORMAT` from Phase 0.0 — `.md` when markdown, `.html` when HTML. Sequence number `NNN` is derived from existing plan files in `.ai/plans/` regardless of extension (count both `.md` and `.html`) to ensure unique daily ordering.
-
-Compose the plan using the content from `references/plan-sections.md` and the format-specific principles from the rendering reference loaded at Phase 0.0 (`markdown-rendering.md` OR `html-rendering.md`).
-
-**Write tight.** A section being material is not license to pad it. Hold every kept section to the prose-economy discipline in `references/plan-sections.md`: one idea per sentence, a requirement or unit is intent plus at most one qualifier, defer forks to Open Questions rather than specifying both arms, resolve superseded text in place rather than stacking strata. Before declaring the plan written, run the named test there — could the implementer find a contradiction in each section in one pass?
-
-**HTML composition timing.** When `OUTPUT_FORMAT=html`, Phase 5.3 deepening runs before this write completes its final form, but `document-review` is skipped in HTML mode because its edits are markdown-only today — see Phase 5.3.8 format gate in `references/plan-handoff.md`. The HTML artifact reflects deepening synthesis but not doc-review cleanup; this is a known gap until document-review gains HTML-aware editing.
-
-Confirm (use absolute path so the reference is clickable in modern terminals):
-
-```text
-Plan written to <absolute path to plan>
-```
-
-**Pipeline mode:** If invoked from an automated workflow or any `disable-model-invocation` context, skip interactive questions. Make the needed choices automatically and proceed to writing the plan. Pipeline mode forces `OUTPUT_FORMAT=md` at Phase 0.0.
-
-**CONCEPTS.md gap-fill (only if the file already exists):** If the plan body uses a domain term whose definition is missing from `CONCEPTS.md`, add the entry. **Domain entities, named processes, and status concepts with project-specific meaning only** — not file paths, class names, function signatures, or implementation decisions. `CONCEPTS.md` is a glossary, not a spec or catch-all. Follow the format set by existing entries. Apply silently. Skip entirely if `CONCEPTS.md` does not exist — creation is owned by ce-compound and ce-compound-refresh.
+**CONCEPTS.md gap-fill** (only if the file exists): add missing definitions for domain terms the plan uses — domain entities, named processes, status concepts only; follow existing entry format; apply silently.
 
 #### 5.3 Confidence Check and Deepening
 
-After writing the plan file, automatically evaluate whether the plan needs strengthening.
+After writing, evaluate whether the plan needs strengthening. Two modes: **auto** (default during generation — findings synthesize directly into the plan) and **interactive** (the 0.1 re-deepen fast path — findings are reviewed with the user before integration). Pipeline runs are always auto.
 
-**Two deepening modes:**
+`document-review` checks clarity, coherence, and scope; this confidence check strengthens rationale, sequencing, risk treatment, and grounding — both run.
 
-- **Auto mode** (default during plan generation): Runs without asking the user for approval. The user sees what is being strengthened but does not need to make a decision. Sub-agent findings are synthesized directly into the plan.
-- **Interactive mode** (activated by the re-deepen fast path in Phase 0.1): The user explicitly asked to deepen an existing plan. Sub-agent findings are presented individually for review before integration. The user can accept, reject, or discuss each agent's findings. Only accepted findings are synthesized into the plan.
+**5.3.1 Classify:** confirm plan depth and build a risk profile (auth/security, payments, migrations and persistent data, external APIs, privacy/compliance, cross-surface parity, significant rollout/operational concerns are high-risk signals).
 
-This applies whether the plan was generated by this skill, written by hand, or produced by another tool.
+**5.3.2 Gate:** Lightweight plans usually skip deepening unless high-risk; Standard plans deepen when important sections look thin; Deep or high-risk plans usually benefit. Two overrides always send the plan to scoring: **thin local grounding** (1.2 triggered research because local patterns were thin — unfamiliar-territory claims are more likely assumptions) and **load-bearing external research** (the 1.4 flag — external findings can shape what local code cannot verify). If no deepening is needed, report "Confidence check passed — no sections need strengthening" and go directly to 5.3.8.
 
-`document-review` and this confidence check are different:
-- Use the `document-review` skill when the document needs clarity, simplification, completeness, or scope control
-- This confidence check strengthens rationale, sequencing, risk treatment, and system-wide thinking when the plan is structurally sound but still needs stronger grounding
+**5.3.3–5.3.7:** when deepening is warranted, read `references/deepening-workflow.md` and execute it, then return here.
 
-**Pipeline mode:** This phase always runs in auto mode in pipeline/disable-model-invocation contexts. No user interaction needed.
+#### 5.3.8–5.4 Document Review, Final Checks, and Handoff
 
-##### 5.3.1 Classify Plan Depth and Topic Risk
+Load `references/plan-handoff.md` for 5.3.8 (document review — mandatory for markdown plans regardless of the confidence check; HTML plans skip it per the format gate there), 5.3.9 (final checks and cleanup), and 5.4 (post-generation menu, routing, and Issue Creation).
 
-Determine the plan depth from the document:
-- **Lightweight** - small, bounded, low ambiguity, usually 2-4 implementation units
-- **Standard** - moderate complexity, some technical decisions, usually 3-6 units
-- **Deep** - cross-cutting, high-risk, or strategically important work, usually 4-8 units or phased delivery
-
-Build a risk profile. Treat these as high-risk signals:
-- Authentication, authorization, or security-sensitive behavior
-- Payments, billing, or financial flows
-- Data migrations, backfills, or persistent data changes
-- External APIs or third-party integrations
-- Privacy, compliance, or user data handling
-- Cross-interface parity or multi-surface behavior
-- Significant rollout, monitoring, or operational concerns
-
-##### 5.3.2 Gate: Decide Whether to Deepen
-
-- **Lightweight** plans usually do not need deepening unless they are high-risk
-- **Standard** plans often benefit when one or more important sections still look thin
-- **Deep** or high-risk plans often benefit from a targeted second pass
-- **Thin local grounding override:** If Phase 1.2 triggered external research because local patterns were thin (fewer than 3 direct examples or adjacent-domain match), always proceed to scoring regardless of how grounded the plan appears. When the plan was built on unfamiliar territory, claims about system behavior are more likely to be assumptions than verified facts. The scoring pass is cheap — if the plan is genuinely solid, scoring finds nothing and exits quickly
-- **Load-bearing external research override:** If Phase 1.4 marked external research as load-bearing (it materially shaped a KTD, Alternative, Scope boundary, or Risk), always proceed to scoring — **even when local implementation patterns are strong**. A landscape or prior-art finding can shape recommendations the local codebase cannot verify, and the thin-grounding override above would miss it. This enters the scoring pass only; it does not force deepening
-
-If the plan already appears sufficiently grounded and neither the thin-grounding nor the load-bearing-external-research override applies, report "Confidence check passed — no sections need strengthening", then **load `references/plan-handoff.md` now and execute 5.3.8 → 5.3.9 → 5.4 in sequence**. Document review is mandatory for markdown plans — do not skip it because the confidence check passed. The two tools catch different classes of issues. For HTML plans (`OUTPUT_FORMAT=html`), the plan-handoff 5.3.8 format gate skips document-review since its editing mechanics are markdown-only today; the menu summary surfaces that limitation explicitly.
-
-##### 5.3.3–5.3.7 Deepening Execution
-
-When deepening is warranted, read `references/deepening-workflow.md` for confidence scoring checklists, section-to-agent dispatch mapping, execution mode selection, research execution, interactive finding review, and plan synthesis instructions. Execute steps 5.3.3 through 5.3.7 from that file, then return here for 5.3.8.
-
-##### 5.3.8–5.4 Document Review, Final Checks, and Post-Generation Options
-
-**STOP. Load `references/plan-handoff.md` now before continuing.** It carries the full instructions for 5.3.8 (document review), 5.3.9 (final checks and cleanup), and 5.4 (post-generation handoff, including Issue Creation branching). **This load is non-optional** — without it, the agent renders the post-generation menu, captures the user's selection, and stops without firing the routed action. Document review at 5.3.8 runs unconditionally for `OUTPUT_FORMAT=md` regardless of whether the confidence check already ran; for `OUTPUT_FORMAT=html`, plan-handoff's 5.3.8 format gate skips document-review because its editing mechanics are markdown-only today. The default mode for markdown is headless (`mode:headless`) — trivial-safe fixes apply silently, remaining findings surface contextually above the menu, and a deeper interactive review is opt-in via free-form prompt.
-
-After document review and final checks, print a one-line summary of the headless review state above the menu (e.g., `Doc review applied 3 fixes. 2 decisions, 1 proposed fix, 4 FYI observations remain (1 at P1).`; for HTML plans where 5.3.8 was skipped, print `Doc review skipped — document-review is markdown-only today; the HTML plan was not reviewed.`), then present the menu. Show `Run deeper doc review` only when actionable findings remain (`proposed_fixes_count + decisions_count > 0`), and show `Open in browser` only for HTML artifacts. Renumber the visible options so users see a clean sequence. Use the platform's blocking question tool where available (`AskUserQuestion` in Claude Code — call `ToolSearch` with `select:AskUserQuestion` first if its schema isn't loaded; `request_user_input` in Codex; `ask_user` in Gemini/Pi). When no blocking question tool is available or it errors, fall back to a numbered list in chat with "Pick a number or describe what you want." Never silently skip the question.
-
-**Question:** "Plan ready at `<absolute path to plan>`. What would you like to do next?" (use absolute path so the reference is clickable in modern terminals)
-
-**Options.** The browser option applies only to HTML artifacts. Markdown plans are reviewed via document-review and then handed off to work, issue creation, or pause.
-
-1. **Start `/ce-work`** (recommended) - Begin implementing this plan in the current session
-2. **Run deeper doc review** - Review the remaining findings interactively
-3. **Create Issue** - Create a tracked issue from this plan in your configured issue tracker (GitHub or Linear)
-4. **Open in browser** - Open the HTML plan file locally for review and sharing. **Render only when `OUTPUT_FORMAT=html`.**
-5. **Done for now** - Pause; the plan file is saved and can be resumed later
-
-**Routing.** Act on the user's selection — do not just announce it. Elaborate sub-flows (Issue Creation tracker detection and post-action menu handling) live in `references/plan-handoff.md`.
-
-- **Start `/ce-work`** — Invoke the `ce-work` skill via the platform's skill-invocation primitive (`Skill` in Claude Code, `Skill` in Codex, the equivalent on Gemini/Pi), passing the plan path as the skill argument. Do not merely tell the user to type `/ce-work` — fire the invocation now so the plan executes in this session.
-- **Run deeper doc review** — Re-invoke the `document-review` skill on the plan path **without** `mode:headless` so the interactive routing question fires. After it returns, re-render this menu with refreshed counts so the user can pick a next-stage action.
-- **Create Issue** — Detect the project tracker (`gh` for GitHub, `linear` for Linear) and create the issue from the plan file as described under "Issue Creation" in `references/plan-handoff.md`. After creation, display the issue URL and ask whether to proceed to `/ce-work` via the platform's blocking question tool.
-- **Open in browser** — Display the absolute path to the `.html` plan file so the user can open it locally. Where the platform exposes a browser-opening primitive (e.g., `open` on macOS, `xdg-open` on Linux, `start` on Windows), the agent may use it; otherwise print the absolute path and let the user open it. Do not invoke `ce-work` from this option — the user picked HTML for review/sharing, not handoff.
-- **Done for now** — Display a brief confirmation that the plan file is saved and end the turn. Do not start follow-up work without an explicit further user prompt.
-
-If the user types free-form prompts targeting the findings (e.g., "review", "walk through", "deep review"), route as if they picked `Run deeper doc review` — fire the skill rather than looping back to the menu. For other free-text revisions, accept the input and loop back to this menu after applying the revision.
-
-**Completion check:** This skill is not complete until the post-generation menu above has been presented, the user has selected an action, and the inline routing for that selection has been executed. Presenting the menu and stopping at the user's selection is not completion — fire the routed action.
-
-**Pipeline mode exception:** In an automated pipeline or any `disable-model-invocation` context, skip the interactive menu and return control to the caller after the plan file is written, confidence check has run, and `document-review` has run in headless mode (per `references/plan-handoff.md`). Pipeline mode forces `OUTPUT_FORMAT=md` at Phase 0.0, so the 5.3.8 format gate never selects the HTML skip path in pipeline runs.
+This skill is complete only when the post-generation menu has been presented, the user selected an action, and the routed action was fired — not merely announced. Pipeline runs skip the menu and return to the caller after plan write + confidence check + headless document-review.

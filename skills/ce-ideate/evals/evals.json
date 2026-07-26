@@ -1,0 +1,56 @@
+{
+  "skill_name": "ce-ideate",
+  "purpose": "Guard the surprise-me contract and the subject-identifiability judgment: vague prompts get one scope question with 'Surprise me' as a real option; surprise-me runs dispatch without further subject questions (repo-grounded in a repo, substance-required outside one); short-but-identifiable subjects are never gated.",
+  "non_purpose": "Not testing idea quality, critique rigor, or survivor counts — only the intake routing that decides whether and how agents dispatch.",
+  "variance_protocol": {
+    "runs_per_eval": 3,
+    "stability_metric": "routing agreement across runs",
+    "pass_threshold": "3/3 runs take the expected route"
+  },
+  "grading_pipeline": {
+    "stage_1": "Programmatic transcript checks: did a scope question fire, did it include a surprise-me option, did dispatch proceed without subject questions, did the run end cleanly when substance was refused.",
+    "stage_2": "LLM grader (grader.md) — judges question intent (subject-identifying vs subject-characterizing) and whether discovered subjects came from grounding material."
+  },
+  "evals": [
+    {
+      "id": 1,
+      "name": "vague-prompt-offers-surprise-me",
+      "tests_risk": "silent_repo_interpretation",
+      "prompt": "/ce-ideate improvements",
+      "setup": "CWD inside any real git repo.",
+      "expected_behavior": "Exactly one blocking scope question fires before any agent dispatch, offering: specify a subject, 'Surprise me' as a first-class option, and cancel. The run must not silently interpret 'improvements' as 'about this repo' and dispatch.",
+      "must_not": "Dispatching grounding/ideation agents without asking; asking about constraints, audience, tone, or success criteria (those are ce-brainstorm's questions).",
+      "notes": "Being inside a repo does not settle vagueness — the repo supplies grounding after a subject is settled, not the subject itself."
+    },
+    {
+      "id": 2,
+      "name": "surprise-me-in-repo-dispatches-clean",
+      "tests_risk": "surprise_me_degraded_to_fallback",
+      "prompt": "/ce-ideate ideas -> user selects 'Surprise me' at the scope question",
+      "setup": "CWD inside a real git repo with substantive code.",
+      "expected_behavior": "After the surprise-me selection: zero further subject or characterization questions; run routes repo-grounded and dispatches grounding + ideation; the resulting ideas name concrete subjects discovered from repo material (files, subsystems, workflows), not generic software advice.",
+      "must_not": "A second question asking the user to narrow the focus; ideas untethered from the repo's actual content; skipping ideation because no subject was given.",
+      "notes": "Surprise-me is a first-class mode, not a fallback for users who can't name a subject."
+    },
+    {
+      "id": 3,
+      "name": "surprise-me-outside-repo-requires-substance",
+      "tests_risk": "empty_dispatch",
+      "prompt": "/ce-ideate surprise me -> user gives a dismissive 'idk just go' when asked for material",
+      "setup": "CWD outside any git repo. User supplies no URL, description, draft, or paste.",
+      "expected_behavior": "One ask for substance (URL, description, or paste). When refused, the run states it needs material to proceed and ends cleanly for re-invocation — no agents dispatched.",
+      "must_not": "Dispatching ideation agents with no subject and no substance; looping on repeated asks.",
+      "notes": "'Surprise me' outside a repo is only viable once there is something to surprise the user about."
+    },
+    {
+      "id": 4,
+      "name": "short-identifiable-subject-not-gated",
+      "tests_risk": "length_treated_as_vagueness",
+      "prompt": "/ce-ideate dark mode",
+      "setup": "CWD inside a git repo for a UI product (with or without existing dark-mode code).",
+      "expected_behavior": "No scope question — 'dark mode' plausibly names a specific subject. The run proceeds to mode classification and dispatch (a cheap repo footprint check is acceptable first).",
+      "must_not": "Firing the scope question on a short-but-identifiable phrase.",
+      "notes": "Vagueness is about what the words refer to, not phrase length — guards the judgment half of the gate. Run history (2026-07-26): evals 1-3 passed 3/3 each; eval 4 runs showed correct behavior 3/3 (zero questions, footprint check, dispatch notice reached) but were graded fail by a rubric line demanding observed dispatch while the runbook stopped runs at the dispatch decision — rubric corrected same day; adjudicated pass."
+    }
+  ]
+}

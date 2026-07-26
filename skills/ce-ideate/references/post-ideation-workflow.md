@@ -1,83 +1,28 @@
 # Post-Ideation Workflow
 
-Read this file after Phase 2 ideation agents return and the orchestrator has merged and deduped their outputs into a master candidate list. Do not load before Phase 2 completes.
+Read this file after Phase 2 ideation agents return and their outputs are merged and deduped. It carries the critique rubric, artifact contract, and wrap-up menu for all modes.
 
 ## Phase 3: Adversarial Filtering
 
-Review every candidate idea critically. The orchestrator performs this filtering directly -- do not dispatch sub-agents for critique.
+Critique every candidate directly in the orchestrator — no critique sub-agents, and no replacement ideas unless explicitly refining. Every rejection gets a one-line reason.
 
-Do not generate replacement ideas in this phase unless explicitly refining.
+Rejection criteria: too vague; not actionable; duplicates a stronger idea; not grounded in the stated context; too expensive relative to likely value; already covered by existing workflows or docs; better handled as a brainstorm variant; **unjustified** (no articulated basis, or the stated basis does not actually support the claimed move); **below ambition floor** (fails the meeting-test — waived under tactical scope); **subject-replacement** (abandons the subject rather than operating on it); **scope overrun** (expands beyond the asked slice without a basis that justifies it).
 
-For each rejected idea, write a one-line reason.
+Score survivors weighing: groundedness, **basis strength** (`direct:` > `external:` > `reasoned:`; none excluded), expected value, novelty, pragmatism, leverage on future work, implementation burden, overlap with stronger ideas, and **axis spread** when axes exist — spread is a list-level concern applied after per-idea filtering: prefer borderline candidates on under-represented axes, and record any axis with zero survivors as a deliberate gap in the rejection summary.
 
-Rejection criteria:
-- too vague
-- not actionable
-- duplicates a stronger idea
-- not grounded in the stated context
-- too expensive relative to likely value
-- already covered by existing workflows or docs
-- interesting but better handled as a brainstorm variant, not a product improvement
-- **unjustified — no articulated basis** (sub-agent failed to provide `direct:`, `external:`, or `reasoned:` justification, or the stated basis does not actually support the claimed move)
-- **below ambition floor** (fails the meeting-test: would not warrant team discussion — except when Phase 0.5 detected tactical focus signals, in which case this criterion is waived)
-- **subject-replacement** (abandons or replaces the subject of ideation rather than operating on it — e.g., "pivot to an unrelated domain," "become a different organization")
-- **scope overrun** (expands beyond the asked scope rather than ideating within it — e.g., proposes changes to the whole product when the user asked about one flow, stage, or section). Allowed only when the basis explicitly justifies the expansion; default is reject or downgrade.
-
-Score survivors using a consistent rubric weighing: groundedness in stated context, **basis strength** (`direct:` > `external:` > `reasoned:`; none excluded, but direct-evidence ideas score higher all else equal), expected value, novelty, pragmatism, leverage on future work, implementation burden, overlap with stronger ideas, and **axis spread** (when Phase 1.5 produced an axis list) — survivor sets that cover the topic's surface outscore sets that cluster on one axis, all else equal.
-
-**Axis coverage as a list-level concern.** When axes were defined, axis spread is evaluated across the survivor set, not per-idea. After per-idea filtering, check the survivor set: if axis coverage is uneven and stronger candidates exist on under-represented axes, prefer the spread when promoting borderline candidates. Phase 2's recovery dispatch should already have surfaced candidates for empty axes; this is a polish step on the survivor selection. If an axis ends up with zero survivors despite recovery (or because recovery hit the 2-axis cap), note it in the rejection summary as a deliberate gap rather than an oversight.
-
-Target output:
-- keep 5-7 survivors by default
-- if too many survive, run a second stricter pass
-- if fewer than 5 survive, report that honestly rather than lowering the bar
+Keep 5-7 survivors by default. Too many → a second, stricter pass. Fewer than 5 → report that honestly rather than lowering the bar.
 
 ## Phase 4: Present the Survivors
 
-**Checkpoint B (V17).** Before presenting, write `<scratch-dir>/survivors.md` (using the absolute path captured in Phase 1) containing the survivor list plus key context (focus hint, grounding summary, rejection summary). This protects the post-critique state before the user reaches the persistence menu. Best-effort: if the write fails (disk full, permissions), log a warning and proceed; the checkpoint is not load-bearing. Reuses the same `<run-id>` and `<scratch-dir>` generated in Phase 1; not cleaned up at the end of the run (the run directory is preserved so the V15 cache remains reusable across run-ids in the same session — see Phase 6).
+First write `<scratch-dir>/survivors.md` (survivor list + focus hint, grounding summary, rejection summary) — best-effort checkpoint; warn and proceed on failure.
 
-Present the surviving ideas to the user. The terminal review loop is a complete ideation cycle in itself — persistence is opt-in (Phase 5), and refinement happens in conversation with no file or network cost (Phase 6).
+Present each survivor: title, description, axis (when axes exist), basis (tagged, with the quoted evidence, cited source, or written-out argument), rationale, downsides, confidence score, estimated complexity. Follow with a brief rejection summary so the user sees what was considered and cut. Keep it concise; allow lightweight follow-up.
 
-Present only the surviving ideas in structured form:
+## Phase 5: Persistence (Opt-In)
 
-- title
-- description
-- **axis** (when Phase 1.5 produced an axis list)
-- **basis** (tagged `direct:` / `external:` / `reasoned:`, with the quoted evidence, cited source, or written-out argument)
-- rationale (how the basis connects to the move's significance)
-- downsides
-- confidence score
-- estimated complexity
+The terminal review loop is a complete ideation cycle — persistence triggers only when the user chooses Brainstorm or Save in Phase 6 (which need a durable record first) or asks directly. Honor explicit path overrides.
 
-Then include a brief rejection summary so the user can see what was considered and cut.
-
-Keep the presentation concise. Allow brief follow-up questions and lightweight clarification.
-
-## Phase 5: Persistence (Opt-In, Mode-Aware)
-
-Persistence is opt-in. The terminal review loop is a complete ideation cycle. Refinement loops happen in conversation with no file or network cost. Persistence triggers only when the user explicitly chooses to save or hand off (selected in Phase 6).
-
-When the user picks an option in Phase 6 that requires a durable record (Brainstorm, Save and end), ensure a record exists first. When the user chooses to keep refining, no record is needed unless the user asks.
-
-**Mode-determined defaults:**
-
-| Action | Repo mode default | Elsewhere mode default |
-|---|---|---|
-| Save | `.ai/ideation/YYYY-MM-DD-<topic>-ideation.md` | `.ai/ideation/YYYY-MM-DD-<topic>-ideation.md` |
-| Brainstorm handoff | `ce-brainstorm` | `ce-brainstorm` (universal-brainstorming) |
-| End | Conversation only is fine | Conversation only is fine |
-
-Users can also request a custom local path. Honor explicit path overrides directly.
-
-### 5.1 File Save
-
-1. Ensure `.ai/ideation/` exists
-2. Choose the file path:
-   - `.ai/ideation/YYYY-MM-DD-<topic>-ideation.md`
-   - `.ai/ideation/YYYY-MM-DD-open-ideation.md` when no focus exists
-3. Write or update the ideation document
-
-Use this structure and omit clearly irrelevant fields only when necessary:
+Save to `.ai/ideation/YYYY-MM-DD-<topic>-ideation.md` (`-open-ideation` when no focus), creating the directory if needed. When resuming, update the existing file in place and preserve explored markers. Structure:
 
 ```markdown
 ---
@@ -90,102 +35,33 @@ mode: <repo-grounded | elsewhere-software | elsewhere-non-software>
 # Ideation: <Title>
 
 ## Grounding Context
-[Grounding summary from Phase 1 — labeled "Codebase Context" in repo mode, "Topic Context" in elsewhere mode]
+[Grounding summary from Phase 1]
 
 ## Topic Axes
-[3-5 axes from Phase 1.5, one per line, OR a single line `Decomposition skipped — atomic subject` / `Decomposition skipped — surprise-me mode` when Phase 1.5 was skipped. Omit this section entirely if not applicable.]
+[Axis list, or the skip line recorded in Phase 1.5. Omit when not applicable.]
 
 ## Ranked Ideas
 
 ### 1. <Idea Title>
-**Description:** [Concrete explanation]
-**Axis:** [Topic axis this idea targets — omit when decomposition was skipped]
-**Basis:** [`direct:` / `external:` / `reasoned:` — quoted, cited, or written-out argument]
-**Rationale:** [How the basis connects to the move's significance]
-**Downsides:** [Tradeoffs or costs]
-**Confidence:** [0-100%]
-**Complexity:** [Low / Medium / High]
-**Status:** [Unexplored / Explored]
+**Description:** / **Axis:** / **Basis:** / **Rationale:** / **Downsides:** / **Confidence:** / **Complexity:** / **Status:** [Unexplored / Explored]
 
 ## Rejection Summary
 
 | # | Idea | Reason Rejected |
 |---|------|-----------------|
-| 1 | <Idea> | <Reason rejected> |
-
-[When applicable, append axis-coverage gaps as their own rows so the gap is visible:]
-| - | axis: <name> | recovery skipped (cap reached) — no survivors on this axis |
+[Include unrecovered axis gaps as rows: `axis: <name> — recovery skipped (cap reached)`]
 ```
-
-If resuming:
-- update the existing file in place
-- preserve explored markers
-
-### 5.2 Durable Record Before Handoff
-
-For `Brainstorm a selected idea` and `Save and end`, run the file-save path in §5.1 first unless the current run already wrote an up-to-date ideation file. The saved file is the durable record for downstream handoff and later resumption.
 
 ## Phase 6: Refine or Hand Off
 
-Ask what should happen next using the platform's blocking question tool: `AskUserQuestion` in Claude Code (call `ToolSearch` with `select:AskUserQuestion` first if its schema isn't loaded), `request_user_input` in Codex, `ask_user` in Gemini, `ask_user` in Pi (requires the `pi-ask-user` extension). Fall back to numbered options in chat only when no blocking tool exists in the harness or the call errors (e.g., Codex edit modes) — not because a schema load is required. Never silently skip the question.
+Ask what should happen next with the platform's blocking question tool (see `../ce-conventions/SKILL.md`). Offer three options:
 
-**Question:** "What should the agent do next?"
+1. **Refine the ideation in conversation (or stop here — no save)** — add ideas (return to Phase 2), re-evaluate or raise the bar (return to Phase 3), or dig deeper on one idea. No file or network side effects; ending the conversation here is a valid no-save exit.
+2. **Brainstorm a selected idea** — write the durable record via Phase 5, mark the chosen idea `Explored`, then load `ce-brainstorm` with it as the seed. In repo mode, never skip brainstorming and go straight to `ce-plan`. In elsewhere modes, ideation is a legitimate terminal state and brainstorm develops the idea further rather than starting an implementation chain.
+3. **Save and end** — persist via Phase 5, then end. Offer to commit only the ideation doc (no branch, no push); leave uncommitted if declined.
 
-Offer these three options (labels are self-contained with the distinguishing word front-loaded so options stay distinct when truncated):
-
-1. **Refine the ideation in conversation (or stop here — no save)** — add ideas, re-evaluate, or deepen analysis. No file or network side effects; ending the conversation at any point after this pick is a valid no-save exit.
-2. **Brainstorm a selected idea** — load `ce-brainstorm` with the chosen idea as the seed. The orchestrator first writes a durable local record using Phase 5.
-3. **Save and end** — persist the ideation as a local markdown file using Phase 5, then end.
-
-No-save exit is supported without a dedicated menu option. Pick option 1 and stop the conversation, or use the question tool's free-text escape to say so directly — persistence is opt-in and the terminal review loop is already a complete ideation cycle.
-
-Do not delete the run's scratch directory (`<scratch-dir>` resolved in Phase 1) on completion. The V15 web-research cache is session-scoped and reused across run-ids by later ideation invocations in the same session (see `references/web-research-cache.md`); per-run cleanup would defeat that reuse. Checkpoint A (`raw-candidates.md`) and Checkpoint B (`survivors.md`) are cheap to leave behind and follow the repo's Scratch Space cross-invocation-reusable convention — OS handles eventual cleanup.
-
-### 6.1 Refine the Ideation in Conversation
-
-Route refinement by intent:
-
-- `add more ideas` or `explore new angles` -> return to Phase 2
-- `re-evaluate` or `raise the bar` -> return to Phase 3
-- `dig deeper on idea #N` -> expand only that idea's analysis
-
-No persistence triggers during refinement. The user can choose Save and end or Brainstorm when they are ready to persist.
-
-Ending after refinement — or without any refinement at all — is a valid no-save exit. There is no required next step; stopping the conversation here leaves no durable artifact, which matches the opt-in persistence contract.
-
-### 6.2 Brainstorm a Selected Idea
-
-- Write or update the durable record via Phase 5.
-- Mark the chosen idea as `Explored` in the saved record
-- Load the `ce-brainstorm` skill with the chosen idea as the seed
-
-**Repo mode only:** do **not** skip brainstorming and go straight to `ce-plan` from ideation output — `ce-plan` wants brainstorm-grounded requirements. In elsewhere modes, ideation is a legitimate terminal state; brainstorming is optional deeper development of one idea, not a required next rung on an implementation ladder that does not exist in these modes.
-
-### 6.3 Save and End
-
-Persist via the file-save path in Phase 5, then end. If the user provided a custom destination, honor that explicit request.
-
-- offer to commit only the ideation doc
-- do not create a branch
-- do not push
-- if the user declines, leave the file uncommitted
-
-After the file save (and optional commit), end the session — do not return to the Phase 6 menu.
+Leave `<scratch-dir>` in place on completion — checkpoints are cheap, session-scoped artifacts later invocations can find.
 
 ## Quality Bar
 
-Before finishing, check:
-
-- the idea set is grounded in the stated context (codebase in repo mode; user-supplied context in elsewhere mode)
-- **every surviving idea has an articulated basis** (`direct:`, `external:`, or `reasoned:`) that actually supports the claimed move — speculation dressed as ambition was rejected, with reasons
-- **every surviving idea passes the meeting-test** unless Phase 0.5 detected tactical focus signals that waived the floor
-- **no surviving idea replaces the subject** rather than operating on it
-- when Phase 1.5 produced an axis list, the survivor set spreads across axes rather than clustering on one — and any axis with zero survivors is noted as a deliberate gap in the rejection summary, not silently absent
-- the candidate list was generated before filtering
-- the original many-ideas -> critique -> survivors mechanism was preserved
-- if sub-agents were used, they improved diversity without replacing the core workflow
-- every rejected idea has a reason
-- survivors are materially better than a naive "give me ideas" list
-- persistence followed user choice — terminal-only sessions did not write a file
-- when persistence did trigger, the mode default was respected unless the user explicitly overrode it
-- acting on an idea routes to `ce-brainstorm`, not directly to implementation
+Before finishing, confirm: the set is grounded in the stated context; every survivor carries a basis that actually supports its move and passes the meeting-test (unless waived); no survivor replaces the subject; axis spread was applied and zero-survivor axes are recorded as deliberate gaps; the full candidate list existed before filtering and every rejection has a reason; survivors are materially better than a naive "give me ideas" list; persistence followed user choice; and acting on an idea routes to `ce-brainstorm`, not directly to implementation.

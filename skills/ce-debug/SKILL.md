@@ -27,23 +27,17 @@ Find root causes, then fix them. This skill investigates bugs systematically —
 | 3 | Fix | Only if user chose to fix. Test-first fix with workspace safety checks |
 | 4 | Handoff | Structured summary, then prompt the user for the next action |
 
-Beyond the trivial-bug fast-path in Phase 0, no further phase skipping — complex bugs simply spend more time in each phase naturally. No further complexity tiers.
-
 ---
 
 ### Phase 0: Triage
 
 Parse the input and reach a clear problem statement.
 
-**If the input references an issue tracker**, fetch it:
-- GitHub (`#123`, `org/repo#123`, github.com URL): Parse the issue reference from `<bug_description>` and fetch with `gh issue view <number> --json title,body,comments,labels`. For URLs, pass the URL directly to `gh`.
-- Other trackers (Linear URL/ID, Jira URL/key, any tracker URL): Attempt to fetch using available MCP tools or by fetching the URL content. If the fetch fails — auth, missing tool, non-public page — ask the user to paste the relevant issue content. Ensure the fetch includes the full comment thread, not just the opening description.
-
-Read the full conversation — the original description AND every comment, with particular attention to the latest ones. Comments frequently contain updated reproduction steps, narrowed scope, prior failed attempts, additional stack traces, or a pivot to a different suspected root cause; treating the opening post as the whole picture often sends the investigation in the wrong direction. Extract reported symptoms, expected behavior, reproduction steps, and environment details from the combined thread. Then proceed to Phase 1.
+**If the input references an issue tracker** (GitHub, Linear, Jira, any tracker URL), fetch the issue with the available tool (`gh`, MCP, or URL fetch) and read the entire thread — the latest comments often supersede the opening description with updated repro steps, narrowed scope, prior failed attempts, or a pivot to a different suspected cause. If the fetch fails, ask the user to paste the issue content. Extract symptoms, expected behavior, reproduction steps, and environment details from the combined thread.
 
 **Everything else** (stack traces, test paths, error messages, descriptions of broken behavior): the problem statement is the input itself.
 
-**Trivial-bug fast-path:** Once the problem is clear, decide whether the framework is needed at all. If the cause is immediately readable from the input (single-file typo, missing import, obvious null deref or off-by-one with a one-line fix) and verification doesn't require deep tracing, present the cause and the proposed one-line fix and run Phase 2's **Fix it now / Diagnosis only** user-choice gate before editing — the fast-path saves investigation ceremony, not the user's choice over whether to apply a fix. If the user picks fix, run Phase 3's **Workspace and branch check** (uncommitted-work confirmation and default-branch branch-creation prompt), apply the fix, leave a one-line note explaining the cause, and skip to Phase 4's structured summary. If diagnosis only, write the summary and stop. When in doubt, run the full framework; getting the wrong root cause costs more than the few minutes of ceremony.
+**Trivial-bug fast-path:** When the cause is immediately readable from the input and needs no deep tracing, present the cause and the one-line fix and run Phase 2's **Fix it now / Diagnosis only** gate before editing — the fast-path saves investigation ceremony, not the user's choice. On fix, run Phase 3's workspace and branch check, apply, and skip to Phase 4's summary. When in doubt, run the full framework; a wrong root cause costs more than the ceremony.
 
 **Otherwise**, proceed to Phase 1.
 
@@ -62,11 +56,10 @@ Read the full conversation — the original description AND every comment, with 
 
 Confirm the bug exists and understand its behavior. Run the test, trigger the error, follow reported reproduction steps — whatever matches the input.
 
-- **Browser bugs:** Prefer `agent-browser` if installed. Otherwise use whatever works — MCP browser tools, direct URL testing, screenshot capture, etc.
-- **Manual setup required:** If reproduction needs specific conditions the agent cannot create alone (data states, user roles, external services, environment config), document the exact setup steps and guide the user through them. Clear step-by-step instructions save significant time even when the process is fully manual.
-- **Does not reproduce after 2-3 attempts:** Read `references/investigation-techniques.md` for intermittent-bug techniques.
-- **Cannot reproduce at all in this environment:** Document what was tried and what conditions appear to be missing.
-- **Writing the reproduction test:** If the project has testing-conventions guidance — a dedicated testing skill, an `AGENTS.md`/`CLAUDE.md` testing section, or a clear style across existing tests — apply it when authoring the failing test. Otherwise write a minimal isolated test that fails on the current bug and passes once the corrected behavior lands; name it descriptively so the failure message itself explains the bug.
+- **Browser bugs:** use available browser tooling — whatever reproduces the reported behavior.
+- **Manual setup required:** when reproduction needs conditions the agent cannot create alone, document the exact setup steps and guide the user through them.
+- **Does not reproduce after 2-3 attempts:** read `references/investigation-techniques.md` for intermittent-bug techniques. If it cannot reproduce at all here, document what was tried and what conditions appear missing.
+- **Writing the reproduction test:** follow the project's testing conventions when they exist; otherwise write a minimal isolated test that fails on the bug and passes once fixed, named so the failure message explains the bug.
 
 #### 1.2 Verify environment sanity
 
@@ -98,15 +91,7 @@ Concrete recipe:
 
 Do not stop at the first function that looks wrong — the root cause is where bad state originates, not where it is first observed.
 
-As you trace:
-- Check recent changes in files you are reading: `git log --oneline -10 -- [file]`
-- If the bug looks like a regression ("it worked before"), use `git bisect` (see `references/investigation-techniques.md`)
-- Check the project's observability tools for additional evidence:
-  - Error trackers (Sentry, AppSignal, Datadog, BetterStack, Bugsnag)
-  - Application logs
-  - Browser console output
-  - Database state
-- Each project has different systems available; use whatever gives a more complete picture
+As you trace: check recent changes in the files you are reading (`git log --oneline -10 -- [file]`); if the bug looks like a regression, use `git bisect` (see `references/investigation-techniques.md`); and pull additional evidence from whatever observability the project has — error trackers, application logs, browser console, database state.
 
 ---
 
@@ -148,7 +133,7 @@ Once the root cause is confirmed, present:
 
 Then offer next steps.
 
-Use the platform's blocking question tool (`AskUserQuestion` in Claude Code, `request_user_input` in Codex, `ask_user` in Gemini, `ask_user` in Pi (requires the `pi-ask-user` extension)). In Claude Code, call `ToolSearch` with `select:AskUserQuestion` first if its schema isn't loaded — a pending schema load is not a reason to fall back. Fall back to numbered options in chat only when no blocking tool exists in the harness or the call errors (e.g., Codex edit modes). Never silently skip the question.
+Use the platform's blocking question tool (see `../ce-conventions/SKILL.md`). Never silently skip the question.
 
 Options to offer:
 
@@ -192,7 +177,7 @@ If the user chose "Diagnosis only" at the end of Phase 2, skip this phase and go
 **Workspace and branch check:** Before editing files:
 
 - Check for uncommitted changes (`git status`). If the user has unstaged work in files that need modification, confirm before editing — do not overwrite in-progress changes.
-- If the current branch is the default branch, ask whether to create a feature branch first using the platform's blocking question tool (see Phase 2 for the per-platform names). To detect the default branch, compare against `main`, `master`, or the value of `git rev-parse --abbrev-ref origin/HEAD` with its `origin/` prefix stripped (the raw output is `origin/<name>`, so an unstripped comparison will never match the local branch name). Default to creating one; derive a name from the bug and run `git checkout -b <name>`. On any other branch, proceed.
+- If the current branch is the default branch, ask whether to create a feature branch first using the platform's blocking question tool. Default to creating one; derive a name from the bug and run `git checkout -b <name>`. On any other branch, proceed.
 
 **Test-first:**
 1. Write a failing test that captures the bug (or use the existing failing test)
@@ -229,25 +214,9 @@ Analyze how this was introduced and what allowed it to survive. Note any systemi
 
 **If Phase 3 was skipped** (user chose "Diagnosis only" in Phase 2), stop after the summary — the user already told you they were taking it from here. Do not prompt.
 
-**If Phase 3 ran**, the next move depends on whether the skill created the branch in Phase 3.
+**If Phase 3 ran:** on a branch this skill created, briefly preview what will be committed (the preview exists so the user can interrupt, not as a blocking question), then run `/git-commit-push-pr` — including the tracker's auto-close syntax in the place that tracker parses it (e.g., `Fixes #N` in the PR body for GitHub, Smart Commits in the commit message for Jira) — and surface the PR URL. Honor any explicit user or repo instruction that conflicts with auto-PR. On a pre-existing branch, ask via the platform's blocking question tool (see `../ce-conventions/SKILL.md`): commit and PR, local commit only, or stop here.
 
-#### Skill-owned branch (created in Phase 3): default to commit-and-PR without prompting
-
-1. **Check for contextual overrides first.** Look at the user's original prompt, loaded memories, and the user/repo `AGENTS.md` or `CLAUDE.md` for preferences that conflict with auto commit-and-PR — for example, "always review before pushing", "open PRs as drafts", or "don't open PRs from skills". A signal must be an explicit instruction or a clearly applicable rule, not a vague tonal cue. If any apply, honor them — switch to the pre-existing-branch menu below, or skip the PR step entirely, whichever matches the user's stated preference.
-2. **Briefly preview what will happen** — what will be committed, on what branch, and that a PR will be opened — then proceed without waiting for confirmation. The preview exists so the user can interrupt; it is not a blocking question. Format and length are your call; keep it scannable.
-3. **Run `/git-commit-push-pr`.** When the entry came from an issue tracker, include the appropriate auto-close syntax for that tracker in the location it requires — most trackers parse PR descriptions (e.g., `Fixes #N` for GitHub, `Closes ABC-123` for Linear), but some only parse commit messages (e.g., Jira Smart Commits) — so the diagnosis and fix flow back to the issue and it closes on merge. Surface the resulting PR URL.
-
-#### Pre-existing branch (skill did not create it): ask the user
-
-Use the platform's blocking question tool (`AskUserQuestion` in Claude Code, `request_user_input` in Codex, `ask_user` in Gemini, `ask_user` in Pi (requires the `pi-ask-user` extension)). In Claude Code, call `ToolSearch` with `select:AskUserQuestion` first if its schema isn't loaded — a pending schema load is not a reason to fall back. Fall back to numbered options in chat only when no blocking tool exists in the harness or the call errors. Never end the phase without collecting a response.
-
-Options:
-
-1. **Commit and open a PR (`/git-commit-push-pr`)** — default for most cases
-2. **Commit the fix (`/git-commit`)** — local commit only
-3. **Stop here** — user takes it from there
-
-#### After a PR is open (either path): consider offering learning capture
+#### After a PR is open: consider offering learning capture
 
 Most bugs are localized mechanical fixes (typo, missed null check, missing import) where the only "lesson" is the bug itself. Compounding those clutters `.ai/solutions/` without adding value. Decide which path applies:
 

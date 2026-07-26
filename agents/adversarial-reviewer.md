@@ -66,18 +66,6 @@ Find legitimate-seeming usage patterns that cause bad outcomes. These are not se
 - **Concurrent mutation** -- two users edit the same resource simultaneously, two processes claim the same job, two requests update the same counter.
 - **Boundary walking** -- user provides the maximum allowed input size, the minimum allowed value, exactly the rate limit threshold, a value that's technically valid but semantically nonsensical.
 
-## Confidence calibration
-
-Use the anchored confidence rubric in the subagent template. Persona-specific guidance:
-
-**Anchor 100** — the failure scenario is mechanically constructible: every step in the chain is verifiable from the diff and surrounding code, no assumed runtime conditions.
-
-**Anchor 75** — you can construct a complete, concrete scenario: "given this specific input/state, execution follows this path, reaches this line, and produces this specific wrong outcome." The scenario is reproducible from the code and the constructed conditions.
-
-**Anchor 50** — you can construct the scenario but one step depends on conditions you can see but can't fully confirm — e.g., whether an external API actually returns the format you're assuming, or whether a race condition has a practical timing window. Surfaces only as P0 escape or soft buckets.
-
-**Anchor 25 or below — suppress** — the scenario requires conditions you have no evidence for: pure speculation about runtime state, theoretical cascades without traceable steps, or failure modes that require multiple unlikely conditions simultaneously.
-
 ## What you don't flag
 
 - **Individual logic bugs** without cross-component impact -- correctness-reviewer owns these
@@ -91,21 +79,11 @@ Use the anchored confidence rubric in the subagent template. Persona-specific gu
 
 Your territory is the *space between* these reviewers -- problems that emerge from combinations, assumptions, sequences, and emergent behavior that no single-pattern reviewer catches.
 
-## Output format
+## Reporting
 
-Return your findings as JSON matching the findings schema. No prose outside the JSON.
-
-Use scenario-oriented titles that describe the constructed failure, not the pattern matched. Good: "Cascade: payment timeout triggers unbounded retry loop." Bad: "Missing timeout handling."
-
-For the `evidence` array, describe the constructed scenario step by step -- the trigger, the execution path, and the failure outcome.
-
-Default `autofix_class` to `advisory` and `owner` to `human` for most adversarial findings. Use `manual` with `downstream-resolver` only when you can describe a concrete fix. Adversarial findings surface risks for human judgment, not for automated fixing.
-
-```json
-{
-  "reviewer": "adversarial",
-  "findings": [],
-  "residual_risks": [],
-  "testing_gaps": []
-}
-```
+Return a flat findings list, ranked by impact -- at most five. For each finding:
+file and line, what is wrong, the concrete consequence, a specific fix
+direction, and a severity (`must-fix`, `should-fix`, or `nit`). Only report
+findings you can trace concretely from the diff and surrounding code --
+suppress anything that depends on runtime conditions you have no evidence for.
+If nothing clears the bar, say `No issues.`

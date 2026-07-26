@@ -61,27 +61,7 @@ Browse the feature and tell me what could be better.
 This is the core loop. The user browses the feature and tells you what to improve. You fix it. Repeat until they're happy.
 
 - When the user describes something to fix → make the change, the dev server hot-reloads
-- When the user asks to check something → use `agent-browser` to screenshot or inspect the page
+- When the user asks to check something → use available browser tooling to screenshot or inspect the page
 - When the user says they're done → commit the fixes and stop
 
 No checklist. No envelope. Just conversation.
-
-## References
-
-Reference files (loaded on demand):
-- `references/launch-json-schema.md` — launch.json schema + per-framework stubs
-- `references/ide-detection.md` — host IDE detection and browser-handoff
-- `references/dev-server-detection.md` — port resolution documentation
-- `references/dev-server-next.md` — Next.js dev-server defaults
-- `references/dev-server-vite.md` — Vite dev-server defaults
-- `references/dev-server-nuxt.md` — Nuxt dev-server defaults
-- `references/dev-server-astro.md` — Astro dev-server defaults
-- `references/dev-server-remix.md` — Remix dev-server defaults
-- `references/dev-server-sveltekit.md` — SvelteKit dev-server defaults
-- `references/dev-server-procfile.md` — Procfile-based dev-server defaults
-
-Scripts (invoked via `bash scripts/<name>`):
-- `scripts/read-launch-json.sh` — launch.json reader
-- `scripts/detect-project-type.sh` — project-type classifier
-- `scripts/resolve-package-manager.sh` — lockfile-based package-manager resolver
-- `scripts/resolve-port.sh` — port resolution cascade

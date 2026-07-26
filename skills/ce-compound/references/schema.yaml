@@ -207,6 +207,27 @@ bug_optional_fields:
     pattern: '^\d+\.\d+\.\d+$'
     description: "Rails version in X.Y.Z format. Only relevant for bug-track docs."
 
+# --- Category mapping ---------------------------------------------------------
+# problem_type determines the directory the doc is filed under.
+category_mapping:
+  build_error: .ai/solutions/build-errors/
+  test_failure: .ai/solutions/test-failures/
+  runtime_error: .ai/solutions/runtime-errors/
+  performance_issue: .ai/solutions/performance-issues/
+  database_issue: .ai/solutions/database-issues/
+  security_issue: .ai/solutions/security-issues/
+  ui_bug: .ai/solutions/ui-bugs/
+  integration_issue: .ai/solutions/integration-issues/
+  logic_error: .ai/solutions/logic-errors/
+  developer_experience: .ai/solutions/developer-experience/
+  workflow_issue: .ai/solutions/workflow-issues/
+  best_practice: .ai/solutions/best-practices/
+  documentation_gap: .ai/solutions/documentation-gaps/
+  architecture_pattern: .ai/solutions/architecture-patterns/
+  design_pattern: .ai/solutions/design-patterns/
+  tooling_decision: .ai/solutions/tooling-decisions/
+  convention: .ai/solutions/conventions/
+
 # --- Backward compatibility --------------------------------------------------
 # Docs created before the track system was introduced may have bug-track
 # fields (symptoms, root_cause, resolution_type) on knowledge-type
@@ -229,3 +250,7 @@ validation_rules:
   - "rails_version, if provided, must match X.Y.Z format and only applies to bug-track docs"
   - "tags should be lowercase and hyphen-separated"
   - "Array-of-strings frontmatter items (symptoms, applies_when, tags, related_components, or any future array field) must be wrapped in double quotes when the value starts with a YAML reserved indicator (`, [, *, &, !, |, >, %, @, ?) or contains the substring `: ` — otherwise strict YAML parsers reject the file"
+# Quoting example for the last rule (silent-corruption trap):
+#   breaks strict YAML:    - `sudo dscacheutil -flushcache` does not restore in-container mDNS
+#   parses cleanly:        - "`sudo dscacheutil -flushcache` does not restore in-container mDNS"
+# scripts/validate-frontmatter.py catches these mechanically — run it after writing.

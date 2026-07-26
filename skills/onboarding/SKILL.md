@@ -385,7 +385,7 @@ Write the file to the repo root as `ONBOARDING.md`.
 
 ### Phase 5: Present Result
 
-After writing, inform the user that `ONBOARDING.md` has been generated. Offer next steps using the platform's blocking question tool when available (`AskUserQuestion` in Claude Code, `request_user_input` in Codex, `ask_user` in Gemini). Otherwise, present numbered options in chat.
+After writing, inform the user that `ONBOARDING.md` has been generated. Offer next steps using the platform's blocking question tool (see `../ce-conventions/SKILL.md`).
 
 Options:
 1. Open the file for review

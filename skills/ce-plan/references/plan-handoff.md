@@ -28,7 +28,7 @@ Capture the headless envelope so it can drive the contextual summary above the p
 
 When document-review returns "Review complete", proceed to Final Checks.
 
-**Pipeline mode:** Pipeline runs (automated pipeline or any `disable-model-invocation` context) force `OUTPUT_FORMAT=md` at Phase 0.0, so the format gate above never selects the HTML skip path in pipeline mode. Pipeline runs always invoke `document-review` with `mode:headless` and the plan path — the headless mode is identical to the interactive default at this phase. No further routing is offered in pipeline mode; the caller decides what to do with the returned findings. Address any P0/P1 findings before returning control to the caller.
+**Pipeline mode:** pipeline runs force `OUTPUT_FORMAT=md` at Phase 0.0, so the HTML skip path never fires; they always invoke `document-review` with `mode:headless`, address any P0/P1 findings, and return control to the caller without further routing.
 
 ## 5.3.9 Final Checks and Cleanup
 
@@ -41,9 +41,9 @@ If artifact-backed mode was used:
 - Clean up the temporary scratch directory after the plan is safely updated
 - If cleanup is not practical on the current platform, note where the artifacts were left
 
-**Format-specific composition.** When `OUTPUT_FORMAT=html` (resolved in SKILL.md Phase 0.0), the plan is written as a single self-contained `.html` file — there is no markdown sibling. Read `references/html-rendering.md` for composition rules: invariants, precedence stack, format principles, agent-consumability rules, and the post-compose audit. The `.html` file is the artifact downstream consumers (ce-work, human readers) read. `document-review` is not a current HTML consumer — its editing mechanics are markdown-only today, and HTML plans skip the 5.3.8 doc-review pass until that gap closes.
+**Format-specific composition.** When `OUTPUT_FORMAT=html` (resolved in SKILL.md Phase 0.0), the plan is written as a single self-contained `.html` file — there is no markdown sibling. Read `../ce-conventions/references/html-rendering.md` for composition rules: invariants, precedence stack, format principles, agent-consumability rules, and the post-compose audit. The `.html` file is the artifact downstream consumers (ce-work, human readers) read. `document-review` is not a current HTML consumer — its editing mechanics are markdown-only today, and HTML plans skip the 5.3.8 doc-review pass until that gap closes.
 
-When `OUTPUT_FORMAT=md`, write the markdown directly per `references/markdown-rendering.md`. No HTML is composed.
+When `OUTPUT_FORMAT=md`, write the markdown directly per `../ce-conventions/references/markdown-rendering.md`. No HTML is composed.
 
 After all mutations in this run have settled (initial write, deepening synthesis, document-review trivial-safe fixes when `OUTPUT_FORMAT=md`), the artifact at its single path reflects the final state. HTML runs skip the document-review autofix step (see 5.3.8 format gate).
 
@@ -68,7 +68,7 @@ After all mutations in this run have settled (initial write, deepening synthesis
 
 **Menu rendering:** Use the platform's blocking question tool where available. If the current visible option count exceeds a platform cap, or if the blocking tool is unavailable/errors, render a numbered list in chat with the hint "Pick a number or describe what you want." Never silently skip the question.
 
-Based on selection (the bare per-option routing is also stated inline in the SKILL.md so it cannot be missed when this reference is not loaded; the elaborate sub-flows below are the reason this reference still exists):
+Based on selection:
 - **Start `/ce-work`** -> Invoke the `ce-work` skill via the platform's skill-invocation primitive (`Skill` in Claude Code, `Skill` in Codex, the equivalent on Gemini/Pi), passing the plan path as the skill argument. Do not merely tell the user to type `/ce-work` — fire the invocation now so the plan executes in this session.
 - **Run deeper doc review** -> Re-invoke the `document-review` skill on the plan path **without** `mode:headless` so the interactive routing question fires. The headless pass already applied trivial-safe fixes and recorded its findings in the session, so the interactive pass should focus on remaining proposed fixes and decisions. After it returns, re-render this menu with refreshed counts so the user can pick what to do next.
 - **Create Issue** -> Follow the Issue Creation section below
@@ -94,7 +94,7 @@ When the user selects "Create Issue", detect their project tracker:
    linear issue create --title "<title>" --description "$(cat <plan_path>)"
    ```
 
-4. If no tracker is configured, ask the user which tracker they use with the platform's blocking question tool: `AskUserQuestion` in Claude Code (call `ToolSearch` with `select:AskUserQuestion` first if its schema isn't loaded), `request_user_input` in Codex, `ask_user` in Gemini, `ask_user` in Pi (requires the `pi-ask-user` extension). Fall back to asking in chat only when no blocking tool exists or the call errors (e.g., Codex edit modes) — not because a schema load is required. Never silently skip. Options: `GitHub`, `Linear`, `Skip`. Then:
+4. If no tracker is configured, ask the user which tracker they use with the platform's blocking question tool (see `../ce-conventions/SKILL.md`). Never silently skip. Options: `GitHub`, `Linear`, `Skip`. Then:
    - Proceed with the chosen tracker's command above
    - Offer to persist the choice by adding `project_tracker: <value>` to `AGENTS.md`, where `<value>` is the lowercase tracker key (`github` or `linear`) — not the display label — so future runs match the detector in step 1 and skip this prompt
    - If `Skip`, return to the options without creating an issue
