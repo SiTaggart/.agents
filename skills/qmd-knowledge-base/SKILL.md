@@ -1,6 +1,6 @@
 ---
 name: qmd-knowledge-base
-description: Route project knowledge searches to relevant collections on this machine and classify evidence authority. Use for non-trivial framing and planning or when implementation intent, ownership, conventions, expected behavior, or history are unclear; skip exact grounded work. Delegate query and retrieval mechanics to the qmd skill.
+description: Search this machine's indexed knowledge base (~12k markdown docs of wikis, specs, decisions, prior plans, and session retros) when the task needs history, intent, ownership, conventions, or expected behavior that live files cannot show — typically when framing, planning, debugging a surprise, or explaining why something is the way it is. Routes searches to relevant collections and classifies evidence authority; skip for exact, already-grounded work. Delegate query and retrieval mechanics to the qmd skill.
 ---
 
 # QMD Knowledge Base Router

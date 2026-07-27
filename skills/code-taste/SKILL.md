@@ -5,9 +5,9 @@ description: Apply TypeScript and React code-shape taste for implementation, rev
 
 # Code Taste
 
-Use this skill for tactical code-shape judgment. Global `AGENTS.md` carries the
-always-on architecture principles; this skill carries the examples, smells, and
-language-specific preferences.
+Use this skill for TypeScript and React architecture and code-shape judgment.
+This skill is the single home for those rules; global `AGENTS.md` points here
+and does not repeat them.
 
 ## Authority
 
@@ -17,33 +17,40 @@ language-specific preferences.
 - Prefer the change that yields the smallest resulting system — least complexity
   carried forward — over the one with the smallest diff.
 
-## Early Routing
+## Routing
 
 For Spade Python-only changes, use `spade-python-taste` instead. Use both only
 when the change crosses TypeScript or React and a Spade Python service.
 
-Use this skill before choosing the implementation approach when a change touches
-TypeScript contracts, React/Next behavior, helper boundaries, effect structure,
-data loading, state transitions, schemas, adapters, or maintainability tradeoffs.
-Do not save code-shape thinking for the quality gate.
+Use this skill before choosing the implementation approach. Do not save
+code-shape thinking for the quality gate.
 
-Route to supporting skills only when the surface justifies the extra context:
+- Load `vercel-react-best-practices` whenever a change touches React/Next
+  rendering, data loading, effects, suspense, server/client boundaries, or
+  bundle-affecting imports — even when the task is not framed as performance
+  work. Match the change against its rule index and read the specific
+  `rules/*.md` files that apply before implementing.
+- Load `typescript-advanced-types` for real compile-time contract work:
+  discriminated unions, generic APIs, schema inference, typed configuration.
+- Skip supporting skills when the local convention already makes the right
+  move obvious.
 
-- Use `typescript-advanced-types` when the change centers on real compile-time
-  contracts: discriminated unions, state-machine actions, generic APIs, schema
-  inference, endpoint contracts, reusable typed helpers, or typed configuration.
-  Do not use it to invent clever type machinery, hide casts, or encode
-  hypothetical edge cases.
-- Use `vercel-react-best-practices` when touching React or Next rendering,
-  server/client boundaries, data loading, async waterfalls, effects, memoization,
-  bundle shape, hydration, or performance-sensitive UI.
-- Skip supporting skills for trivial copy edits, simple renames, styling-only
-  tweaks, one-line prop plumbing, or code where the local convention already
-  makes the right move obvious.
+## Architecture
 
-When a supporting skill applies, consult the smallest relevant part of it and
-carry the decision into implementation. The quality gate should verify this
-route happened, not discover the architecture for the first time.
+- Prefer contract-oriented code: a typed domain core with explicit IO, UI, and
+  imperative-integration boundaries.
+- Treat user actions, URL state, persisted state, backend payloads, mutations,
+  subscriptions, cache invalidation, and rendered output as product contracts.
+  Encode them with TypeScript types, schemas, endpoint metadata, discriminated
+  unions, or explicit state-machine actions.
+- Put deterministic behavior in named, typed, testable modules: schemas,
+  parsers, reducers, selectors, validators, compilers, hydrators, adapters, and
+  model helpers.
+- Keep React components and hooks focused on rendering, user interaction,
+  external subscriptions, IO coordination, cache coordination, navigation,
+  analytics, dialogs, and imperative interop.
+- Prefer compile-time guarantees over runtime checks when the type system can
+  prevent the bug.
 
 ## Smallest Change Bias
 
@@ -86,6 +93,9 @@ propping up a structure that should be replaced.
 - Use `unknown` plus parsing at external boundaries instead of trusting raw data.
 - Avoid casts. If a cast is unavoidable, add a short `// SAFETY:` comment that
   explains the invariant.
+- Hold `any` and `!` non-null assertions to the same bar: fix the type boundary
+  or handle the null case. A genuinely unavoidable exception carries a
+  `// SAFETY:` comment.
 - Keep JSX from carrying business rules. Move shaping, validation, filtering,
   state transitions, and derived rows into helpers, selectors, reducers, schemas,
   adapters, or hooks.
@@ -123,9 +133,8 @@ return resolveTraceDateWindow(chart, series, trace);
 
 - Centralize fetches, saves, invalidation, and backend shaping behind query,
   mutation, command, or adapter hooks.
-- Treat `useEffect` as a code smell and avoid it at all costs for product/domain
-  state, derivation, event handling, data loading, backend shaping, or
-  parent-child synchronization.
+- Treat `useEffect` as a code smell for product/domain state, derivation, event
+  handling, data loading, backend shaping, or parent-child synchronization.
 - Before adding `useEffect`, exhaust event handlers, derived render values,
   reducers, selectors, query/mutation hooks, framework data APIs, refs, and
   explicit external subscriptions.
