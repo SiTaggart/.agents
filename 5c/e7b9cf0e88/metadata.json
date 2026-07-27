@@ -3,7 +3,7 @@
   "checkpoint_id": "5ce7b9cf0e88",
   "strategy": "manual-commit",
   "branch": "refactor/retire-agents-to-skill-personas",
-  "checkpoints_count": 7,
+  "checkpoints_count": 23,
   "files_touched": [
     "AGENTS.md",
     "skills/code-taste/SKILL.md",
@@ -30,13 +30,20 @@
       "compact_transcript": "/5c/e7b9cf0e88/2/transcript.jsonl",
       "content_hash": "/5c/e7b9cf0e88/2/content_hash.txt",
       "prompt": "/5c/e7b9cf0e88/2/prompt.txt"
+    },
+    {
+      "metadata": "/5c/e7b9cf0e88/3/metadata.json",
+      "transcript": "/5c/e7b9cf0e88/3/full.jsonl",
+      "compact_transcript": "/5c/e7b9cf0e88/3/transcript.jsonl",
+      "content_hash": "/5c/e7b9cf0e88/3/content_hash.txt",
+      "prompt": "/5c/e7b9cf0e88/3/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 272076,
-    "cache_creation_tokens": 28031,
-    "cache_read_tokens": 5313189,
-    "output_tokens": 23554,
-    "api_call_count": 54
+    "input_tokens": 277714,
+    "cache_creation_tokens": 509954,
+    "cache_read_tokens": 39439315,
+    "output_tokens": 205220,
+    "api_call_count": 202
   }
 }
