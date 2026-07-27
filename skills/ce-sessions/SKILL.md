@@ -148,9 +148,9 @@ Use selectively — only when understanding what went wrong adds value. Cursor a
 
 ### Step 5 — Dispatch synthesis subagent
 
-Dispatch the `session-historian` subagent via the platform's subagent primitive (`Agent` in Claude Code, `spawn_agent` in Codex, `subagent` in Pi via the `pi-subagents` extension). Omit the `mode` parameter so the user's configured permission settings apply. Run on the mid-tier model (e.g., `model: "sonnet"` in Claude Code) — the synthesizer doesn't need frontier reasoning.
+Dispatch a synthesis sub-agent per `../ce-conventions/SKILL.md` §Sub-agent dispatch, with a prompt telling it to read `references/session-historian.md` — expanded to an absolute path by the parent — and follow it. Do not override the sub-agent's permission mode. Run on the mid-tier model where the platform supports model selection — the synthesizer doesn't need frontier reasoning.
 
-The dispatch prompt passes the fields the agent's input contract documents:
+The dispatch prompt passes the fields the persona's input contract documents:
 `problem_topic` (one sentence naming the concrete question), `scratch_dir`,
 one entry per extracted session (skeleton `path`, optional `errors_path`,
 `platform`, `branch`/`cwd`, timestamps, match counts), a filter rule to

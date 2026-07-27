@@ -129,7 +129,7 @@ Read `references/synthesis-summary.md` and follow the solo variant: compose the 
 
 Prepare a concise planning context summary (a paragraph or two): origin-document problem frame and decisions when present, otherwise the feature description; relevant `STRATEGY.md` pieces when that file exists; and `CONCEPTS.md` vocabulary when present (plan with the canonical terms).
 
-Gather, in parallel, the information the plan needs — repo technology/architecture/patterns (`repo-research-analyst` with a scoped prompt) and institutional learnings from `.ai/solutions/` (`learnings-researcher`) are the usual agents; adjust the set to the task. Collect: stack and versions; architectural patterns and conventions; relevant files, modules, and tests; AGENTS.md guidance that materially affects the plan; institutional learnings; and strategy alignment flags when `STRATEGY.md` is present.
+Gather, in parallel, the information the plan needs — repo technology/architecture/patterns (`repo-research-analyst`; its prompt's first line must be the literal scope syntax, e.g. `Scope: technology, architecture, patterns`) and institutional learnings from `.ai/solutions/` (`learnings-researcher`) are the usual research personas. Each is a standalone skill: dispatch per `../ce-conventions/SKILL.md` §Sub-agent dispatch — a sub-agent that loads it, or reads its SKILL.md by absolute path when the platform's sub-agents cannot load skills. Adjust the set to the task. Collect: stack and versions; architectural patterns and conventions; relevant files, modules, and tests; AGENTS.md guidance that materially affects the plan; institutional learnings; and strategy alignment flags when `STRATEGY.md` is present.
 
 **Slack context** is opt-in per `../ce-conventions/SKILL.md`. When tools are available but unrequested, note once that Slack search is available; when requested but unavailable, say so.
 
@@ -149,7 +149,7 @@ Announce the decision and intent in one line.
 
 #### 1.3 External Research (Conditional)
 
-Dispatch by intent using the platform's subagent primitive. **Implementation-guidance:** `docs-researcher` with the planning context summary and exact frameworks/versions. **Landscape:** `web-researcher` with a focus hint plus the planning context summary (no codebase content — it operates externally); for code-host scans, name the discovery dimensions (activity, UX shape, docs, issue themes, license — star counts are weak signal). **Mixed:** sequential — `web-researcher` maps the landscape and shortlists, then `docs-researcher` covers shortlisted technologies only when their details materially shape the plan.
+Dispatch by intent per `../ce-conventions/SKILL.md` §Sub-agent dispatch; each researcher below is a skill the sub-agent loads, and when sub-agents are unavailable, run the selected researcher inline rather than skipping it. **Implementation-guidance:** `docs-researcher` with the planning context summary and exact frameworks/versions. **Landscape:** `web-researcher` with a focus hint plus the planning context summary (no codebase content — it operates externally); for code-host scans, name the discovery dimensions (activity, UX shape, docs, issue themes, license — star counts are weak signal). **Mixed:** sequential — `web-researcher` maps the landscape and shortlists, then `docs-researcher` covers shortlisted technologies only when their details materially shape the plan.
 
 Never block on missing tools: if a researcher fails or web tools are unavailable, warn, proceed, and carry the gap into 1.4 so the plan records it honestly.
 
@@ -165,7 +165,7 @@ If a Lightweight plan turns out to touch external contract surfaces — env vars
 
 #### 1.5 Flow and Edge-Case Analysis (Conditional)
 
-For Standard or Deep plans, or when flow completeness is unclear, dispatch `spec-flow-analyzer` with the planning context and research findings. Use the output to close edge-case and handoff gaps and tighten requirements trace — add only what materially improves the plan.
+For Standard or Deep plans, or when flow completeness is unclear, dispatch a sub-agent that reads `references/spec-flow-analyzer.md` — expanded to an absolute path by the parent, per `../ce-conventions/SKILL.md` §Sub-agent dispatch — and applies it to the planning context and research findings. Use the output to close edge-case and handoff gaps and tighten requirements trace — add only what materially improves the plan.
 
 ### Phase 2: Resolve Planning Questions
 

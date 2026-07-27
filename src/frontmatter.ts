@@ -1,4 +1,4 @@
-import type { FrontmatterPrimitive, FrontmatterRecord, FrontmatterValue, ParsedMarkdown } from "./types";
+import type { FrontmatterRecord, FrontmatterValue, ParsedMarkdown } from "./types";
 
 interface PendingBlock {
   key: string;
@@ -35,17 +35,6 @@ export function parseFrontmatter(raw: string): ParsedMarkdown {
     frontmatter: parseYamlSubset(yamlLines),
     body,
   };
-}
-
-export function formatFrontmatter(data: FrontmatterRecord, body: string): string {
-  const yaml = Object.entries(data)
-    .filter(([, value]) => value !== undefined)
-    .map(([key, value]) => formatYamlEntry(key, value, 0))
-    .join("\n");
-
-  return yaml.trim().length === 0
-    ? body
-    : [FRONTMATTER_DELIMITER, yaml, FRONTMATTER_DELIMITER, "", body].join("\n");
 }
 
 export function readStringField(data: FrontmatterRecord, key: string): string | undefined {
@@ -156,51 +145,6 @@ function parseInlineArray(value: string): readonly FrontmatterValue[] {
     : inner.split(",").map((item) => parseScalar(item.trim()));
 }
 
-function formatYamlEntry(key: string, value: FrontmatterValue, indent: number): string {
-  const prefix = " ".repeat(indent);
-  if (isFrontmatterArray(value)) {
-    return [
-      `${prefix}${key}:`,
-      ...value.map((item) => `${prefix}  - ${formatYamlArrayValue(item)}`),
-    ].join("\n");
-  }
-
-  if (isFrontmatterRecord(value)) {
-    return [
-      `${prefix}${key}:`,
-      ...Object.entries(value).map(([childKey, childValue]) => formatYamlEntry(childKey, childValue, indent + 2)),
-    ].join("\n");
-  }
-
-  return `${prefix}${key}: ${formatYamlScalar(value, indent)}`;
-}
-
-function formatYamlArrayValue(value: FrontmatterValue): string {
-  return isFrontmatterRecord(value) || isFrontmatterArray(value)
-    ? JSON.stringify(value)
-    : formatYamlScalar(value, 0);
-}
-
-function formatYamlScalar(value: FrontmatterPrimitive, indent: number): string {
-  if (value === null) return "";
-  if (typeof value === "number" || typeof value === "boolean") return String(value);
-
-  if (value.includes("\n")) {
-    const linePrefix = " ".repeat(indent + 2);
-    return `|\n${value.split("\n").map((line) => `${linePrefix}${line}`).join("\n")}`;
-  }
-
-  return needsQuoting(value) ? JSON.stringify(value) : value;
-}
-
-function isFrontmatterRecord(value: FrontmatterValue): value is FrontmatterRecord {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-function isFrontmatterArray(value: FrontmatterValue): value is readonly FrontmatterValue[] {
-  return Array.isArray(value);
-}
-
 function isBlockScalar(value: string): boolean {
   return value === "|" || value === "|-" || value === "|+" || value === ">" || value === ">-" || value === ">+";
 }
@@ -230,16 +174,4 @@ function unquoteDouble(value: string): string {
     .slice(1, -1)
     .replace(/\\"/g, "\"")
     .replace(/\\\\/g, "\\");
-}
-
-function needsQuoting(value: string): boolean {
-  return (
-    value.length === 0 ||
-    value.includes(":") ||
-    value.startsWith("#") ||
-    value.startsWith("[") ||
-    value.startsWith("{") ||
-    value === "*" ||
-    value.trim() !== value
-  );
 }

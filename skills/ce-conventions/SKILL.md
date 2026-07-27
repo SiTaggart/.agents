@@ -10,6 +10,40 @@ Skills deploy as sibling directories on every target (Claude Code, OpenCode,
 Codex), so any skill can read this file and `references/` here via
 `../ce-conventions/`.
 
+## Sub-agent dispatch
+
+Skills delegate persona work by spawning a sub-agent via the platform's
+subagent primitive (`Agent` in Claude Code, `spawn_agent` in Codex, `task` in
+OpenCode, `subagent` in Pi via the `pi-subagents` extension) with a prompt that
+tells it to read a persona file and apply it. Rules every dispatch site
+follows:
+
+- **Resolve persona paths to absolute paths in the parent.** A spawned
+  sub-agent starts in the user's project, not the skill directory, so a bare
+  `references/<file>.md` in its prompt resolves to nothing and the persona
+  silently never loads. The parent knows where its own SKILL.md lives; expand
+  from there before writing the prompt.
+- **Standalone-skill personas:** have the sub-agent load the skill by name;
+  on platforms where sub-agents cannot load skills, point at the absolute
+  path of `skills/<name>/SKILL.md` instead.
+- **Run research and review personas read-only.** Use the platform's enforced
+  mechanism where one exists (a read-only agent type in Claude Code, a
+  read-only sandbox in Codex); a review or research worker inheriting write
+  access is a dispatch bug, not a convenience.
+- **Permissions:** do not override the sub-agent's permission mode — let the
+  user's configured permission settings apply.
+- **Spawn workers fresh.** Dispatch personas into clean sub-agent contexts,
+  not forks carrying the parent's conversation history — independent workers
+  must stay independent.
+- **No sub-agents available:** run the persona inline and keep the report
+  short.
+- **Persona files are dispatch payloads, exempt from parent-reads-references
+  rules.** On harnesses whose skill contract says the parent reads a skill's
+  references itself (Codex), that rule does not apply to persona files: the
+  parent may read a persona but must not need to — it passes the absolute
+  path to the sub-agent. The parent reads a persona itself only when running
+  it inline.
+
 ## Blocking questions
 
 Use the platform's blocking question tool: `AskUserQuestion` in Claude Code
@@ -45,8 +79,10 @@ to the user with its absolute path so the reference is clickable.
 
 ## Slack context (opt-in)
 
-Dispatch `slack-researcher` only when the user asks for Slack context. Fold
-the returned digest into the current phase's material; do not paste it raw.
+Run Slack research (the `ce-slack-research` skill, which dispatches a sub-agent
+reading its `../ce-slack-research/references/slack-researcher.md` persona) only
+when the user asks for Slack context. Fold the returned digest into the current phase's material;
+do not paste it raw.
 
 ## Shared references
 

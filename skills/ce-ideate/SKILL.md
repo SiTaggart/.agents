@@ -83,9 +83,9 @@ Before dispatching, state the agent count and skip phrases in one informational 
 
 Set up per-run scratch once: `SCRATCH_DIR="/tmp/compound-engineering/ce-ideate/<run-id>"` (8-hex run-id; use `/tmp`, not `$TMPDIR`, so artifacts stay findable across sessions), `mkdir -p` it, and use the echoed absolute path for checkpoints. Leave it in place at the end of the run.
 
-Run grounding agents in parallel in the foreground. Failures never block: warn ("... unavailable: {reason}. Proceeding.") and continue.
+Run grounding sub-agents in parallel in the foreground; `learnings-researcher` and `web-researcher` are skills the sub-agent loads (or reads as SKILL.md files by absolute path when sub-agents cannot load skills; see `../ce-conventions/SKILL.md` §Sub-agent dispatch). Failures never block: warn ("... unavailable: {reason}. Proceeding.") and continue.
 
-**Repo mode:** (1) a quick context scan by a cheap general-purpose sub-agent — read AGENTS.md/CLAUDE.md/README.md and STRATEGY.md when present, discover top-level layout, return a concise summary of project shape, patterns, pain points, leverage points, and strategy tracks. When the focus hint names root-level `*.md` files, the scan reads those fully and returns them under `User-named references` (Phase 2 treats them as constraint); other root-level markdown gets one-line gists under `Additional context` (background). Keep the scan shallow otherwise. (2) `learnings-researcher` with a brief focus summary. (3) `web-researcher` (below). (4) Issue intelligence, only when tracker intent fired and an issue-intelligence agent exists — on error or fewer than 5 issues, note it and fall back to default frames.
+**Repo mode:** (1) a quick context scan by a cheap general-purpose sub-agent — read AGENTS.md/CLAUDE.md/README.md and STRATEGY.md when present, discover top-level layout, return a concise summary of project shape, patterns, pain points, leverage points, and strategy tracks. When the focus hint names root-level `*.md` files, the scan reads those fully and returns them under `User-named references` (Phase 2 treats them as constraint); other root-level markdown gets one-line gists under `Additional context` (background). Keep the scan shallow otherwise. (2) `learnings-researcher` with a brief focus summary. (3) `web-researcher` (below). (4) Issue intelligence, only when tracker intent fired and the repository provides an issue-intelligence persona or tool — on error or fewer than 5 issues, note it and fall back to default frames.
 
 **Elsewhere modes:** (1) user-context synthesis by a cheap sub-agent — structure the user-supplied context to mirror the codebase-scan shape (topic shape, stated constraints, named pain points, opportunity hooks) so Phase 2 stays agnostic to grounding source. (2) `learnings-researcher` (elsewhere-software only). (3) `web-researcher`.
 
@@ -105,7 +105,7 @@ Axes must be orthogonal (one idea falls on one axis), derived from the grounding
 
 ### Phase 2: Divergent Ideation
 
-Generate the full candidate list before critiquing any idea. Dispatch parallel ideation sub-agents on the inherited model (creative ideation needs the orchestrator's reasoning level; omit the `mode` parameter). Six sub-agents by default; four when issue-tracker intent fired AND issue intelligence returned usable themes. Each generates ~6-8 ideas; volume overrides adjust per-agent targets or survivor counts.
+Generate the full candidate list before critiquing any idea. Dispatch parallel ideation sub-agents on the inherited model (creative ideation needs the orchestrator's reasoning level; do not override the sub-agent's permission mode). Six sub-agents by default; four when issue-tracker intent fired AND issue intelligence returned usable themes. Each generates ~6-8 ideas; volume overrides adjust per-agent targets or survivor counts.
 
 Give each sub-agent: the grounding summary, the focus hint, the volume target, the axis list when one exists, and an instruction to generate raw candidates only — the first few ideas tend to be obvious, push past them.
 

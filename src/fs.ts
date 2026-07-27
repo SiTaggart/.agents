@@ -121,7 +121,7 @@ async function readDirSafe(dir: string): Promise<readonly Dirent[]> {
   }
 }
 
-async function statSafe(filePath: string): Promise<Stats | null> {
+export async function statSafe(filePath: string): Promise<Stats | null> {
   try {
     return await lstat(filePath);
   } catch (error) {

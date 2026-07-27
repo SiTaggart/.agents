@@ -18,15 +18,9 @@ export interface ParsedMarkdown {
   body: string;
 }
 
-export interface SourceMarkdownFile extends ParsedMarkdown {
-  name: string;
-  sourcePath: string;
-}
-
 export interface SourceSkill {
   name: string;
   sourceDir: string;
-  skillPath: string;
 }
 
 export interface RenderTargetOptions {

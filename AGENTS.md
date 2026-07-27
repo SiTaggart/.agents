@@ -3,25 +3,25 @@
 Global instructions for coding agents. Project-level `AGENTS.md` or `CLAUDE.md`
 files add local context and override only overlapping instructions.
 
-## Context Gate
+## Context Surfaces
 
-- For project, code, docs, planning, review, and debugging work, gather context
-  before answering, planning, or editing. No cold answers from memory.
-- Start each session or task with the closest applicable context pass:
-  - Read the local `AGENTS.md` or `CLAUDE.md`, task docs, and relevant project
-    files.
-  - Prefer `qmd-knowledge-base` for non-trivial framing and planning, and use it
-    when prior context may change broad explanations, work, debugging, or
-    review. Exact, already-grounded tasks may skip it.
-  - Use RepoPromptCE for non-trivial codebase context. Prefer MCP tools:
-    `file_search`, `get_file_tree`, `read_file`, `get_code_structure`,
-    `context_builder`, and `manage_selection`. If MCP is unavailable, use
-    `rpce-cli`. Fall back to `rg` and shell reads only when RepoPromptCE is
-    unavailable or the scope is exact and small.
-- Inspect source files to verify drift-prone or implementation-level details
-  surfaced by QMD or RepoPromptCE.
-- For non-trivial work, briefly state which context and proof surfaces were
-  checked. Mention skipped context tools only when that limits confidence.
+This machine has context tools that see more than the checkout in front of you.
+
+- **qmd** — search over ~12k local markdown docs: wikis, specs, past decisions,
+  and session retros. The only surface that knows *why* things are the way they
+  are. Reach for it when framing, planning, or explaining behavior that history
+  might contradict. The `qmd-knowledge-base` skill routes collections and
+  evidence authority.
+- **RepoPromptCE** — token-efficient codebase exploration: `file_search`,
+  `get_file_tree`, `read_file`, `get_code_structure`, `context_builder`, and
+  `manage_selection`. Beats `rg` plus file reads whenever the task spans more
+  than a couple of already-known files. `context_builder` can build full
+  implementation context for a task on its own. CLI fallback: `rpce-cli`.
+- **`rg` and direct reads** — right for exact, small, already-located scopes.
+
+An answer, plan, or review that rests only on memory of the code is a guess.
+Ground it on one of these surfaces first, and verify drift-prone details at the
+live source.
 
 ## Working Style
 
@@ -43,35 +43,21 @@ files add local context and override only overlapping instructions.
 - Understand the business reason before optimizing the code shape.
 - Find root causes. Do not ship temporary fixes unless explicitly asked.
 - Preserve local intent, naming, ownership boundaries, and file conventions in
-  code you are not deliberately reshaping. The structure you are fixing is fair
-  game; surrounding code is not.
-- Do not drift into refactoring unrelated code. Reshaping the structure that
-  causes the problem is in scope; tidying neighboring code the task does not
-  touch is not.
-- Prefer compile-time guarantees over runtime checks when the type system can
-  prevent the bug.
-- Do not add abstractions, wrappers, adapters, type guards, defensive helpers, or
-  edge-case handling for hypothetical future needs. Add them only when the
-  current contract, a real runtime boundary, or existing duplication requires it.
-- Rely on TypeScript inference and existing typed boundaries. Parse or guard once
-  at actual untyped or untrusted boundaries, then keep the interior code direct.
+  code you are not deliberately reshaping. Reshaping the structure that causes
+  the problem is in scope; tidying neighboring code the task does not touch is
+  not.
 - Remove filler. Comments explain why, not what.
 
 ## Communication Style
 
-- Use dyslexia-friendly formatting by default.
-- Lead with the answer. Use short sentences, plain English, and generous white
-  space.
-- Present one idea at a time in short paragraphs or bullets.
+- Use dyslexia-friendly formatting: lead with the answer, short sentences,
+  short paragraphs, generous white space, one idea at a time.
 - Use clear action headings such as `Fix now`, `Investigate`, and `Leave alone`
   when they make the answer easier to scan.
 - Avoid walls of text, dense tables, long nested lists, and unexplained jargon.
-- Keep every paragraph or bullet complete and conversational, not fragmentary.
-- Include technical detail only when it helps the user decide or act.
 - For code comments and other documentation, follow ASD-STE100 Simplified
   Technical English.
 - Do not use “not just X, but Y” constructions. State the actual point directly.
-- End with a bottom line only when the answer weighs a real decision.
 
 ## Product Contract
 
@@ -99,56 +85,27 @@ files add local context and override only overlapping instructions.
   the contract.
 - Boil the ocean inside the agreed boundary: finish the accepted task, with tests
   and proof, without drifting into neighboring workflows.
-- Prefer direct edits over new abstractions. Stop when the accepted contract is
-  proven.
 - Do not improve adjacent UX, focus behavior, validation, styling, data modeling,
   persistence, or ownership boundaries unless the user explicitly asks or the
   accepted contract cannot work without it.
-- If a fix grows past 3-4 files, pause — not automatically to shrink it, but to
-  decide which change is smaller in carried complexity. If the larger-surface
-  change is the simpler end state, surface both options and the tradeoff rather
-  than defaulting to the smaller diff. Explain why the chosen surface is
-  necessary.
 
-## Product Architecture
+## Code Shape
 
-- Prefer contract-oriented code: a typed domain core with explicit IO, UI, and
-  imperative-integration boundaries.
-- Treat user actions, URL state, persisted state, backend payloads, mutations,
-  subscriptions, cache invalidation, and rendered output as product contracts.
-- Encode contracts with TypeScript types, schemas, endpoint metadata,
-  discriminated unions, or explicit state-machine actions.
-- Put deterministic behavior in named, typed, testable modules: schemas, parsers,
-  reducers, selectors, validators, compilers, hydrators, adapters, and model
-  helpers.
-- Keep React components and hooks focused on rendering, user interaction,
-  external subscriptions, IO coordination, cache coordination, navigation,
-  analytics, dialogs, and imperative interop.
-- Treat `useEffect` as a code smell. Avoid it for product/domain state,
-  derivation, event handling, data loading, backend shaping, or parent-child
-  synchronization; use event handlers, reducers/selectors, query/mutation hooks,
-  framework data APIs, or explicit subscriptions instead.
-- Centralize IO behind query, mutation, or command adapters. Do not scatter
-  fetches, saves, invalidation, or backend shaping through UI components.
-- Pass honest dependencies into helpers. Avoid broad courier objects unless the
-  function owns a broad transition or invariant.
-- Use `code-taste` before implementation for tactical TypeScript, React,
-  helper-boundary, and code-shape decisions.
-- Use `spade-python-taste` before implementation for Spade Python service,
-  FastAPI, Pydantic-boundary, router, and runtime-cost decisions.
+For TypeScript and React code — architecture boundaries, typed contracts,
+helpers, effects, IO, testing seams — use the `code-taste` skill before
+choosing an implementation approach. For Spade Python services, use
+`spade-python-taste`. Those skills own the code-shape rules; this file does not
+repeat them.
 
 ## Non-Negotiables
 
 - For work associated with a Linear issue, retrieve and use Linear's exact
   branch name before editing. Rename the current branch if necessary; do not
-  synthesize a replacement or keep an agent-generated branch name.
-- If the exact Linear branch name is unavailable, ask before making changes.
+  synthesize a replacement or keep an agent-generated branch name. If the exact
+  Linear branch name is unavailable, ask before making changes.
 - Never commit `.env`, secrets, API keys, credentials, or private tokens.
 - Never push directly to `main` or `master`.
-- Never use `any` to silence TypeScript errors. Fix the type boundary.
-- Never use `!` non-null assertions. Handle the null case.
 - Never delete, weaken, or skip tests to make a change pass.
-- Never assume an edit succeeded. Read back changed lines after editing.
 - Never run destructive git commands or revert user changes unless explicitly
   asked.
 - Run the relevant linter, type-checker, and tests before marking work done, or
@@ -165,28 +122,14 @@ Skill descriptions carry the when-to-use detail; this is the phase map:
 - Plan: `ce-plan`; `document-review` for markdown plans.
 - Work: `ce-work`, then `ce-quality-gate`. Taste skills (`code-taste`,
   `spade-python-taste`) route code-shape decisions before implementation and
-  are part of the completion gate for touched code; `frontend-design` for UI.
+  are part of the completion gate for touched code; `frontend-design` for UI;
+  `vercel-react-best-practices` for any React/Next change.
 - Review: `ce-review`; `ce-simplify-code` for cleanup; `security-review` only
   for real trust-boundary asks.
 - Ship/feedback: `git-commit`, `git-commit-push-pr`, `gh-fix-ci`,
   `resolve-pr-feedback`.
 - Remember: `ce-compound` and `ce-compound-refresh` for durable `.ai`
   knowledge.
-
-## Tooling
-
-- Use RepoPromptCE for non-trivial codebase exploration and review when
-  available:
-  `file_search`, `get_file_tree`, `read_file`, `get_code_structure`,
-  `context_builder`, and `manage_selection`.
-- If RepoPromptCE MCP is unavailable, use `rpce-cli`; then fall back to shell
-  tools.
-- Prefer `rg` and `rg --files` for shell search.
-- Use direct, non-interactive commands.
-- For frontend changes, open the relevant route, story, or preview surface when
-  available. Exercise the changed state and inspect the final rendered result.
-- If browser tooling or the server is unavailable, use the closest available
-  proof surface and report the blocker.
 
 ## Task Artifacts
 

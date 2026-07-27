@@ -20,6 +20,6 @@ The input can be a keyword, a natural language question, or include Slack search
 
 If no argument is provided, ask what topic to research. Use the platform's blocking question tool (see `../ce-conventions/SKILL.md`). Never silently skip the question.
 
-Dispatch `slack-researcher` with the user's topic as the task prompt. Omit the `mode` parameter so the user's configured permission settings apply. The agent handles everything from here — Slack MCP discovery, search execution, thread reads, and synthesis — and returns an interpreted digest.
+Dispatch a sub-agent per `../ce-conventions/SKILL.md` §Sub-agent dispatch with a prompt that tells it to read `references/slack-researcher.md` — expanded to an absolute path by the parent — and research the user's topic. Slack digests are context-heavy, so keep the work isolated in the sub-agent; the persona suits a mid-tier model when the platform supports model selection. Do not override the sub-agent's permission mode. The sub-agent handles everything from here — Slack MCP discovery, search execution, thread reads, and synthesis — and returns an interpreted digest. If sub-agents are unavailable, follow the reference file inline and keep the digest short.
 
 If the agent reports that Slack is unavailable (MCP not connected or auth expired), relay the message to the user. Do not attempt alternative research methods.

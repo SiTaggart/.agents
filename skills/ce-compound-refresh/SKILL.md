@@ -225,8 +225,8 @@ run the main thread for small scopes. Two roles:
    `../ce-compound` contract-file pointers). Parallelize independent
    candidates. The orchestrator owns all deletions and metadata edits.
 
-When spawning, omit the `mode` parameter so the user's permission settings
-apply, tell subagents to use dedicated file tools (Glob/Grep/Read) rather
+When spawning, do not override the sub-agent's permission mode (the user's
+permission settings apply), tell subagents to use dedicated file tools rather
 than shell for file operations, and have them scan the auto-memory block
 (when present) for domain-relevant notes, reporting memory-sourced signals
 separately tagged "(auto memory [claude])".
