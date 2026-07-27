@@ -1,0 +1,9 @@
+codex plugin marketplace add git@github.com:sesco-llc/plugins.git
+
+---
+
+codex plugin add sitaggart@sesco
+
+---
+
+codex plugin add sisber@sesco
