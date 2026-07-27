@@ -1,0 +1,15 @@
+You are running a code review of the UNCOMMITTED changeset in this repository (working tree vs HEAD). Gather the change yourself: 'git diff HEAD' for tracked changes, 'git status --short' to enumerate untracked files (all the new skills/**/references and skills/*/SKILL.md persona files are untracked — read them directly).
+
+What the changeset is: a migration that retires all 27 custom agent definitions in agents/ and replaces them with skill-owned persona files, so the same personas work across Claude Code, Codex, and OpenCode without per-harness rendering.
+
+Full context:
+- The plan (read it first): .ai/plans/2026-07-27-001-refactor-retire-subagents-to-skill-personas-plan.md
+- New homes: 15 reviewer personas in skills/ce-review/references/reviewers/ behind a Reviewer Index; researchers as standalone skills (web-researcher, docs-researcher, learnings-researcher, git-history-analyzer, rewritten repo-research-analyst); singles under their owner skills' references/ (ce-sessions, resolve-pr-feedback, ce-plan, ce-work, ce-polish, ce-slack-research).
+- Dispatch contract: new 'Sub-agent dispatch' section in skills/ce-conventions/SKILL.md (absolute-path expansion by the parent, SKILL.md-by-path fallback, no permission-mode overrides, inline fallback). All dispatch sites cite it.
+- CLI: src/render no longer renders agents for any target; codex target is hooks-only; src/link/index.ts removeManagedAgentsLink only deletes an agents path when it is a symlink into this repo's .generated tree, and linkTarget validates all mappings before removing anything.
+
+A prior multi-lens review already found and fixed: unconditional recursive deletion of user agents dirs, delete-before-validate ordering, tautological directory-existence test assertions, dead formatFrontmatter/YAML-emitter code, a dead flatten regex, relative persona paths that would not resolve from a sub-agent CWD, and Claude-specific 'mode parameter' phrasing. Verify these fixes only briefly — prioritize NEW findings that review missed.
+
+Codex-specific angle (you are the Codex harness): read a sample of the new persona files and the Sub-agent dispatch section and flag anything that would not actually work when Codex is the orchestrator or the spawned sub-agent — skill loading assumptions, path assumptions, primitive naming, anything that silently degrades.
+
+Output: findings ranked must-fix / should-fix / nit, each with file:line, the concrete consequence, and a fix direction; end with an overall verdict (ship / needs changes).
