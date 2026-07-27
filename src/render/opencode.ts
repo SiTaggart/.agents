@@ -1,27 +1,21 @@
 import path from "path";
-import { formatFrontmatter, readStringField } from "../frontmatter";
 import { copyDirectory, ensureDirs, resetDir, writeText } from "../fs";
-import type { FrontmatterRecord, FrontmatterValue, SourceMarkdownFile, SourceSkill } from "../types";
-import { parseToolNames, sanitizePathName, transformContentForOpenCode } from "./content";
-import { loadMarkdownSources, loadSkillSources } from "./source";
+import type { SourceSkill } from "../types";
+import { sanitizePathName, transformContentForOpenCode } from "./content";
+import { loadSkillSources } from "./source";
 
 export async function renderOpenCode(root: string): Promise<void> {
   const outputRoot = path.join(root, ".generated", "opencode");
   await resetDir(outputRoot);
   await ensureDirs([
-    path.join(outputRoot, "agents"),
     path.join(outputRoot, "hooks"),
     path.join(outputRoot, "plugins"),
     path.join(outputRoot, "skills"),
   ]);
 
-  const [agents, skills] = await Promise.all([
-    loadMarkdownSources(root, "agents"),
-    loadSkillSources(root),
-  ]);
+  const skills = await loadSkillSources(root);
 
   await Promise.all([
-    ...agents.map((agent) => renderOpenCodeAgent(outputRoot, agent)),
     ...skills.map((skill) => renderOpenCodeSkill(outputRoot, skill)),
     copyDirectory({
       source: path.join(root, "hooks", "scripts"),
@@ -31,45 +25,12 @@ export async function renderOpenCode(root: string): Promise<void> {
   ]);
 }
 
-async function renderOpenCodeAgent(outputRoot: string, agent: SourceMarkdownFile): Promise<void> {
-  const content = formatFrontmatter(
-    buildOpenCodeAgentFrontmatter(agent),
-    transformContentForOpenCode(agent.body.trim()),
-  );
-  await writeText(path.join(outputRoot, "agents", `${sanitizePathName(agent.name)}.md`), `${content}\n`);
-}
-
 async function renderOpenCodeSkill(outputRoot: string, skill: SourceSkill): Promise<void> {
   await copyDirectory({
     source: skill.sourceDir,
     target: path.join(outputRoot, "skills", sanitizePathName(skill.name)),
     transformText: (content) => transformContentForOpenCode(content),
   });
-}
-
-function buildOpenCodeAgentFrontmatter(agent: SourceMarkdownFile): FrontmatterRecord {
-  const description = readStringField(agent.frontmatter, "description");
-  const permission = buildOpenCodePermission(agent.frontmatter.tools);
-  const base: FrontmatterRecord = description
-    ? { description, mode: "subagent" }
-    : { mode: "subagent" };
-
-  return permission ? { ...base, permission } : base;
-}
-
-function buildOpenCodePermission(value: FrontmatterValue | undefined): FrontmatterRecord | undefined {
-  const tools = parseToolNames(value);
-  if (tools.length === 0) {
-    return undefined;
-  }
-
-  return tools.reduce<FrontmatterRecord>(
-    (permission, tool) => ({
-      ...permission,
-      [tool]: "allow",
-    }),
-    {},
-  );
 }
 
 function buildOpenCodeHookPlugin(): string {

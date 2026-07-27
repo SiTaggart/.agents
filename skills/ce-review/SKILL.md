@@ -134,12 +134,19 @@ Every pass uses this shared bar:
 - Give a specific fix direction.
 - Suppress anything that is merely preference, unsupported speculation, or a duplicate of another pass.
 
-### Context-Isolated Agent Routing
+### Context-Isolated Reviewer Routing
 
 For medium or large reviews, and for `deep` reviews, delegate the context-heavy
-passes to existing reviewer agents instead of loading every lens into the parent
-thread. The parent keeps review intent, severity, deduplication, and final
-verdict ownership.
+passes to sub-agents instead of loading every lens into the parent thread. The
+parent keeps review intent, severity, deduplication, and final verdict
+ownership.
+
+Reviewer personas live in `references/reviewers/`. Dispatch each selected lens
+per `../ce-conventions/SKILL.md` §Sub-agent dispatch: a sub-agent — read-only
+where the platform offers one — whose prompt names the absolute path of the
+persona file (expand it from this skill's own directory; a bare relative path
+resolves to nothing in the sub-agent's working directory) and the diff scope.
+If sub-agents are unavailable, run the pass inline and keep the report short.
 
 Reviewers reason from the diff, source, tests, and the check output the parent
 already produced in Step 0; they do not rerun lint, typecheck, or Vitest
@@ -148,12 +155,43 @@ sockets that tsx, Vite, and Vitest create at startup. When a check never ran,
 report it as blocked rather than logging the sandbox error as a product test
 failure.
 
-Dispatch the smallest useful set of reviewer agents — their descriptions say
-when each applies; do not dispatch an agent solely because it exists. Evaluate
-small concerns inline in the parent. When an open PR has prior review comments,
-include `previous-comments-reviewer`. Deduplicate returned findings and
-re-check them against this skill's evidence bar before including them in the
-final review.
+Dispatch the smallest useful set of lenses; do not dispatch a lens solely
+because it exists. Evaluate small concerns inline in the parent. Deduplicate
+returned findings and re-check them against this skill's evidence bar before
+including them in the final review.
+
+#### Reviewer Index
+
+Always-on for medium, large, and deep reviews:
+
+- `correctness.md` — logic errors, edge cases, state bugs, error propagation.
+- `maintainability.md` — complexity, coupling, naming, dead code, abstraction
+  debt.
+- `testing.md` — coverage gaps, weak assertions, brittle tests; also handles
+  test-strategy asks.
+- `project-standards.md` — the repo's own CLAUDE.md/AGENTS.md standards.
+
+Conditional — dispatch when the diff matches:
+
+- `adversarial.md` — large diffs (>=50 changed lines) or high-risk domains:
+  auth, payments, data mutations, external APIs.
+- `api-contract.md` — API routes, request/response types, serialization,
+  versioning, exported type signatures.
+- `architecture-strategist.md` — structural refactors, new services, pattern
+  compliance.
+- `code-simplicity.md` — final YAGNI and minimalism pass after implementation
+  completes.
+- `design-implementation.md` — UI implemented against Figma designs; needs the
+  `agent-browser` CLI.
+- `julik-frontend-races.md` — async UI, Stimulus/Turbo lifecycles,
+  DOM-timing-sensitive frontend code.
+- `kieran-python.md` — Python diffs.
+- `kieran-typescript.md` — TypeScript diffs.
+- `performance.md` — database queries, loop-heavy transforms, caching, or
+  I/O-intensive paths.
+- `previous-comments.md` — the PR has existing review comments or threads.
+- `reliability.md` — error handling, retries, timeouts, background jobs, async
+  handlers.
 
 ### Pass 1: Product Intent And Correctness
 

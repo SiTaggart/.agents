@@ -1,5 +1,7 @@
 import { afterEach, expect, test } from "bun:test";
+import { mkdir, symlink } from "fs/promises";
 import path from "path";
+import { pathExists } from "../src/fs";
 import { linkTarget } from "../src/link/index";
 import { makeTempRoot, readSymlinkTarget, readText, removeTempRoot, writeText } from "./helpers";
 
@@ -10,24 +12,27 @@ afterEach(async () => {
   tempRoots.length = 0;
 });
 
-test("links OpenCode to generated agents, hooks, plugin, skills, and shared instructions", async () => {
+test("links OpenCode to generated hooks, plugin, skills, and shared instructions", async () => {
   const root = await makeTempRoot("agents-link-opencode-source-");
   const homeDir = await makeTempRoot("agents-link-opencode-home-");
   tempRoots.push(root, homeDir);
 
   await writeText(path.join(root, "AGENTS.md"), "# Shared instructions");
-  await writeText(path.join(root, ".generated", "opencode", "agents", "reviewer.md"), "generated");
   await writeText(path.join(root, ".generated", "opencode", "hooks", "prevent-main-commit.sh"), "generated");
   await writeText(path.join(root, ".generated", "opencode", "plugins", "dotagents-hooks.js"), "generated");
   await writeText(path.join(root, ".generated", "opencode", "skills", "review-skill", "SKILL.md"), "generated");
   await writeText(path.join(homeDir, ".config", "opencode", "commands", "old.md"), "old");
   await writeText(path.join(homeDir, ".config", "opencode", "rules", "old.md"), "old");
+  await symlink(
+    path.relative(
+      path.join(homeDir, ".config", "opencode"),
+      path.join(root, ".generated", "opencode", "agents"),
+    ),
+    path.join(homeDir, ".config", "opencode", "agents"),
+  );
 
   await linkTarget({ root, target: "opencode", scope: "global", homeDir });
 
-  expect(await readSymlinkTarget(path.join(homeDir, ".config", "opencode", "agents"))).toBe(
-    path.join(root, ".generated", "opencode", "agents"),
-  );
   expect(await readSymlinkTarget(path.join(homeDir, ".config", "opencode", "hooks"))).toBe(
     path.join(root, ".generated", "opencode", "hooks"),
   );
@@ -40,28 +45,26 @@ test("links OpenCode to generated agents, hooks, plugin, skills, and shared inst
   expect(await readSymlinkTarget(path.join(homeDir, ".config", "opencode", "AGENTS.md"))).toBe(
     path.join(root, "AGENTS.md"),
   );
-  expect(await Bun.file(path.join(homeDir, ".config", "opencode", "commands")).exists()).toBe(false);
-  expect(await Bun.file(path.join(homeDir, ".config", "opencode", "rules")).exists()).toBe(false);
+  expect(await pathExists(path.join(homeDir, ".config", "opencode", "agents"))).toBe(false);
+  expect(await pathExists(path.join(homeDir, ".config", "opencode", "commands"))).toBe(false);
+  expect(await pathExists(path.join(homeDir, ".config", "opencode", "rules"))).toBe(false);
 });
 
-test("links Claude to generated agents, hooks, skills, instructions, and hook config", async () => {
+test("links Claude to generated hooks, skills, instructions, and hook config", async () => {
   const root = await makeTempRoot("agents-link-claude-source-");
   const homeDir = await makeTempRoot("agents-link-claude-home-");
   tempRoots.push(root, homeDir);
 
   await writeText(path.join(root, "AGENTS.md"), "# Shared instructions");
-  await writeText(path.join(root, ".generated", "claude", "agents", "reviewer.md"), "generated");
   await writeText(path.join(root, ".generated", "claude", "hooks", "prevent-main-commit.sh"), "generated");
   await writeText(path.join(root, ".generated", "claude", "skills", "review-skill", "SKILL.md"), "generated");
   await writeText(path.join(homeDir, ".claude", "hooks", "old.sh"), "old");
+  await writeText(path.join(homeDir, ".claude", "agents", "mine.md"), "user-authored subagent");
   await writeText(path.join(homeDir, ".claude", "commands", "old.md"), "old");
   await writeText(path.join(homeDir, ".claude", "rules", "old.md"), "old");
 
   await linkTarget({ root, target: "claude", scope: "global", homeDir });
 
-  expect(await readSymlinkTarget(path.join(homeDir, ".claude", "agents"))).toBe(
-    path.join(root, ".generated", "claude", "agents"),
-  );
   expect(await readSymlinkTarget(path.join(homeDir, ".claude", "hooks"))).toBe(
     path.join(root, ".generated", "claude", "hooks"),
   );
@@ -80,32 +83,30 @@ test("links Claude to generated agents, hooks, skills, instructions, and hook co
       }],
     },
   });
-  expect(await Bun.file(path.join(homeDir, ".claude", "commands")).exists()).toBe(false);
-  expect(await Bun.file(path.join(homeDir, ".claude", "rules")).exists()).toBe(false);
+  expect(await readText(path.join(homeDir, ".claude", "agents", "mine.md"))).toBe("user-authored subagent");
+  expect(await pathExists(path.join(homeDir, ".claude", "commands"))).toBe(false);
+  expect(await pathExists(path.join(homeDir, ".claude", "rules"))).toBe(false);
 });
 
-test("links Codex generated agents and hooks, removing obsolete generated surfaces", async () => {
+test("links Codex generated hooks, removing obsolete generated surfaces", async () => {
   const root = await makeTempRoot("agents-link-codex-source-");
   const homeDir = await makeTempRoot("agents-link-codex-home-");
   tempRoots.push(root, homeDir);
 
   await writeText(path.join(root, "AGENTS.md"), "# Shared instructions");
-  await writeText(path.join(root, ".generated", "codex", "agents", "careful-reviewer.toml"), "generated");
   await writeText(path.join(root, ".generated", "codex", "hooks", "prevent-main-commit.sh"), "generated");
   await writeText(path.join(root, "skills", "dotagents", "old", "SKILL.md"), "old");
-  await writeText(path.join(homeDir, ".codex", "agents", "old.toml"), "old");
   await writeText(path.join(homeDir, ".codex", "hooks", "old.sh"), "old");
   await writeText(path.join(homeDir, ".codex", "commands", "old.md"), "old");
   await writeText(path.join(homeDir, ".codex", "rules", "old.md"), "old");
   await writeText(path.join(homeDir, ".codex", "prompts", "old.md"), "old");
   await writeText(path.join(homeDir, ".codex", "AGENTS.md"), "old");
   await writeText(path.join(homeDir, ".codex", "skills", "custom", "SKILL.md"), "custom");
+  await mkdir(path.join(homeDir, "elsewhere"), { recursive: true });
+  await symlink(path.join(homeDir, "elsewhere"), path.join(homeDir, ".codex", "agents"));
 
   await linkTarget({ root, target: "codex", scope: "global", homeDir });
 
-  expect(await readSymlinkTarget(path.join(homeDir, ".codex", "agents"))).toBe(
-    path.join(root, ".generated", "codex", "agents"),
-  );
   expect(await readSymlinkTarget(path.join(homeDir, ".codex", "hooks"))).toBe(
     path.join(root, ".generated", "codex", "hooks"),
   );
@@ -121,28 +122,33 @@ test("links Codex generated agents and hooks, removing obsolete generated surfac
       }],
     },
   });
-  expect(await Bun.file(path.join(homeDir, ".codex", "commands")).exists()).toBe(false);
-  expect(await Bun.file(path.join(homeDir, ".codex", "rules")).exists()).toBe(false);
-  expect(await Bun.file(path.join(homeDir, ".codex", "prompts")).exists()).toBe(false);
-  expect(await Bun.file(path.join(homeDir, ".codex", "AGENTS.md")).exists()).toBe(false);
-  expect(await Bun.file(path.join(root, "skills", "dotagents")).exists()).toBe(false);
-  expect(await Bun.file(path.join(homeDir, ".codex", "skills", "custom", "SKILL.md")).exists()).toBe(true);
+  expect(await readSymlinkTarget(path.join(homeDir, ".codex", "agents"))).toBe(path.join(homeDir, "elsewhere"));
+  expect(await pathExists(path.join(homeDir, ".codex", "commands"))).toBe(false);
+  expect(await pathExists(path.join(homeDir, ".codex", "rules"))).toBe(false);
+  expect(await pathExists(path.join(homeDir, ".codex", "prompts"))).toBe(false);
+  expect(await pathExists(path.join(homeDir, ".codex", "AGENTS.md"))).toBe(false);
+  expect(await pathExists(path.join(root, "skills", "dotagents"))).toBe(false);
+  expect(await readText(path.join(homeDir, ".codex", "skills", "custom", "SKILL.md"))).toBe("custom");
 });
 
-test("rejects generated source kind mismatches before linking", async () => {
+test("rejects generated source kind mismatches before touching the target root", async () => {
   const root = await makeTempRoot("agents-link-kind-source-");
   const homeDir = await makeTempRoot("agents-link-kind-home-");
   tempRoots.push(root, homeDir);
 
   await writeText(path.join(root, "AGENTS.md"), "# Shared instructions");
-  await writeText(path.join(root, ".generated", "opencode", "agents"), "not a directory");
+  await writeText(path.join(root, ".generated", "opencode", "skills"), "not a directory");
   await writeText(path.join(root, ".generated", "opencode", "hooks", "prevent-main-commit.sh"), "generated");
   await writeText(path.join(root, ".generated", "opencode", "plugins", "dotagents-hooks.js"), "generated");
-  await writeText(path.join(root, ".generated", "opencode", "skills", "review-skill", "SKILL.md"), "generated");
+  await writeText(path.join(homeDir, ".config", "opencode", "commands", "old.md"), "old");
+  await writeText(path.join(homeDir, ".config", "opencode", "agents", "mine.md"), "user-authored agent");
 
   await expect(linkTarget({ root, target: "opencode", scope: "global", homeDir })).rejects.toThrow(
     "Expected directory source",
   );
+
+  expect(await readText(path.join(homeDir, ".config", "opencode", "commands", "old.md"))).toBe("old");
+  expect(await readText(path.join(homeDir, ".config", "opencode", "agents", "mine.md"))).toBe("user-authored agent");
 });
 
 async function readJson(filePath: string): Promise<unknown> {

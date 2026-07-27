@@ -224,12 +224,14 @@ without prompting and surface it in the terminal report under
 
 #### Phase 3: Optional Enhancement (interactive Full only)
 
-After Phase 2 completes, optionally dispatch reviewers by problem type:
-`code-simplicity-reviewer` for any code-heavy learning's examples;
-`performance-reviewer` for code-backed performance follow-up; the
+After Phase 2 completes, optionally dispatch reviewer sub-agents by problem
+type, each told to read its persona file — expanded to an absolute path per
+`../ce-conventions/SKILL.md` §Sub-agent dispatch — and apply it:
+`../ce-review/references/reviewers/code-simplicity.md` for any code-heavy
+learning's examples; `../ce-review/references/reviewers/performance.md` for
+code-backed performance follow-up; the
 `security-review` / `security-best-practices` skills for security follow-up;
-keep database migration/backfill follow-up in the orchestrator unless a
-migration specialist agent exists.
+keep database migration/backfill follow-up in the orchestrator.
 
 ---
 

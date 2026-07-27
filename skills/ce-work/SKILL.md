@@ -53,17 +53,24 @@ in every handoff: write only the assigned files, never run `git stash`,
 it. Dispatch a slice that others import from (shared types, schemas, foundation
 modules) first and wait for it to finish before starting dependents.
 
-Dispatch map — the agents' own descriptions carry the detail:
+Dispatch map — per `../ce-conventions/SKILL.md` §Sub-agent dispatch: spawn a
+sub-agent that loads the named skill (or reads its SKILL.md by absolute path
+where sub-agents cannot load skills) or reads the named persona file, expanded
+to an absolute path by the parent; run inline when sub-agents are unavailable:
 
-- `frontend-implementation-expert` for non-trivial React or UI slices; it owns
-  taste routing inside its slice, the parent keeps visual proof and the gate.
-- `testing-reviewer` (test-strategy mode) when the main work is designing or
-  reshaping a test suite.
-- `repo-research-analyst` for scoped repo reconnaissance; `repoprompt` when the
-  parent needs curated file context to reason directly.
-- `docs-researcher` when current framework/API behavior materially affects the
-  approach.
-- `documentation-specialist` for substantial documentation artifacts.
+- `references/frontend-implementation-expert.md` for non-trivial React or UI
+  slices; it owns taste routing inside its slice, the parent keeps visual
+  proof and the gate.
+- `../ce-review/references/reviewers/testing.md` (test-strategy mode) when the
+  main work is designing or reshaping a test suite.
+- the `repo-research-analyst` skill for scoped repo reconnaissance (first
+  prompt line: `Scope: <comma-separated scopes>` — see its SKILL.md for the
+  scope names); `repoprompt` when the parent needs curated file context to
+  reason directly.
+- the `docs-researcher` skill when current framework/API behavior materially
+  affects the approach.
+- `references/documentation-specialist.md` for substantial documentation
+  artifacts.
 - `ce-debug` is the canonical loop for bugs, failing tests, regressions, and
   stack traces — do not recreate it here.
 

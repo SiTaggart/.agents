@@ -1,5 +1,10 @@
 # Agent Loop Reference Inventory
 
+> **Superseded 2026-07-27.** The `agents/` registry this inventory maps was
+> retired; personas now live in their owner skills (see
+> `.ai/plans/2026-07-27-001-refactor-retire-subagents-to-skill-personas-plan.md`).
+> Kept for history only.
+
 Date: 2026-06-22
 
 ## Scope

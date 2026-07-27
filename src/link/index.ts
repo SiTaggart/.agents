@@ -1,12 +1,14 @@
 import { homedir } from "os";
-import { rm } from "fs/promises";
+import { readlink, rm } from "fs/promises";
 import path from "path";
-import { replaceSymlink, writeText } from "../fs";
+import { replaceSymlink, statSafe, validateLinkSource, writeText } from "../fs";
 import type { LinkMapping, LinkTargetOptions } from "../types";
 
 export async function linkTarget(options: LinkTargetOptions): Promise<void> {
+  const mappings = resolveLinkMappings(options);
+  await Promise.all(mappings.map(validateLinkSource));
   await removeObsoletePaths(options);
-  await Promise.all(resolveLinkMappings(options).map((mapping) => replaceSymlink(mapping)));
+  await Promise.all(mappings.map((mapping) => replaceSymlink(mapping)));
   await configureHook(options);
 }
 
@@ -28,7 +30,6 @@ function resolveOpenCodeMappings(options: LinkTargetOptions): readonly LinkMappi
   const targetRoot = resolveTargetRoot(options);
 
   return [
-    { name: "opencode-agents", source: path.join(generated, "agents"), target: path.join(targetRoot, "agents"), kind: "dir" },
     { name: "opencode-hooks", source: path.join(generated, "hooks"), target: path.join(targetRoot, "hooks"), kind: "dir" },
     { name: "opencode-dotagents-hooks", source: path.join(generated, "plugins", "dotagents-hooks.js"), target: path.join(targetRoot, "plugins", "dotagents-hooks.js"), kind: "file" },
     { name: "opencode-skills", source: path.join(generated, "skills"), target: path.join(targetRoot, "skills"), kind: "dir" },
@@ -42,7 +43,6 @@ function resolveClaudeMappings(options: LinkTargetOptions): readonly LinkMapping
   const targetRoot = resolveTargetRoot(options);
 
   return [
-    { name: "claude-agents", source: path.join(generated, "agents"), target: path.join(targetRoot, "agents"), kind: "dir" },
     { name: "claude-hooks", source: path.join(generated, "hooks"), target: path.join(targetRoot, "hooks"), kind: "dir" },
     { name: "claude-skills", source: path.join(generated, "skills"), target: path.join(targetRoot, "skills"), kind: "dir" },
     { name: "claude-md", source: path.join(root, "AGENTS.md"), target: path.join(targetRoot, "CLAUDE.md"), kind: "file" },
@@ -54,7 +54,6 @@ function resolveCodexMappings(options: LinkTargetOptions): readonly LinkMapping[
   const targetRoot = resolveTargetRoot(options);
 
   return [
-    { name: "codex-agents", source: path.join(generated, "agents"), target: path.join(targetRoot, "agents"), kind: "dir" },
     { name: "codex-hooks", source: path.join(generated, "hooks"), target: path.join(targetRoot, "hooks"), kind: "dir" },
   ];
 }
@@ -74,7 +73,34 @@ async function removeObsoletePaths(options: LinkTargetOptions): Promise<void> {
     );
   }
 
-  await Promise.all(paths.map((targetPath) => rm(targetPath, { recursive: true, force: true })));
+  await Promise.all([
+    ...paths.map((targetPath) => rm(targetPath, { recursive: true, force: true })),
+    removeManagedAgentsLink(options, targetRoot),
+  ]);
+}
+
+// The agents path can hold user-authored agents the harness itself writes;
+// only remove it when it is a link this tool created into .generated.
+async function removeManagedAgentsLink(options: LinkTargetOptions, targetRoot: string): Promise<void> {
+  const agentsPath = path.join(targetRoot, "agents");
+  const stats = await statSafe(agentsPath);
+  if (!stats) {
+    return;
+  }
+
+  if (!stats.isSymbolicLink()) {
+    console.warn(`Left ${agentsPath} in place: not a dotagents-managed link.`);
+    return;
+  }
+
+  const generatedRoot = path.join(path.resolve(options.root), ".generated") + path.sep;
+  const destination = path.resolve(path.dirname(agentsPath), await readlink(agentsPath));
+  if (!destination.startsWith(generatedRoot)) {
+    console.warn(`Left ${agentsPath} in place: links outside this repo's .generated tree.`);
+    return;
+  }
+
+  await rm(agentsPath, { force: true });
 }
 
 async function configureHook(options: LinkTargetOptions): Promise<void> {

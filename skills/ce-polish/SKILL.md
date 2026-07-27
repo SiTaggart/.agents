@@ -64,4 +64,12 @@ This is the core loop. The user browses the feature and tells you what to improv
 - When the user asks to check something → use available browser tooling to screenshot or inspect the page
 - When the user says they're done → commit the fixes and stop
 
+When the design "isn't coming together" after a couple of passes, or the user
+asks for iterative visual refinement or N polish iterations, dispatch a
+sub-agent (per `../ce-conventions/SKILL.md` §Sub-agent dispatch) that reads
+`references/design-iterator.md` — expanded to an absolute path by the
+parent — and runs its screenshot-analyze-improve loop against the target route; hand it the route
+URL, the target section, an iteration budget, and explicit non-goals. Run it
+inline when sub-agents are unavailable.
+
 No checklist. No envelope. Just conversation.
