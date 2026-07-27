@@ -79,23 +79,22 @@ async function removeObsoletePaths(options: LinkTargetOptions): Promise<void> {
   ]);
 }
 
-// The agents path can hold user-authored agents the harness itself writes;
-// only remove it when it is a link this tool created into .generated.
+// The agents path can hold user-authored agents the harness itself writes.
+// A plain directory is the expected steady state: leave it silently. Remove a
+// symlink only when its destination is inside this repo's .generated tree or
+// no longer exists (dangling links from a retired or moved checkout).
 async function removeManagedAgentsLink(options: LinkTargetOptions, targetRoot: string): Promise<void> {
   const agentsPath = path.join(targetRoot, "agents");
   const stats = await statSafe(agentsPath);
-  if (!stats) {
-    return;
-  }
-
-  if (!stats.isSymbolicLink()) {
-    console.warn(`Left ${agentsPath} in place: not a dotagents-managed link.`);
+  if (!stats || !stats.isSymbolicLink()) {
     return;
   }
 
   const generatedRoot = path.join(path.resolve(options.root), ".generated") + path.sep;
   const destination = path.resolve(path.dirname(agentsPath), await readlink(agentsPath));
-  if (!destination.startsWith(generatedRoot)) {
+  const managed = destination.startsWith(generatedRoot);
+  const dangling = (await statSafe(destination)) === null;
+  if (!managed && !dangling) {
     console.warn(`Left ${agentsPath} in place: links outside this repo's .generated tree.`);
     return;
   }

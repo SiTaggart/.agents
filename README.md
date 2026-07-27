@@ -95,9 +95,10 @@ The shelf is organized around a few tight loops rather than standalone skills:
 ## Context Delegation
 
 Skills own loops. Bounded, context-heavy phase work goes to sub-agents spawned
-with a persona — a plain markdown file the sub-agent reads and applies. Because
-personas are ordinary skill files, every harness (Claude Code, Codex, OpenCode)
-gets the same ones with no per-harness rendering.
+with a persona — a plain markdown file the sub-agent reads and applies.
+Personas ship inside skills (reviewer and worker personas as `references/`
+files, researchers as their own skills), so every harness (Claude Code, Codex,
+OpenCode) gets the same ones with no per-harness rendering.
 
 Examples:
 

@@ -26,17 +26,23 @@ follows:
 - **Standalone-skill personas:** have the sub-agent load the skill by name;
   on platforms where sub-agents cannot load skills, point at the absolute
   path of `skills/<name>/SKILL.md` instead.
-- **Prefer a read-only sub-agent** for research and review personas when the
-  platform offers one.
+- **Run research and review personas read-only.** Use the platform's enforced
+  mechanism where one exists (a read-only agent type in Claude Code, a
+  read-only sandbox in Codex); a review or research worker inheriting write
+  access is a dispatch bug, not a convenience.
 - **Permissions:** do not override the sub-agent's permission mode — let the
   user's configured permission settings apply.
+- **Spawn workers fresh.** Dispatch personas into clean sub-agent contexts,
+  not forks carrying the parent's conversation history — independent workers
+  must stay independent.
 - **No sub-agents available:** run the persona inline and keep the report
   short.
-- **Persona files are dispatch payloads, not skill references.** On harnesses
-  whose skill contract says the parent reads a skill's references itself
-  (Codex), do not load the persona into the parent — pass its absolute path to
-  the sub-agent unread. The parent reads a persona only when running it
-  inline.
+- **Persona files are dispatch payloads, exempt from parent-reads-references
+  rules.** On harnesses whose skill contract says the parent reads a skill's
+  references itself (Codex), that rule does not apply to persona files: the
+  parent may read a persona but must not need to — it passes the absolute
+  path to the sub-agent. The parent reads a persona itself only when running
+  it inline.
 
 ## Blocking questions
 

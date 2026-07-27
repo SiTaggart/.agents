@@ -131,6 +131,25 @@ test("links Codex generated hooks, removing obsolete generated surfaces", async 
   expect(await readText(path.join(homeDir, ".codex", "skills", "custom", "SKILL.md"))).toBe("custom");
 });
 
+test("removes dangling managed agents links from a retired checkout", async () => {
+  const root = await makeTempRoot("agents-link-dangling-source-");
+  const homeDir = await makeTempRoot("agents-link-dangling-home-");
+  tempRoots.push(root, homeDir);
+
+  await writeText(path.join(root, "AGENTS.md"), "# Shared instructions");
+  await writeText(path.join(root, ".generated", "claude", "hooks", "prevent-main-commit.sh"), "generated");
+  await writeText(path.join(root, ".generated", "claude", "skills", "review-skill", "SKILL.md"), "generated");
+  await mkdir(path.join(homeDir, ".claude"), { recursive: true });
+  await symlink(
+    path.join(homeDir, "old-checkout", ".generated", "claude", "agents"),
+    path.join(homeDir, ".claude", "agents"),
+  );
+
+  await linkTarget({ root, target: "claude", scope: "global", homeDir });
+
+  expect(await pathExists(path.join(homeDir, ".claude", "agents"))).toBe(false);
+});
+
 test("rejects generated source kind mismatches before touching the target root", async () => {
   const root = await makeTempRoot("agents-link-kind-source-");
   const homeDir = await makeTempRoot("agents-link-kind-home-");
