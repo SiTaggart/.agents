@@ -906,3 +906,11 @@ aybe
 ---
 
 maybe we should call it there, I think that's probably enough for you to go on.
+
+---
+
+are they worth fixing or not
+
+---
+
+ok fix what you think is needed
