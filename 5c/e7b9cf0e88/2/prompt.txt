@@ -1,0 +1,9 @@
+claude plugin marketplace add sesco-llc/plugins
+
+---
+
+claude plugin install sitaggart@sesco
+
+---
+
+claude plugin install sisber@sesco
