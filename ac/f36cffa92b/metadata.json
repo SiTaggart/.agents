@@ -1,0 +1,31 @@
+{
+  "cli_version": "0.8.42",
+  "checkpoint_id": "acf36cffa92b",
+  "strategy": "manual-commit",
+  "branch": "fix/skill-shelf-taste-and-evidence-loop",
+  "checkpoints_count": 3,
+  "files_touched": [
+    "AGENTS.md",
+    "skills/ce-quality-gate/SKILL.md",
+    "skills/code-taste/SKILL.md",
+    "skills/document-review/SKILL.md",
+    "skills/qmd-knowledge-base/SKILL.md",
+    "skills/spade-python-taste/SKILL.md"
+  ],
+  "sessions": [
+    {
+      "metadata": "/ac/f36cffa92b/0/metadata.json",
+      "transcript": "/ac/f36cffa92b/0/full.jsonl",
+      "compact_transcript": "/ac/f36cffa92b/0/transcript.jsonl",
+      "content_hash": "/ac/f36cffa92b/0/content_hash.txt",
+      "prompt": "/ac/f36cffa92b/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 26,
+    "cache_creation_tokens": 59298,
+    "cache_read_tokens": 864090,
+    "output_tokens": 16670,
+    "api_call_count": 13
+  }
+}
