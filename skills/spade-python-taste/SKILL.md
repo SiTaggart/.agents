@@ -53,6 +53,10 @@ runtime owner and no speculative layer remains.
 - Preserve necessary behavior while simplifying its representation. Verify why a
   guard exists, then prefer types that remove parsing branches and fall-through
   states.
+- Apply the deletion test to every guard, branch, and fallback: if deleting it
+  would not leave the contract unmet or unproven, do not write it. Handle an
+  edge case only when a real caller or input can produce it — name that source,
+  or leave the case unhandled with one line in the report.
 - Fix a broken invariant in its shared owner when caller impact is understood. If
   that would materially widen the change, protect the current service at its
   boundary and leave the shared fix explicit and separate.
@@ -78,6 +82,10 @@ contract has a visible owner and drift check.
 ## 5. Prove the deployed seam
 
 - Test the lowest meaningful typed boundary and its malformed shapes.
+- Tie each new test to one acceptance criterion or one observed failure. Do not
+  re-prove what an existing test already proves.
+- Extend the existing suite for the touched surface. Create a new test file
+  only when no suite covers that surface.
 - Exercise resource-limit and failure paths before relying on happy-path tests.
 - Import the real application, assert the exact route is present, and assert any
   obsolete route is absent when routing changed.

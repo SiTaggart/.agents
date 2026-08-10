@@ -18,8 +18,14 @@ skill-development sessions.
 
 Do not bulk-read raw session files. Use QMD retros to seed terms, then run
 `ce-sessions` in global mode across every available agent store for the
-requested window. This skill's session scan is always machine-wide, even when
-QMD has relevant matches or the current working directory is one project.
+requested window.
+
+Breadth and depth are separate dials. Discovery breadth is always machine-wide:
+most work happens outside `.agents`, across many repositories and worktrees, so
+a scan scoped to one project measures the wrong population. Extraction depth
+stays selective — a handful of skeletons. "Focused" always narrows depth, never
+breadth. Report the machine-wide session count before naming any signal
+recurring.
 
 ## Evidence Sources
 
@@ -31,7 +37,12 @@ Gather the smallest evidence set that can justify a change:
    - `lex: <skill-name> gotcha proposal correction retry failure`
    - `vec: how has <skill-name> caused friction or needed improvement`
 3. Read the matching gotchas, proposals, digests, or other actual results with
-   `qmd get`; do not assume every evidence category exists.
+   `qmd get`; do not assume every evidence category exists. Treat retro counts
+   and `top_friction` lists as pointers to sessions worth inspecting. The
+   collector matches transcript text, so prompts, skill documentation, file
+   reads, and quoted output inflate its totals. Confirm each signal at an
+   executed event — a failed command, a real user correction, a reproducible
+   failure — before it counts as friction.
 4. Run `ce-sessions` in global mode for the requested window. Seed its focused
    metadata search with the CE skill names and behaviors surfaced by QMD, but
    inventory every available store: Claude Code, standard and Orca-managed
@@ -72,12 +83,15 @@ less correct.
 Use the first outcome that fits:
 
 1. **Direct patch** - a recurring, actionable signal maps to one owner skill.
-   Strong evidence is a gotcha/proposal, the same failure in at least two
-   sessions, an explicit user correction, or a verified current failure.
+   Strong evidence is an explicit user correction, the same executed failure in
+   at least two sessions, a verified current failure, or a gotcha whose compiled
+   truth still holds when checked against those.
 2. **Proposal** - the signal is cross-cutting, risky, based only on aggregate
    metrics, or would touch more than one or two skills.
 3. **No change** - the evidence is one-off, stale, contradicted, or already
-   covered by the current skill.
+   covered by the current skill. A defect in the evidence pipeline itself is
+   also no change: record it against the existing paydown proposal rather than
+   reshaping a skill to absorb measurement error.
 
 If a patch would touch more than a handful of files, stop and write a proposal instead — blast radius that size deserves review before it lands.
 

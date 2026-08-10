@@ -53,6 +53,15 @@ scope into unrelated cleanup. If a check fails from unrelated baseline noise,
 capture the exact failure and prove the touched surface with the narrower
 available command.
 
+Sandbox write denials are environment failures, not code failures: even
+nominally read-only checks write caches, temp files, and sockets, so a
+restricted sandbox can kill Vitest, Vite, Ruff, uv, tsx, or pnpm at startup
+with `EPERM`/`Operation not permitted`. Classify that check as sandbox-blocked
+and report the exact command and error alongside the narrower checks that did
+run — a denied startup is neither a test failure nor a pass, and retrying the
+same command against other unverified cache or temp directories only repeats
+the denial.
+
 ### 4. Code-Shape Pass
 
 Review the changed code for local taste: `code-taste` for TypeScript/React,

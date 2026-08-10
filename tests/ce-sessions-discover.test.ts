@@ -4,6 +4,14 @@ import os from "node:os";
 import path from "node:path";
 
 const script = path.join(import.meta.dir, "..", "skills", "ce-sessions", "scripts", "discover-sessions.sh");
+const metadataScript = path.join(
+  import.meta.dir,
+  "..",
+  "skills",
+  "ce-sessions",
+  "scripts",
+  "extract-metadata.py",
+);
 const skeletonScript = path.join(
   import.meta.dir,
   "..",
@@ -123,4 +131,30 @@ test("extracts Hermes sessions without reasoning or tool output", async () => {
   expect(skeleton).not.toContain("SECRET_ARGUMENT");
   expect(skeleton).not.toContain("SECRET_TOOL_OUTPUT");
   expect(skeleton).not.toContain("SECRET_FAILURE");
+});
+
+test("Claude metadata carries exact event-level cwd", async () => {
+  const dir = await mkdtemp(path.join(os.tmpdir(), "ce-meta-"));
+  const input = path.join(dir, "session.jsonl");
+  const cwd = "/Users/test/Library/Caches/user-tmp/review-wt-yne6i_u1";
+  await writeFile(
+    input,
+    `${JSON.stringify({ type: "queue-operation" })}\n${JSON.stringify({
+      type: "user",
+      gitBranch: "feat/x",
+      cwd,
+      sessionId: "abc-123",
+      timestamp: "2026-08-10T12:00:00.000Z",
+    })}\n`,
+  );
+
+  const process = Bun.spawn(["python3", metadataScript, input], { stdout: "pipe" });
+  const out = await new Response(process.stdout).text();
+  expect(await process.exited).toBe(0);
+
+  const [firstLine = ""] = out.trim().split("\n");
+  const row = JSON.parse(firstLine);
+  expect(row.platform).toBe("claude");
+  // Hyphens in real path segments must survive; folder-name decoding mangles them.
+  expect(row.cwd).toBe(cwd);
 });

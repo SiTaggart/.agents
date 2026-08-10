@@ -1,6 +1,6 @@
 ---
 name: qmd-knowledge-base
-description: Search this machine's indexed knowledge base (~12k markdown docs of wikis, specs, decisions, prior plans, and session retros) when the task needs history, intent, ownership, conventions, or expected behavior that live files cannot show — typically when framing, planning, debugging a surprise, or explaining why something is the way it is. Routes searches to relevant collections and classifies evidence authority; skip for exact, already-grounded work. Delegate query and retrieval mechanics to the qmd skill.
+description: Preflight non-trivial tasks against this machine's indexed knowledge base (~12k markdown docs of wikis, specs, decisions, prior plans, and session retros) when prior decisions, product intent, ownership, conventions, expected behavior, or known failures could change the correct solution—even when the prompt does not request history. Skip only mechanical work fully defined by live source. Routes searches to relevant collections and classifies evidence authority; delegate query and retrieval mechanics to the qmd skill.
 ---
 
 # QMD Knowledge Base Router
@@ -17,7 +17,12 @@ Read [`references/collections.md`](references/collections.md) when working in a 
 
 ### 1. Identify the evidence needed
 
-Classify the claim before selecting collections:
+Start from the task, not its wording. Identify the repository, product area,
+symbols, and decision before selecting collections. Use QMD when indexed
+context could change what correct means; uncertainty is enough. Mechanical work
+fully defined by live source can proceed without it.
+
+Classify the evidence needed:
 
 | Need | Evidence to seek |
 |---|---|
