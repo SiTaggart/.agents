@@ -60,13 +60,17 @@ guard against over-building; the last guards against the opposite failure:
 propping up a structure that should be replaced.
 
 - Prefer the direct edit that satisfies the current contract.
+- Apply the deletion test to every guard, branch, fallback, helper, and test:
+  if deleting it would not leave the accepted contract unmet or unproven, do
+  not write it. Useful, thorough, and possible are not aliases for necessary.
 - Do not introduce a helper, wrapper, adapter, lookup, config layer, type guard,
   or defensive branch unless it removes current duplication, names a real
   invariant, crosses an actual runtime boundary, or makes the accepted behavior
   easier to prove.
 - Do not hedge against hypothetical data shapes, impossible states, or future
-  callers. If the product contract does not require the edge case and the current
-  types exclude it, do not add code for it.
+  callers. Handle an edge case only when a real caller or input in this system
+  can produce it — name that source. If you cannot name one, leave the case
+  unhandled and give it one line in the report instead of code.
 - Trust compiler inference inside typed code. Do not add casts, predicate
   helpers, or runtime checks to convince TypeScript of facts it can already know
   with clearer types or local narrowing.
@@ -158,6 +162,11 @@ function validateEqualDuration(spec: ChartSpec): ValidationResult {
 
 ## Testing Taste
 
+- Each new test must prove one acceptance criterion or reproduce one observed
+  failure. Name which one. Do not add a test that re-proves what an existing
+  test already proves.
+- Test the promised behavior, not the implementation's branches. Do not write
+  one test per branch you happened to write.
 - Test the lowest meaningful seam that proves the behavior: schema, parser,
   hydrator, reducer, selector, validator, URL sync, command, mutation, cache
   invalidation, hook, or adapter.
@@ -165,6 +174,8 @@ function validateEqualDuration(spec: ChartSpec): ValidationResult {
   interaction-level, visual-state-level, or journey-level.
 - Avoid render tests that only prove mocked wiring, prop forwarding, or effect
   calls.
+- Extend the existing suite for the surface you changed. Create a new test
+  file only when no suite covers that surface.
 - Prefer the project's existing test shape over a new harness.
 
 ## Review Smells
@@ -181,6 +192,8 @@ function validateEqualDuration(spec: ChartSpec): ValidationResult {
 - Defensive branches handle hypothetical edge cases outside the accepted
   contract.
 - Tests mount UI just to observe mocked hooks.
+- A new test re-proves an existing test, or lands in a new file when a suite
+  already covers the surface.
 - `useEffect` coordinates product state, mirrors props, loads data, shapes
   backend responses, or patches over ownership boundaries.
 - Casts, `any`, non-null assertions, skipped tests, or ignored rules hide the

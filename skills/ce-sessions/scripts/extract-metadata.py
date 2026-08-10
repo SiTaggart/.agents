@@ -27,6 +27,9 @@ def try_claude(lines):
                 return {
                     "platform": "claude",
                     "branch": obj["gitBranch"],
+                    # Event-level cwd is exact. Never derive it from the
+                    # encoded project-folder name; that decoding is lossy.
+                    "cwd": obj.get("cwd", ""),
                     "ts": obj.get("timestamp", ""),
                     "session": obj.get("sessionId", ""),
                 }

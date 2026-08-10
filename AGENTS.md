@@ -8,10 +8,11 @@ files add local context and override only overlapping instructions.
 This machine has context tools that see more than the checkout in front of you.
 
 - **qmd** — search over ~12k local markdown docs: wikis, specs, past decisions,
-  and session retros. The only surface that knows *why* things are the way they
-  are. Reach for it when framing, planning, or explaining behavior that history
-  might contradict. The `qmd-knowledge-base` skill routes collections and
-  evidence authority.
+  and session retros. For non-trivial work, run the `qmd-knowledge-base`
+  preflight after identifying the repository and product area. Search when
+  prior decisions, product intent, ownership, conventions, expected behavior,
+  or known failures could change the correct solution; uncertainty is enough.
+  Mechanical work fully defined by live source can proceed without it.
 - **RepoPromptCE** — token-efficient codebase exploration: `file_search`,
   `get_file_tree`, `read_file`, `get_code_structure`, `context_builder`, and
   `manage_selection`. Beats `rg` plus file reads whenever the task spans more
@@ -83,6 +84,8 @@ live source.
 
 - Completeness means fully solving the accepted product contract, not expanding
   the contract.
+- The contract is a ceiling as much as a floor. Useful, thorough, and possible
+  are not aliases for necessary.
 - Boil the ocean inside the agreed boundary: finish the accepted task, with tests
   and proof, without drifting into neighboring workflows.
 - Do not improve adjacent UX, focus behavior, validation, styling, data modeling,

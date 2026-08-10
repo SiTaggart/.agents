@@ -53,6 +53,17 @@ Run these passes in the parent thread. Use a focused subagent only when the
 document is large, high-stakes, or unfamiliar enough that an independent read
 would materially improve judgment. Subagents advise; the parent decides.
 
+### Technical Writing
+
+Review the artifact itself against the documentation writing standard in the
+active `AGENTS.md`. If it does not define one, use ASD-STE100 Simplified
+Technical English.
+
+- apply trivial-safe wording corrections directly
+- report corrections that could change meaning or product intent as proposed
+  fixes
+- ignore personal style preferences that the selected standard does not require
+
 ### Coherence
 
 - contradictory scope, terminology, counts, examples, or section references
