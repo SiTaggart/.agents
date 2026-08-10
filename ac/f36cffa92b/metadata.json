@@ -3,14 +3,17 @@
   "checkpoint_id": "acf36cffa92b",
   "strategy": "manual-commit",
   "branch": "fix/skill-shelf-taste-and-evidence-loop",
-  "checkpoints_count": 3,
+  "checkpoints_count": 8,
   "files_touched": [
     "AGENTS.md",
+    "skills/ce-improve-skills/SKILL.md",
     "skills/ce-quality-gate/SKILL.md",
+    "skills/ce-sessions/scripts/extract-metadata.py",
     "skills/code-taste/SKILL.md",
     "skills/document-review/SKILL.md",
     "skills/qmd-knowledge-base/SKILL.md",
-    "skills/spade-python-taste/SKILL.md"
+    "skills/spade-python-taste/SKILL.md",
+    "tests/ce-sessions-discover.test.ts"
   ],
   "sessions": [
     {
@@ -19,13 +22,20 @@
       "compact_transcript": "/ac/f36cffa92b/0/transcript.jsonl",
       "content_hash": "/ac/f36cffa92b/0/content_hash.txt",
       "prompt": "/ac/f36cffa92b/0/prompt.txt"
+    },
+    {
+      "metadata": "/ac/f36cffa92b/1/metadata.json",
+      "transcript": "/ac/f36cffa92b/1/full.jsonl",
+      "compact_transcript": "/ac/f36cffa92b/1/transcript.jsonl",
+      "content_hash": "/ac/f36cffa92b/1/content_hash.txt",
+      "prompt": "/ac/f36cffa92b/1/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 26,
-    "cache_creation_tokens": 59298,
-    "cache_read_tokens": 864090,
-    "output_tokens": 16670,
-    "api_call_count": 13
+    "input_tokens": 4268,
+    "cache_creation_tokens": 378652,
+    "cache_read_tokens": 7044572,
+    "output_tokens": 64840,
+    "api_call_count": 69
   }
 }
