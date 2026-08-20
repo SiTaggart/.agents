@@ -1,0 +1,4 @@
+interface:
+  display_name: "Triage PR Feedback"
+  short_description: "Evaluate PR comments before changing code"
+  default_prompt: "Use $ce-triage-pr-feedback to evaluate each unresolved PR review comment and recommend fix, reject, defer, or decide."
