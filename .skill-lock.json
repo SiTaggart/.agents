@@ -1,0 +1,15 @@
+{
+  "version": 3,
+  "skills": {
+    "llm-wiki": {
+      "source": "ar9av/obsidian-wiki",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/ar9av/obsidian-wiki.git",
+      "skillPath": ".skills/llm-wiki/SKILL.md",
+      "skillFolderHash": "a38babeaf7cbbb9e8b9968adb5336374b7bbf34d",
+      "installedAt": "2026-08-11T23:12:39.457Z",
+      "updatedAt": "2026-08-11T23:12:39.457Z"
+    }
+  },
+  "dismissed": {}
+}

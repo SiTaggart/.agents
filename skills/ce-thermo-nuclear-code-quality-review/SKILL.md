@@ -66,8 +66,14 @@ a major maintainability issue into a mild suggestion. Calibration phrases:
 Lead with structural regressions and missed opportunities for dramatic
 simplification; a few high-conviction comments beat a long list of cosmetic
 notes. Do not approve merely because behavior seems correct. Presumptive
-blockers, unless the author justifies them clearly: preserved incidental
-complexity when a plausible code-judo move would delete it, a file crossing
-1k lines, ad-hoc branching that tangles an existing flow, feature checks
-scattered across shared code, unnecessary wrapper/cast/optionality churn, and
-duplication of a canonical helper or logic landing in the wrong layer.
+blockers: preserved incidental complexity when a plausible code-judo move
+would delete it, a file crossing 1k lines, ad-hoc branching that tangles an
+existing flow, feature checks scattered across shared code, unnecessary
+wrapper/cast/optionality churn, and duplication of a canonical helper or logic
+landing in the wrong layer.
+
+A presumptive blocker clears in one of two ways: change the code, or name the
+caller, constraint, or measurement in this repository that makes the current
+shape necessary. When you wrote the reviewed code in this session, you are the
+author and the reviewer, so your own design rationale is not that
+justification. Describe the cleaner replacement and apply it in the same pass.
