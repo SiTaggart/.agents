@@ -87,7 +87,7 @@ The shelf is organized around a few tight loops rather than standalone skills:
 | ---- | ----- |
 | Explore and decide | `qmd-knowledge-base` / Obsidian when prior context may affect the frame -> `repoprompt` when broad codebase context matters -> `ce-brainstorm` -> `ce-grill` when branchy -> `document-review` when a requirements doc needs polish -> `ce-plan` |
 | Plan and build | `qmd-knowledge-base` when prior context could affect the plan -> `ce-plan` with `repo-research-analyst` / `repoprompt` when broad -> `document-review` for markdown plans -> `ce-work` with early `code-taste` routing; delegate non-trivial frontend slices via `skills/ce-work/references/frontend-implementation-expert.md`; finish with `ce-quality-gate` |
-| Review and ship | `ce-review` on changed work, delegating medium/large passes to reviewer personas -> `ce-simplify-code` when shape needs cleanup -> git skills for ops; `pr-review-canvas` for an interactive walkthrough of someone else's PR; `ce-thermo-nuclear-code-quality-review` when the change needs an unusually strict maintainability pass |
+| Review and ship | `ce-review` on changed work, delegating medium/large passes to reviewer personas -> `ce-triage-pr-feedback` when comments arrive -> approved fixes and proof -> git skills for authorized ops; `ce-simplify-code` when shape needs cleanup; `pr-review-canvas` for an interactive walkthrough of someone else's PR; `ce-thermo-nuclear-code-quality-review` when the change needs an unusually strict maintainability pass |
 | Remember and reuse | `ce-compound` / `ce-compound-refresh` -> `.ai` -> QMD retrieval in a later discovery pass |
 | Debug and investigate | `ce-debug` -> `repoprompt` when broad context is needed -> `ce-work` -> `ce-review` |
 | Improve the agent shelf | QMD retros / focused `ce-sessions` evidence -> `ce-improve-skills` -> one owner-skill patch or proposal -> later retro measurement |
@@ -225,6 +225,7 @@ Single-owner worker personas live under their loop skill's `references/`:
 | `ce-optimize`          | Auto-research loop for tuning prompts and evaluating solutions |
 | `ce-plan`              | Transform requirements into structured implementation plans    |
 | `ce-review`            | Review branch, PR, or local work before shipping               |
+| `ce-triage-pr-feedback` | Evaluate PR comments before fixing, rejecting, or deferring them |
 | `pr-review-canvas`     | Generate an interactive HTML PR walkthrough from `gh api` data |
 | `ce-simplify-code`     | Simplify recent code changes while preserving behavior         |
 | `ce-sessions`          | Cross-platform session history analysis                        |
