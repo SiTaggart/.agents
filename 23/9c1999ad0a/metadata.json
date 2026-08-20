@@ -1,0 +1,28 @@
+{
+  "cli_version": "0.8.42",
+  "checkpoint_id": "239c1999ad0a",
+  "strategy": "manual-commit",
+  "branch": "codex/add-pr-feedback-triage-skill",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "README.md",
+    "skills/ce-triage-pr-feedback/SKILL.md",
+    "skills/ce-triage-pr-feedback/agents/openai.yaml"
+  ],
+  "sessions": [
+    {
+      "metadata": "/23/9c1999ad0a/0/metadata.json",
+      "transcript": "/23/9c1999ad0a/0/full.jsonl",
+      "compact_transcript": "/23/9c1999ad0a/0/transcript.jsonl",
+      "content_hash": "/23/9c1999ad0a/0/content_hash.txt",
+      "prompt": "/23/9c1999ad0a/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 165930,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 4967936,
+    "output_tokens": 30212,
+    "api_call_count": 50
+  }
+}

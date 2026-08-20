@@ -1,0 +1,70 @@
+{
+  "cli_version": "0.8.42",
+  "checkpoint_id": "239c1999ad0a",
+  "session_id": "01a01c8e-d4b8-71e1-aeda-47160466668b",
+  "strategy": "manual-commit",
+  "created_at": "2026-08-20T01:19:35.319762Z",
+  "branch": "codex/add-pr-feedback-triage-skill",
+  "checkpoints_count": 2,
+  "save_step_count": 2,
+  "files_touched": [
+    "README.md",
+    "skills/ce-triage-pr-feedback/SKILL.md",
+    "skills/ce-triage-pr-feedback/agents/openai.yaml"
+  ],
+  "agent": "Codex",
+  "model": "gpt-5.6-sol",
+  "turn_id": "079601c506ae",
+  "compact_transcript_start": 0,
+  "token_usage": {
+    "input_tokens": 165930,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 4967936,
+    "output_tokens": 30212,
+    "api_call_count": 50
+  },
+  "session_metrics": {
+    "turn_count": 2
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-08-20T01:19:35.28029Z",
+    "agent_lines": 11,
+    "agent_removed": 0,
+    "human_added": 0,
+    "human_modified": 76,
+    "human_removed": 36,
+    "total_committed": 49,
+    "total_lines_changed": 123,
+    "agent_percentage": 8.94308943089431,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    },
+    {
+      "checkpoint_number": 2,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 123,
+      "agent_lines_removed": 1
+    },
+    {
+      "checkpoint_number": 3,
+      "user_lines_added": 38,
+      "user_lines_removed": 56,
+      "agent_lines_added": 123,
+      "agent_lines_removed": 1,
+      "user_added_per_file": {
+        "skills/ce-triage-pr-feedback/SKILL.md": 38
+      },
+      "user_removed_per_file": {
+        "skills/ce-triage-pr-feedback/SKILL.md": 56
+      }
+    }
+  ]
+}

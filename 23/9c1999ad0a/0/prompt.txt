@@ -1,0 +1,5 @@
+looking through the last four weeks of agent sessions across codex, claude, i will often have to respond to a ai agent code review series of comments in a pr. I never want to just blindly accept them and add them, I really need the local agent to deeply consider the suggestinos for validity, scope and feasibility and help me triage them into thigns we fix and things we reject. look through the session logs and help me create a repeatable global skill in the ce-\* suite to do this on repeat for every new sessinos I run as it's so common for me
+
+---
+
+did you run it through [$writing-great-skills](/Users/staggart/.agents/skills/writing-great-skills/SKILL.md)
