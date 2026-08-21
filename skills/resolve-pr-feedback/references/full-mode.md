@@ -33,6 +33,10 @@ gh api repos/{owner}/{repo}/pulls/PR_NUMBER/comments
 
 Before processing, classify each piece of feedback as **new** or **already handled**.
 
+If the caller supplied an approved feedback allowlist, filter to those IDs or
+URLs first. Ignore all other feedback for this run, including newly arrived
+threads. The allowlist is the user's accepted implementation scope.
+
 **Review threads**: Read the thread's comments. If there's a substantive reply that acknowledges the concern but defers action (e.g., "need to align on this", "going to think through this", or a reply that presents options without resolving), it's a **pending decision** -- don't re-process. If there's only the original reviewer comment(s) with no substantive response, it's **new**.
 
 **PR comments and review bodies**: These have no resolve mechanism, so they reappear on every run. Apply two filters in order:
@@ -65,8 +69,13 @@ Each agent receives:
 - The PR number (for context)
 - The feedback type (`review_thread`)
 - The `isOutdated` flag from the thread node (tells the agent the reported line may have drifted)
+- The runtime-provided harness and model identity for the visible bot footer
 
 **For PR comments and review bodies** (`pr_comments`, `review_bodies`): These lack file/line context. Spawn a resolver sub-agent (same `pr-comment-resolver.md` persona, absolute path) for each actionable item. The agent receives the comment ID, body text, PR number, and feedback type (`pr_comment` or `review_body`). The agent must identify the relevant files from the comment text and the PR diff.
+
+Before posting any returned `reply_text`, verify that it ends with the bot
+identity footer required by `SKILL.md`. Append the footer if the resolver did
+not include it.
 
 ### Agent return format
 
@@ -135,6 +144,10 @@ git push
 
 After the push succeeds, post replies and resolve where applicable. The mechanism depends on the feedback type.
 
+For every inline reply, retain the returned comment ID plus its associated
+`pullRequestReview` ID and state. The reply helper returns these fields so step
+8 can prove which pending review owns the reply.
+
 ### Reply format
 
 All replies should quote the relevant part of the original feedback for continuity. Quote the specific sentence or passage being addressed, not the entire comment if it's long.
@@ -192,27 +205,33 @@ Re-fetch feedback to confirm resolution:
 bash scripts/get-pr-comments PR_NUMBER
 ```
 
-The `review_threads` array should be empty (except `needs-human` items).
+In full mode, the `review_threads` array should be empty except for
+`needs-human` items. Approved-subset mode is checked against its allowlist
+below.
 
-Then verify that replying inside review threads did not leave authored GitHub
-reviews in `PENDING` state:
+For each unique `PENDING` review ID returned by the reply mutations, query that
+review's comment IDs. Submit it only when every comment in the review is one of
+the exact reply comment IDs created by this run and the comment connection was
+fully inspected. This prevents publishing unrelated draft review comments.
 
-```bash
-gh api repos/{owner}/{repo}/pulls/PR_NUMBER/reviews
-```
-
-If any reviews authored by the PR owner are still `PENDING`, submit each one as
-comment-only so the thread replies become visible:
+Submit each proven review as comment-only so its thread replies become visible:
 
 ```bash
 gh api -X POST repos/{owner}/{repo}/pulls/PR_NUMBER/reviews/REVIEW_ID/events \
   -f event=COMMENT
 ```
 
-Re-run the reviews query until no authored pending reviews remain before
+If a returned review contains any other comment, or its full comment set cannot
+be inspected, leave it pending and surface it as `needs-human`. Re-fetch the
+exact returned review IDs until none of the proven reviews remain pending before
 reporting success.
 
-**If new threads remain**, check the iteration count for this run:
+In approved-subset mode, verify only the allowlisted feedback. Other unresolved
+threads are outside this run and must not trigger another fix cycle or count as
+a failure. In full mode, the `review_threads` array should be empty except for
+`needs-human` items.
+
+**If in-scope threads remain**, check the iteration count for this run:
 
 - **First or second fix-verify cycle**: Repeat from step 2 for the remaining threads.
 
