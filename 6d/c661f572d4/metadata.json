@@ -1,0 +1,31 @@
+{
+  "cli_version": "0.8.42",
+  "checkpoint_id": "6dc661f572d4",
+  "strategy": "manual-commit",
+  "branch": "codex/babysit-pr",
+  "checkpoints_count": 3,
+  "files_touched": [
+    "skills/babysit-pr/SKILL.md",
+    "skills/resolve-pr-feedback/SKILL.md",
+    "skills/resolve-pr-feedback/references/full-mode.md",
+    "skills/resolve-pr-feedback/references/pr-comment-resolver.md",
+    "skills/resolve-pr-feedback/scripts/reply-to-pr-thread",
+    "skills/resolve-pr-merge-conflicts/SKILL.md"
+  ],
+  "sessions": [
+    {
+      "metadata": "/6d/c661f572d4/0/metadata.json",
+      "transcript": "/6d/c661f572d4/0/full.jsonl",
+      "compact_transcript": "/6d/c661f572d4/0/transcript.jsonl",
+      "content_hash": "/6d/c661f572d4/0/content_hash.txt",
+      "prompt": "/6d/c661f572d4/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 274693,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 12354816,
+    "output_tokens": 47245,
+    "api_call_count": 93
+  }
+}
