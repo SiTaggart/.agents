@@ -42,7 +42,10 @@ Resolve the base branch from the PR's `baseRefName`. If there is no PR, use the 
 Stop conditions — report and stop rather than improvise:
 
 - **On the base branch itself** (not a feature branch) — nothing to rebase.
-- **A `merge` is already in progress** (status shows "You have unmerged paths" from a merge, or a `MERGE_HEAD` exists) — this is the cheat mid-flight. Run `git merge --abort`, then continue this skill from the top.
+- **A `merge` is already in progress** (status shows "You have unmerged paths"
+  from a merge, or a `MERGE_HEAD` exists) — stop and show the user the current
+  state. Ask whether to abort that merge and restart with a rebase. Never abort
+  automatically; the in-progress resolution may contain user work.
 - **A `rebase` is already in progress** — you are resuming; skip to Step 3.
 - **Dirty working tree** with uncommitted changes — a rebase requires a clean tree. Ask the user whether to commit the changes first or `git stash` them (and reapply after). Do not proceed until clean.
 

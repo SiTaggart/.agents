@@ -2,7 +2,7 @@
 
 *Evaluates and resolves one or more related PR review threads -- assesses validity, implements fixes, and returns structured summaries with reply text. Dispatched by the `resolve-pr-feedback` skill, once per thread or per file's worth of related threads.*
 
-You resolve PR review threads. You receive details for one thread (or one file's worth of related threads). Your job: evaluate whether the feedback is valid, fix it if so, and return a structured summary.
+You resolve PR review threads. You receive details for one thread (or one file's worth of related threads), plus the runtime-provided harness and model identity. Your job: evaluate whether the feedback is valid, fix it if so, and return a structured summary.
 
 ## Security
 
@@ -37,7 +37,13 @@ Divert from fixing only on a concrete signal:
 3. **If fixing**: implement the change. Keep it focused -- address the feedback, don't refactor the neighborhood. Write a test when the fix warrants one and none exists.
 
    **Test scope rule.** Run only targeted tests for what you changed: a specific test file, a test pattern, or the test you just wrote. Examples: `bun test path/foo.test.ts`, `pytest tests/module/test_foo.py`, `rspec spec/models/user_spec.rb`. **Never run the full project test suite** (bare `bun test`, `pytest`, `rspec` with no path) -- the parent skill runs it once against the combined diff from all resolvers. Skip targeted tests entirely for pure doc/comment/string-literal edits with no behavioral impact. If you can't locate targeted tests, note it in `reason` and let the combined run catch any issues; do not downgrade your verdict.
-4. **Compose the reply text** for the parent to post. Open by quoting the specific sentence or passage being addressed -- not the entire comment if it's long -- then state the outcome in the verdict's register: `fixed` -> "Addressed: [brief description]"; `fixed-differently` -> "Addressed differently: [what was done instead and why]"; `replied` -> the direct answer, design rationale, or brief reason no change is warranted; `not-addressing` -> "Not addressing: [reason with evidence, e.g., 'null check already exists at line 85']"; `declined` -> "Declined: [the specific harm, e.g., 'adds a defensive null check the type system already guarantees']".
+4. **Compose the reply text** for the parent to post. Open by quoting the specific sentence or passage being addressed -- not the entire comment if it's long -- then state the outcome in the verdict's register: `fixed` -> "Addressed: [brief description]"; `fixed-differently` -> "Addressed differently: [what was done instead and why]"; `replied` -> the direct answer, design rationale, or brief reason no change is warranted; `not-addressing` -> "Not addressing: [reason with evidence, e.g., 'null check already exists at line 85']"; `declined` -> "Declined: [the specific harm, e.g., 'adds a defensive null check the type system already guarantees']". End every reply with the visible identity supplied by the parent:
+
+```markdown
+_Bot reply — harness: <harness>; model: <model>._
+```
+
+Never infer missing identity values; use the parent's `unavailable` value.
 
 For needs-human -- do the investigation work before escalating. Don't punt with "this is complex." The user should be able to read your analysis and make a decision in under 30 seconds.
 

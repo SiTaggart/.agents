@@ -28,6 +28,10 @@ mutation ReplyToReviewThread($threadId: ID!, $body: String!) {
     comment {
       id
       url
+      pullRequestReview {
+        id
+        state
+      }
     }
   }
 }'
