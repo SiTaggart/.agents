@@ -16,8 +16,8 @@ bun run sync codex
 Generated target trees live under `.generated/` and are intentionally ignored by
 git. Canonical source remains in `skills/` and `hooks/`.
 
-Codex loads canonical skills and `AGENTS.md` natively. The Codex sync target
-renders hook adapters into Codex-native locations.
+Codex loads canonical skills from `.agents/skills` natively. The Codex sync
+target links `AGENTS.md` and renders hook adapters into Codex-native locations.
 
 ## Configuration Ownership
 

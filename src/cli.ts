@@ -132,7 +132,7 @@ function printHelp(): void {
     "  --home <path>       Home directory override for global links",
     "  --project <path>    Project root override for project links",
     "",
-    "Codex loads skills and AGENTS.md natively; the codex target syncs hooks.",
+    "Codex loads .agents skills natively; the codex target syncs AGENTS.md and hooks.",
   ].join("\n"));
 }
 
@@ -143,7 +143,8 @@ function printCompleted(action: string, targets: readonly Target[], root: string
     : [];
 
   if (targets.includes("codex")) {
-    lines.push(`${action} Codex hooks for ${root}`);
+    const surfaces = action === "Rendered" ? "hooks" : "instructions and hooks";
+    lines.push(`${action} Codex ${surfaces} for ${root}`);
   }
 
   console.log(lines.join("\n"));

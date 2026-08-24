@@ -50,11 +50,13 @@ function resolveClaudeMappings(options: LinkTargetOptions): readonly LinkMapping
 }
 
 function resolveCodexMappings(options: LinkTargetOptions): readonly LinkMapping[] {
-  const generated = path.join(path.resolve(options.root), ".generated", "codex");
+  const root = path.resolve(options.root);
+  const generated = path.join(root, ".generated", "codex");
   const targetRoot = resolveTargetRoot(options);
 
   return [
     { name: "codex-hooks", source: path.join(generated, "hooks"), target: path.join(targetRoot, "hooks"), kind: "dir" },
+    { name: "codex-agents-md", source: path.join(root, "AGENTS.md"), target: path.join(targetRoot, "AGENTS.md"), kind: "file" },
   ];
 }
 
@@ -67,7 +69,6 @@ async function removeObsoletePaths(options: LinkTargetOptions): Promise<void> {
 
   if (options.target === "codex") {
     paths.push(
-      path.join(targetRoot, "AGENTS.md"),
       path.join(targetRoot, "prompts"),
       path.join(path.resolve(options.root), "skills", "dotagents"),
     );
