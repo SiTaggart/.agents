@@ -1,6 +1,6 @@
 ---
 name: remotion-best-practices
-description: Best practices for Remotion
+description: "Use when creating, editing, rendering, debugging, or upgrading a Remotion video project, including compositions, captions, multimedia, interactivity, and Remotion-powered apps."
 metadata:
   tags: remotion, video, react, animation, composition
 ---

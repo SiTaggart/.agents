@@ -1,6 +1,6 @@
 ---
 name: ce-slack-research
-description: "Search Slack for interpreted org context and synthesize decisions, constraints, and discussion arcs."
+description: "Use only when the user explicitly asks to search Slack or wants Slack discussions, decisions, or organizational context about a named topic."
 ---
 
 # /ce-slack-research
