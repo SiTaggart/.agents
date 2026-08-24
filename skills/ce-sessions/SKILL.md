@@ -1,11 +1,11 @@
 ---
 name: ce-sessions
-description: "Search coding agent session history across Claude Code, Codex, Cursor, and Hermes. Use for past work, previous attempts, or prior investigations."
+description: "Search coding agent session history across Claude Code, Codex, Cursor, OpenCode, and Hermes. Use for past work, previous attempts, or prior investigations."
 ---
 
 # /ce-sessions
 
-Search session history across Claude Code, Codex, Cursor, and Hermes and synthesize findings about what was worked on, tried, decided, or learned in prior sessions.
+Search session history across Claude Code, Codex, Cursor, OpenCode, and Hermes and synthesize findings about what was worked on, tried, decided, or learned in prior sessions.
 
 ## Usage
 
@@ -35,6 +35,7 @@ These rules apply at all times during orchestration and synthesis.
 - **Never extract or reproduce tool call inputs/outputs verbatim.** Summarize what was attempted and what happened.
 - **Never include thinking or reasoning block content.** Claude Code thinking blocks are internal reasoning; Codex reasoning blocks are encrypted. Neither is actionable.
 - **Never analyze the current session.** Its conversation history is already available to the caller.
+- **Keep OpenCode read-only.** Query only `session`, `message`, and `part` through `scripts/opencode-sessions.py`; never inspect account, credential, or authentication tables.
 - **Surface technical content, not personal content.** Sessions contain everything — credentials, frustration, half-formed opinions. Use judgment about what belongs in a technical summary and what doesn't.
 - **Fail fast on access errors.** If session discovery fails on permissions, report the issue immediately. Do not retry the same operation with different tools or approaches — repeated retries waste tokens without changing the outcome.
 - **Default to the current project.** Use global mode only when the user explicitly asks across projects or a caller such as `ce-improve-skills` requires machine-wide evidence.
@@ -73,11 +74,24 @@ bash scripts/discover-sessions.sh --all-repos <days> | tr '\n' '\0' | xargs -0 p
 Each output line is a JSON object describing a session (platform, file, size, ts, session, plus platform-specific fields). The final `_meta` line carries `files_processed` and `parse_errors`.
 
 If the inventory's `_meta` line shows `files_processed: 0`, record that the
-file-backed inventory is empty and continue to the Hermes inventory below.
+file-backed inventory is empty and continue to OpenCode and Hermes.
 
 If `parse_errors > 0`, note that some sessions could not be parsed and proceed with what was returned.
 
-To narrow the platform set, add `--platform claude`, `--platform codex`, or `--platform cursor` to the `discover-sessions.sh` invocation. Default to all three.
+To narrow the file-backed platform set, add `--platform claude`, `--platform codex`, or `--platform cursor` to the `discover-sessions.sh` invocation. Default to all three.
+
+OpenCode keeps current sessions in SQLite. Inventory it separately with the
+read-only adapter; omit `--cwd-filter` only in explicit global mode:
+
+```bash
+python3 scripts/opencode-sessions.py inventory --days <days> --cwd-filter <repo-root>
+```
+
+Add `--keyword K1,K2,...` to rank candidates. The adapter searches only
+user/assistant text, excludes empty generated sessions, and returns
+`parent_session` so descendants can be grouped under their root before
+counting. Store the inventory under `$SCRATCH`; do not print its dialogue into
+model context.
 
 Hermes keeps current sessions in SQLite rather than per-session JSONL files.
 Inventory it separately with a redacted prompt-only export. Keep the current
@@ -99,24 +113,25 @@ hermes sessions export --session-id <session-id> --format jsonl --redact --yes "
 python3 scripts/extract-skeleton.py --output "$SCRATCH/<session-id>.skeleton.txt" < "$SCRATCH/<session-id>.hermes.jsonl"
 ```
 
-If the Hermes CLI or database is unavailable, report that coverage gap and
-continue with the file-backed stores.
+If OpenCode or Hermes is unavailable, report that coverage gap and continue
+with the available stores.
 
-Return "no relevant prior sessions" only when both the file-backed inventory
-and the Hermes prompt inventory contain no relevant sessions.
+Return "no relevant prior sessions" only when the file-backed, OpenCode, and
+Hermes inventories contain no relevant sessions.
 
 ### Step 3 — Filter and rank
 
 Pick the sessions worth deep-diving under three constraints: take at most
-**5 sessions total across all platforms**, exclude the current session (its
+**5 root sessions total across all platforms**, exclude the current session (its
 history is already available to the caller), and prefer relevance — current-
 branch matches first, then keyword relevance and recency within the scan
 window. To keyword-filter, derive a few keywords from the question's topic and
 re-invoke the discovery pipeline with `--keyword K1,K2,...` appended to the
 `extract-metadata.py` invocation; it returns matching sessions with
 `match_count` and per-keyword counts. Return "no relevant prior sessions" and
-stop only when neither the file-backed nor the Hermes inventory has a relevant
-candidate.
+stop only when none of the inventories has a relevant candidate. Group child
+sessions under their root before applying the cap and deduplicate the same
+signal within one lineage.
 
 **Note: `gitBranch` is captured at the first user message only.** A session
 that began on `main` and did substantive work on a feature branch via
@@ -146,14 +161,26 @@ python3 scripts/extract-errors.py --output "$SCRATCH/<session-id>.errors.txt" < 
 
 Use selectively — only when understanding what went wrong adds value. Cursor agent transcripts don't log tool results, so errors-mode produces nothing for Cursor sessions.
 
+For each selected OpenCode session, pipe the safe normalized export directly
+into the skeleton extractor. This excludes reasoning, patches, file content,
+and raw tool inputs/outputs:
+
+```bash
+python3 scripts/opencode-sessions.py export <session-id> \
+  | python3 scripts/extract-skeleton.py --output "$SCRATCH/<session-id>.skeleton.txt"
+```
+
+OpenCode error extraction is unavailable. Report that gap when errors-mode is
+material to the question.
+
 ### Step 5 — Dispatch synthesis subagent
 
 Dispatch a synthesis sub-agent per `../ce-conventions/SKILL.md` §Sub-agent dispatch, with a prompt telling it to read `references/session-historian.md` — expanded to an absolute path by the parent — and follow it. Do not override the sub-agent's permission mode. Run on the mid-tier model where the platform supports model selection — the synthesizer doesn't need frontier reasoning.
 
 The dispatch prompt passes the fields the persona's input contract documents:
 `problem_topic` (one sentence naming the concrete question), `scratch_dir`,
-one entry per extracted session (skeleton `path`, optional `errors_path`,
-`platform`, `branch`/`cwd`, timestamps, match counts), a filter rule to
+one entry per extracted root session (skeleton `path`, optional `errors_path`,
+`platform`, root/parent identity, `branch`/`cwd`, timestamps, match counts), a filter rule to
 surface only findings relevant to the topic, and `output_schema`. Default
 schema (a caller-supplied schema passes through verbatim):
 
@@ -169,8 +196,8 @@ The agent reads each path via the platform's native file-read tool and returns p
 
 ### Step 6 — Return findings
 
-Return the synthesizer's output text to the caller verbatim. If no file-backed
-or Hermes candidates remain after filtering, return the literal string
+Return the synthesizer's output text to the caller verbatim. If no candidates
+remain after filtering, return the literal string
 `no relevant prior sessions` instead. Optionally `rm -rf "$SCRATCH"` — the OS
 cleans up eventually regardless.
 
@@ -179,7 +206,7 @@ cleans up eventually regardless.
 When the caller (typically a user typing `/ce-sessions`, or another skill invoking ce-sessions via the platform's skill-invocation primitive) does not specify an output format, include a brief header noting what was searched:
 
 ```
-**Sessions searched**: [count] ([N] Claude Code, [N] Codex, [N] Cursor, [N] Hermes) | [date range]
+**Sessions searched**: [count] ([N] Claude Code, [N] Codex, [N] Cursor, [N] OpenCode, [N] Hermes) | [date range]
 ```
 
 Then the synthesizer's prose findings. When the caller supplies a schema, honor it verbatim and omit the default header.

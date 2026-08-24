@@ -12,7 +12,7 @@
     "link": "bun src/cli.ts link",
     "sync": "bun src/cli.ts sync",
     "lint": "bunx oxlint src tests",
-    "test": "bun test",
+    "test": "bun test && python3 -B skills/ce-sessions/scripts/test_opencode_sessions.py",
     "type-check": "tsc --noEmit",
     "doctor": "npx react-doctor@latest"
   },

@@ -88,7 +88,7 @@ test("links Claude to generated hooks, skills, instructions, and hook config", a
   expect(await pathExists(path.join(homeDir, ".claude", "rules"))).toBe(false);
 });
 
-test("links Codex generated hooks, removing obsolete generated surfaces", async () => {
+test("links Codex instructions and generated hooks, removing obsolete generated surfaces", async () => {
   const root = await makeTempRoot("agents-link-codex-source-");
   const homeDir = await makeTempRoot("agents-link-codex-home-");
   tempRoots.push(root, homeDir);
@@ -110,6 +110,7 @@ test("links Codex generated hooks, removing obsolete generated surfaces", async 
   expect(await readSymlinkTarget(path.join(homeDir, ".codex", "hooks"))).toBe(
     path.join(root, ".generated", "codex", "hooks"),
   );
+  expect(await readSymlinkTarget(path.join(homeDir, ".codex", "AGENTS.md"))).toBe(path.join(root, "AGENTS.md"));
   expect(await readJson(path.join(homeDir, ".codex", "hooks.json"))).toEqual({
     hooks: {
       PreToolUse: [{
@@ -126,7 +127,6 @@ test("links Codex generated hooks, removing obsolete generated surfaces", async 
   expect(await pathExists(path.join(homeDir, ".codex", "commands"))).toBe(false);
   expect(await pathExists(path.join(homeDir, ".codex", "rules"))).toBe(false);
   expect(await pathExists(path.join(homeDir, ".codex", "prompts"))).toBe(false);
-  expect(await pathExists(path.join(homeDir, ".codex", "AGENTS.md"))).toBe(false);
   expect(await pathExists(path.join(root, "skills", "dotagents"))).toBe(false);
   expect(await readText(path.join(homeDir, ".codex", "skills", "custom", "SKILL.md"))).toBe("custom");
 });
