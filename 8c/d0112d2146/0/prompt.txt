@@ -47,3 +47,7 @@ OK let me ask another session in another repo, give me the prompt that I should 
 ---
 
 well shit, OK lets fix the symlinking of the AGENTS.md file to .codex/AGENTS.md so that it's picked up then. We should do this via the sync command on this repo
+
+---
+
+OK, are we on a worktree? we need to create a PR for this
