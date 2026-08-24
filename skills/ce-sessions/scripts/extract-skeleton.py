@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Extract a conversation skeleton from a Claude Code, Codex, Cursor, or Hermes JSONL session.
+"""Extract a conversation skeleton from supported agent session formats.
 
 Usage:
   cat <session.jsonl> | python3 extract-skeleton.py
   cat <session.jsonl> | python3 extract-skeleton.py --output PATH
 
-Auto-detects platform (Claude Code, Codex, Cursor, or Hermes) from the JSONL structure.
+Auto-detects Claude Code, Codex, Cursor, Hermes, or normalized OpenCode input.
 Extracts:
   - User messages (text only, no tool results)
   - Assistant text (no thinking/reasoning blocks)
@@ -381,6 +381,47 @@ def handle_hermes(obj):
                 pending_tools.append({"ts": ts, "name": name, "target": target})
 
 
+def handle_opencode(obj):
+    """OpenCode input is normalized by opencode-sessions.py."""
+    for message in obj.get("messages", []):
+        role = message.get("role")
+        ts = message.get("ts", "")[:19]
+        parts = message.get("parts", [])
+
+        if role == "user":
+            text = clean_text(
+                " ".join(
+                    part.get("text", "")
+                    for part in parts
+                    if part.get("type") == "text"
+                )
+            )
+            if len(text) > 15:
+                flush_tools()
+                print(f"[{ts}] [user] {text[:800]}")
+                print("---")
+                stats["user"] += 1
+
+        elif role == "assistant":
+            for part in parts:
+                if part.get("type") == "text":
+                    text = clean_text(part.get("text", ""))
+                    if len(text) > 20:
+                        flush_tools()
+                        print(f"[{ts}] [assistant] {text[:800]}")
+                        print("---")
+                        stats["assistant"] += 1
+                elif part.get("type") == "tool":
+                    pending_tools.append(
+                        {
+                            "ts": ts,
+                            "name": part.get("name", "unknown"),
+                            "target": part.get("target", ""),
+                            "status": part.get("status", ""),
+                        }
+                    )
+
+
 # Auto-detect platform from first few lines, then process all
 detected = None
 buffer = []
@@ -403,10 +444,18 @@ for line in sys.stdin:
                 detected = "cursor"
             elif isinstance(obj.get("messages"), list) and obj.get("id"):
                 detected = "hermes"
+            elif obj.get("platform") == "opencode" and isinstance(obj.get("messages"), list):
+                detected = "opencode"
         except (json.JSONDecodeError, KeyError):
             pass
 
-handlers = {"claude": handle_claude, "codex": handle_codex, "cursor": handle_cursor, "hermes": handle_hermes}
+handlers = {
+    "claude": handle_claude,
+    "codex": handle_codex,
+    "cursor": handle_cursor,
+    "hermes": handle_hermes,
+    "opencode": handle_opencode,
+}
 handler = handlers.get(detected, handle_codex)
 
 for line in buffer:
