@@ -1,0 +1,53 @@
+every day I encounter the need to correct an agent even if there are following my agent guidelines and skills. The problem is I'm not using this data to help refine the guidelines and skills that we want to use to reduce the amount of corrections needed over time, to create a closed loop and fewer steering injections. This way I can point an agent at a well scoped task and expect it to get a good result for me to review.&#x20;
+
+I think we should set up a weekly automation that looks fairly exhaustively at the session logs and transcripts across all the local agent I use, codex, claude, opencode and cursor, and uses subagents to look for patterns and common corrections that I am repeatedly making to those agents. Then take those  observations, and cross reference the corresponding skills and agents files to see where the guidance didn't catch the correction.
+
+The AGENTS.ms or CLAUDE.md closes to the files being touched. The personal global skills, and project skills being used. The update suggested by the automation should be very targeted to the skill most relevant catching the correction.
+
+Clarify anything you dont understand
+
+---
+
+# Response annotations:
+Each item contains text selected from an earlier Codex response and may include a user comment. Treat items as Annotation 1, Annotation 2, and so on in array order. Use every selection as context and address every comment. For every annotation you address, include its inline directive `:codex-annotation{index="N"}`, where N is its one-based array position (for example, `:codex-annotation{index="1"}`). Do not use unstructured annotation labels.
+<response-annotations>
+[{"text":"There is already an older Agent Retro pipeline","annotation":"as a codex automation? Where is this set?"},{"text":"Should the automation only draft targeted patches for you to review, or may it automatically edit high-confidence guidance?","annotation":"Deliver the suggestions with evidence and make the changes without committing. That way we are both proactive and allow me to review the changes as appropriate"}]
+</response-annotations>
+
+## My request:
+
+---
+
+shouldn't tests be located next to what they are testings?
+
+---
+
+i would also not bother with hermes, i'm going to uninstall it
+
+---
+
+ok can you run the automation? Lets see what it produces?
+
+---
+
+hmmm kindaa worrying now? We have the guidnace in the right places, but the agent isnt't following it?
+
+---
+
+huh, I thought codex defaulted to `~/.agents/AGENTS.md` because we stopped symlinking the Skills directory, if i recall correctly, from the .codex folder as it created duplicate skills in the skill list inside of codex?
+
+---
+
+huh, so if you inspect your current session details what AGENTS.md file have you loaded?
+
+---
+
+OK let me ask another session in another repo, give me the prompt that I should ask without biasing the agent to answer i want
+
+---
+
+well shit, OK lets fix the symlinking of the AGENTS.md file to .codex/AGENTS.md so that it's picked up then. We should do this via the sync command on this repo
+
+---
+
+OK, are we on a worktree? we need to create a PR for this
