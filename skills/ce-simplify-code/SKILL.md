@@ -1,6 +1,6 @@
 ---
 name: ce-simplify-code
-description: "Simplify and refine recently changed code for clarity, reuse, quality, and efficiency while preserving behavior."
+description: "Use when the user asks to simplify, refactor, clean up, reduce duplication, or remove unnecessary complexity from recently changed code. Also use after a substantial refactor or rewrite to check behavior preservation, reuse, and resulting complexity before completion."
 argument-hint: "[blank to simplify current branch changes, or describe what to simplify]"
 ---
 

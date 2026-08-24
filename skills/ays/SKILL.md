@@ -1,6 +1,6 @@
 ---
 name: ays
-description: Recheck your thinking across the whole conversation. Works on any answer, idea, claim, or opinion worth a second pass.
+description: "Use when the user asks 'are you sure?', requests a second pass, challenges a prior answer, or asks you to reconsider the conversation before proceeding."
 ---
 
 Are you sure?

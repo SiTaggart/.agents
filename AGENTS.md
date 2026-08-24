@@ -80,6 +80,16 @@ live source.
 - State what was proven and what was not. Do not let passing commands stand in
   for user-facing verification.
 
+### Refactors and Rewrites
+
+- For implementation-authorized behavior-preserving work, define the preserved
+  contract before editing and prove it afterward with representative real
+  inputs. Name the regression tests and coverage gaps; add missing coverage
+  before calling the work done.
+- Measure a refactor against its stated goal using resulting complexity:
+  concepts, indirection, special cases, and total code. If it changes behavior,
+  adds hot-path work, or misses the goal, flag that before continuing.
+
 ## Scope
 
 - Completeness means fully solving the accepted product contract, not expanding

@@ -1,6 +1,6 @@
 ---
 name: ce-review
-description: Review recent code changes for bugs, regressions, product fit, conventions, performance, security, and blast radius.
+description: "Use when the user asks for a code review, PR review, pre-commit audit, or review of a branch or local diff after implementation exists. Review-only; use document-review for plans and requirements."
 argument-hint: "[quick|deep] [base:<ref>] [plan:<path>] [PR number, PR URL, branch name, or blank for current branch]"
 ---
 
