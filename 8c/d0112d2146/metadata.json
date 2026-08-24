@@ -1,0 +1,32 @@
+{
+  "cli_version": "0.8.42",
+  "checkpoint_id": "8cd0112d2146",
+  "strategy": "manual-commit",
+  "branch": "codex/weekly-agent-guidance-loop",
+  "checkpoints_count": 10,
+  "files_touched": [
+    "package.json",
+    "skills/ce-improve-skills/SKILL.md",
+    "skills/ce-sessions/SKILL.md",
+    "skills/ce-sessions/references/session-historian.md",
+    "skills/ce-sessions/scripts/extract-skeleton.py",
+    "skills/ce-sessions/scripts/opencode-sessions.py",
+    "skills/ce-sessions/scripts/test_opencode_sessions.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/8c/d0112d2146/0/metadata.json",
+      "transcript": "/8c/d0112d2146/0/full.jsonl",
+      "compact_transcript": "/8c/d0112d2146/0/transcript.jsonl",
+      "content_hash": "/8c/d0112d2146/0/content_hash.txt",
+      "prompt": "/8c/d0112d2146/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 496000,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 20314368,
+    "output_tokens": 70231,
+    "api_call_count": 170
+  }
+}
