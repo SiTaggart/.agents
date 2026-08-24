@@ -1,0 +1,26 @@
+{
+  "cli_version": "0.8.42",
+  "checkpoint_id": "7f4e12c5a5ca",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 7,
+  "files_touched": [
+    "skills/babysit-pr/SKILL.md"
+  ],
+  "sessions": [
+    {
+      "metadata": "/7f/4e12c5a5ca/0/metadata.json",
+      "transcript": "/7f/4e12c5a5ca/0/full.jsonl",
+      "compact_transcript": "/7f/4e12c5a5ca/0/transcript.jsonl",
+      "content_hash": "/7f/4e12c5a5ca/0/content_hash.txt",
+      "prompt": "/7f/4e12c5a5ca/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 174217,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 2676992,
+    "output_tokens": 20898,
+    "api_call_count": 43
+  }
+}
