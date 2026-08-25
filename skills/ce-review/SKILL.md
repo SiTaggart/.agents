@@ -8,7 +8,12 @@ argument-hint: "[quick|deep] [base:<ref>] [plan:<path>] [PR number, PR URL, bran
 
 Review the current changeset like a senior engineer who cares about product outcome and code taste. The goal is not maximum findings. The goal is to help the user ship a clean, correct, elegant implementation.
 
-This skill is review-only. It never edits files, commits, pushes, opens PRs, files tickets, writes run artifacts, or applies fixes. If the user wants fixes after the review, handle that as a separate task.
+This skill is review-only. It never edits tracked files, commits, pushes, opens PRs, files tickets, writes durable run artifacts, or applies fixes.
+
+For a `current-checkout` target, the parent may create one untracked temporary
+test file at a time solely to verify functional findings. Record each created
+path, never modify an existing file, and remove created files on every exit. If
+the user wants fixes after the review, handle that as a separate task.
 
 ## Loop Role
 
@@ -42,6 +47,18 @@ Do not do any of these:
 - Do not report speculative future-work concerns.
 - Do not route findings to owners, create JSON contracts, or produce machine-actionable artifact payloads.
 - Do not praise the work or add filler.
+
+## Functional finding reproduction
+
+For a bug, regression, or other claim that behavior is functionally wrong,
+reviewer passes propose the smallest focused reproduction. The parent attempts
+it only for a `current-checkout` target.
+
+- A faithful red test verifies the finding.
+- A faithful green test disproves it; drop the finding.
+- When the exact reviewed revision cannot be tested, the result is
+  `Not reproduced`, not disproven. Retain the finding only when concrete
+  code-path evidence supports it.
 
 ## Step 0: Pre-Flight
 
@@ -132,6 +149,7 @@ Every pass uses this shared bar:
 - Cite a specific file and line.
 - Explain the concrete consequence.
 - Give a specific fix direction.
+- Apply the functional-finding reproduction rule above.
 - Suppress anything that is merely preference, unsupported speculation, or a duplicate of another pass.
 
 ### Context-Isolated Reviewer Routing
@@ -153,7 +171,9 @@ already produced in Step 0; they do not rerun lint, typecheck, or Vitest
 themselves, because a read-only review sandbox rejects the temp files and IPC
 sockets that tsx, Vite, and Vitest create at startup. When a check never ran,
 report it as blocked rather than logging the sandbox error as a product test
-failure.
+failure. A reviewer may propose a minimal reproducer for a suspected functional
+issue. The parent applies the functional-finding reproduction rule before
+synthesis.
 
 Dispatch the smallest useful set of lenses; do not dispatch a lens solely
 because it exists. Evaluate small concerns inline in the parent. Deduplicate
@@ -233,7 +253,8 @@ real assertions for changed behavior, browser/runtime proof for UI when a
 route, story, or preview surface exists, representative data for
 backend/request contracts. Do not demand tests for non-behavioral churn. Do
 not treat passing commands as product proof when the product surface still
-needs checking.
+needs checking. Apply the functional-finding reproduction rule to every
+candidate functional finding from any pass.
 
 ### Pass 6: Performance And Operational Cost
 
@@ -288,15 +309,20 @@ Use this shape:
 
 ### must-fix
 
-| File | Issue | Fix |
-| --- | --- | --- |
-| `path/file.ts:42` | The changed resolver drops saved filters when the URL has no tab param. | Preserve the existing tab state before applying URL defaults. |
+| File | Issue | Repro | Fix |
+| --- | --- | --- | --- |
+| `path/file.ts:42` | The changed resolver drops saved filters when the URL has no tab param. | Red | Preserve the existing tab state before applying URL defaults. |
 
 ### should-fix
 
-| File | Issue | Fix |
-| --- | --- | --- |
-| `path/file.ts:88` | The helper takes the whole chart but only reads `dateMode`. | Pass `dateMode` directly so the dependency is honest. |
+| File | Issue | Repro | Fix |
+| --- | --- | --- | --- |
+| `path/file.ts:88` | The helper takes the whole chart but only reads `dateMode`. | Not applicable | Pass `dateMode` directly so the dependency is honest. |
+
+## Reproductions
+
+Include this section only for verified functional findings. Give the test
+source, exact command, and relevant failure.
 
 ## Verdict
 
@@ -314,6 +340,9 @@ Rules:
 - If there are no issues, say `No findings.` clearly.
 - Always include a verdict.
 - Always include checks/proof status, including what was not run.
+- For each functional finding, state its reproduction status. When verified,
+  use `Red` and include its proof under `Reproductions`. When no valid test was
+  available, use `Not reproduced` and say why in the issue text.
 - Keep issue text specific and short.
 - Do not include time estimates.
 - Do not include separate support, migration, deployment, or residual-risk sections unless the changed contract genuinely requires them.
@@ -326,6 +355,8 @@ Before delivering, re-read every finding and ask:
 - Is this introduced or materially affected by the changeset?
 - Did I cite the right file and line?
 - What actually breaks, gets worse, or becomes harder to maintain?
+- For a `current-checkout` claim of functionally wrong behavior, did I apply
+  the reproduction rule? For a remote target, did I use `Not reproduced`?
 - Is the suggested fix concrete?
 - Am I flagging this because it matters to the product/code, or because a checklist told me to?
 
