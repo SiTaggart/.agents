@@ -52,7 +52,7 @@ After determining mode, read the matching reference and follow it. Each referenc
 
 - **Full Mode** → `references/full-mode.md` (9 steps: fetch, triage, plan, parallel implement, validate, commit/push, reply/resolve, verify, summary)
 - **Approved subset** → `references/full-mode.md`, applying the allowlist rules in steps 2, 8, and 9
-- **Targeted Mode** → `references/targeted-mode.md` (2 steps: extract thread context from URL, fix/reply/resolve via the same validate/commit/push/reply pipeline)
+- **Targeted Mode** → `references/targeted-mode.md` (2 steps: extract thread context from URL, then use the same validate/commit/push/reply/resolve/verify pipeline)
 
 ## Scripts
 
@@ -67,7 +67,11 @@ After determining mode, read the matching reference and follow it. Each referenc
 - Valid fixes committed and pushed
 - Each in-scope thread replied to with quoted context
 - In-scope threads resolved via GraphQL (except `needs-human`)
-- Any GitHub review containing only replies created by this run and
+- Final verification independently paginates all PR reviews and filters them to
+  the current viewer. Never infer publication from the reply mutation's
+  returned state or from an empty unresolved-thread list.
+- Any authored GitHub review containing only replies created by this run and
   accidentally left in `PENDING` state is submitted so the replies are visible
+- No current-viewer review remains in `PENDING` state before success is reported
 - Empty result from get-pr-comments on verify, or no remaining allowlisted
   threads in approved-subset mode (minus intentionally-open threads)

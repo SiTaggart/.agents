@@ -19,6 +19,8 @@ This machine has context tools that see more than the checkout in front of you.
   than a couple of already-known files. `context_builder` can build full
   implementation context for a task on its own. CLI fallback: `rpce-cli`.
 - **`rg` and direct reads** — right for exact, small, already-located scopes.
+- **Repository agent configuration** — when `docs/agents/` exists, read its
+  configuration files before using engineering workflow skills.
 
 An answer, plan, or review that rests only on memory of the code is a guess.
 Ground it on one of these surfaces first, and verify drift-prone details at the
