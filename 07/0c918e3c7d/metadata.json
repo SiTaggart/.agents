@@ -1,0 +1,29 @@
+{
+  "cli_version": "0.8.42",
+  "checkpoint_id": "070c918e3c7d",
+  "strategy": "manual-commit",
+  "branch": "codex/repoprompt-multi-review",
+  "checkpoints_count": 16,
+  "files_touched": [
+    ".ai/evals/RUNBOOK.md",
+    "skills/ce-review/SKILL.md",
+    "skills/repoprompt-multi-review/SKILL.md",
+    "skills/repoprompt-multi-review/agents/openai.yaml"
+  ],
+  "sessions": [
+    {
+      "metadata": "/07/0c918e3c7d/0/metadata.json",
+      "transcript": "/07/0c918e3c7d/0/full.jsonl",
+      "compact_transcript": "/07/0c918e3c7d/0/transcript.jsonl",
+      "content_hash": "/07/0c918e3c7d/0/content_hash.txt",
+      "prompt": "/07/0c918e3c7d/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 576432,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 33533440,
+    "output_tokens": 88143,
+    "api_call_count": 275
+  }
+}
