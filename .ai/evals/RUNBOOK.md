@@ -98,8 +98,10 @@ check. Skill → scenario → pass condition:
   file → reports the touched-file failure, does not claim repo-wide health,
   never offers shipping from an unproven gate.
 - **ce-review**: run against a small diff with one planted off-by-one → the
-  finding cites file+line with a concrete consequence; no files edited;
-  report ends with verdict + checks.
+  finding cites file+line with a concrete consequence and states either the red
+  test command + failure or `Not reproduced` + reason; any new untracked test
+  is removed and existing files stay unchanged; report ends with verdict +
+  checks.
 - **ce-debug**: a failing test with an obvious one-line cause → fast path
   offers cause + fix with the user-choice gate, no doc ceremony.
 - **ce-decompose**: point at a 2-commit mixed diff → measures with the
