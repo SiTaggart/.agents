@@ -84,9 +84,9 @@ Do not add a second copy of a skill folder under a harness directory.
 
 `hooks/scripts/prevent-main-commit.sh` is the shared policy script.
 
-Claude and Codex load `hooks/hooks.json` (`PreToolUse` / `Bash`).
+Claude and Codex load `hooks/hooks.json` (`PreToolUse` / `Bash|Shell`).
 
-Cursor loads `hooks/cursor.json` (`beforeShellExecution`). The two JSON shapes are not compatible.
+Cursor loads `hooks/cursor.json` (`beforeShellExecution`). That file points at `hooks/scripts/cursor-shell-hook.sh`, which turns the shared script's exit code into Cursor permission JSON.
 
 ## Validate
 

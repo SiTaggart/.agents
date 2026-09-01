@@ -2,7 +2,7 @@
   "hooks": {
     "beforeShellExecution": [
       {
-        "command": "./hooks/scripts/prevent-main-commit.sh",
+        "command": "./hooks/scripts/cursor-shell-hook.sh",
         "failClosed": true
       }
     ]

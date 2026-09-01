@@ -10,12 +10,25 @@ if [ -z "$input" ]; then
   exit 0
 fi
 
-if ! command -v jq >/dev/null 2>&1; then
-  echo "Blocked: jq is required to parse hook input for branch protection." >&2
+if ! command -v python3 >/dev/null 2>&1; then
+  echo "Blocked: python3 is required to parse hook input for branch protection." >&2
   exit 2
 fi
 
-if ! command=$(printf '%s' "$input" | jq -r '.tool_input.command // .command // ""' 2>/dev/null); then
+if ! command=$(printf '%s' "$input" | python3 -c '
+import json
+import sys
+
+data = json.loads(sys.stdin.read())
+command = ""
+if isinstance(data, dict):
+    tool_input = data.get("tool_input")
+    if isinstance(tool_input, dict) and isinstance(tool_input.get("command"), str):
+        command = tool_input["command"]
+    elif isinstance(data.get("command"), str):
+        command = data["command"]
+sys.stdout.write(command)
+'); then
   echo "Blocked: Could not parse hook input for branch protection." >&2
   exit 2
 fi

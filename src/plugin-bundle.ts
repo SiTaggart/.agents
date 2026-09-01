@@ -27,6 +27,7 @@ export interface PluginBundle {
     readonly claudeCodex: string;
     readonly cursor: string;
     readonly script: string;
+    readonly cursorWrapper: string;
   };
   readonly retiredPaths: readonly string[];
 }
@@ -72,6 +73,7 @@ export const PLUGIN_BUNDLE: PluginBundle = {
     claudeCodex: "hooks/hooks.json",
     cursor: "hooks/cursor.json",
     script: "hooks/scripts/prevent-main-commit.sh",
+    cursorWrapper: "hooks/scripts/cursor-shell-hook.sh",
   },
   retiredPaths: ["plugins/marketplace.json"],
 };

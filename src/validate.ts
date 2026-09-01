@@ -52,6 +52,7 @@ export async function validatePluginBundle(
   await Promise.all([
     collectMissingPathFailures(root, bundle.skillsDir, "Canonical skills directory is missing.", failures),
     collectMissingPathFailures(root, bundle.hookFiles.script, "Hook script is missing.", failures),
+    collectMissingPathFailures(root, bundle.hookFiles.cursorWrapper, "Cursor hook wrapper is missing.", failures),
     collectMissingPathFailures(root, bundle.hookFiles.claudeCodex, "Claude and Codex hook config is missing.", failures),
     collectMissingPathFailures(root, bundle.hookFiles.cursor, "Cursor hook config is missing.", failures),
     collectRetiredPathFailures(root, bundle, failures),
@@ -72,34 +73,55 @@ export function namesInstructionFile(value: string): boolean {
   return FORBIDDEN_INSTRUCTION_BASENAMES.has(base);
 }
 
+export function inspectPluginManifest(
+  document: unknown,
+  adapter: HarnessAdapter,
+  relPath: string,
+): readonly ValidationFailure[] {
+  const failures: ValidationFailure[] = [];
+  KIND_CHECKS[adapter.kind]({ adapter, document, relPath, failures });
+  collectForbiddenComponentFailures(document, relPath, failures);
+  return failures;
+}
+
 async function collectAdapterFailures(
   root: string,
   bundle: PluginBundle,
   failures: ValidationFailure[],
 ): Promise<void> {
-  const scriptName = path.basename(bundle.hookFiles.script);
   await Promise.all(
-    Object.values(bundle.manifests).map((adapter) => collectOneAdapterFailures(root, adapter, scriptName, failures)),
+    Object.values(bundle.manifests).map((adapter) => collectOneAdapterFailures(root, adapter, bundle, failures)),
   );
 }
 
 async function collectOneAdapterFailures(
   root: string,
   adapter: HarnessAdapter,
-  scriptName: string,
+  bundle: PluginBundle,
   failures: ValidationFailure[],
 ): Promise<void> {
+  const hookCommandName = adapter.kind === "cursor-plugin"
+    ? path.basename(bundle.hookFiles.cursorWrapper)
+    : path.basename(bundle.hookFiles.script);
+
   await collectMissingPathFailures(root, adapter.skillsPath, "Skills path named by the adapter is missing.", failures);
   await collectMissingPathFailures(root, adapter.hooksPath, "Hook config named by the adapter is missing.", failures);
-  await collectHookScriptReferenceFailures(root, adapter.hooksPath, scriptName, failures);
+  await collectHookScriptReferenceFailures(root, adapter.hooksPath, hookCommandName, failures);
+  if (adapter.kind === "cursor-plugin") {
+    await collectHookScriptReferenceFailures(
+      root,
+      bundle.hookFiles.cursorWrapper,
+      path.basename(bundle.hookFiles.script),
+      failures,
+    );
+  }
 
   await collectJsonDocumentFailures(root, adapter.marketplacePath, (document, relPath) => {
     collectMarketplaceFailures(adapter, document, relPath, failures);
   }, failures);
 
   await collectJsonDocumentFailures(root, adapter.manifestPath, (document, relPath) => {
-    KIND_CHECKS[adapter.kind]({ adapter, document, relPath, failures });
-    collectForbiddenComponentFailures(document, relPath, failures);
+    failures.push(...inspectPluginManifest(document, adapter, relPath));
   }, failures);
 }
 
@@ -264,6 +286,10 @@ function collectNamedPathFailures(
   failures: ValidationFailure[],
 ): void {
   if (typeof value !== "string") {
+    failures.push({
+      path: relPath,
+      message: `${field} must be a string path to ${expected}.`,
+    });
     return;
   }
 
