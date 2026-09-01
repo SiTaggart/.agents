@@ -1,75 +1,134 @@
-# .agents
+# agent-kit
 
-Shared AI agent configuration synced across projects. Contains skills and hooks that extend AI coding assistants; specialist personas live inside their owner skills as plain reference files.
+Git-installable plugin for shared coding-agent skills and hooks.
 
-## Local CLI
+The GitHub repo stays `.agents`. The plugin id is `agent-kit`.
 
-Use the local Bun CLI to render target-specific files and link tool configs to
-those generated outputs:
+One `PluginBundle` owns the tree.
 
-```bash
-bun run sync opencode
-bun run sync claude
-bun run sync codex
+```
+{
+  id: "agent-kit",
+  skillsDir: "skills/",
+  hooksDir: "hooks/",
+  manifests: { cursor, claude, codex, grok, opencode }
+}
 ```
 
-Generated target trees live under `.generated/` and are intentionally ignored by
-git. Canonical source remains in `skills/` and `hooks/`.
+Harness adapters are thin JSON manifests (plus an OpenCode package export) over that one tree. Skills are not copied per harness.
 
-Codex loads canonical skills from `.agents/skills` natively. The Codex sync
-target links `AGENTS.md` and renders hook adapters into Codex-native locations.
+`AGENTS.md` is repo documentation. Plugin install does not copy it into Claude, Codex, Cursor, or OpenCode as always-on rules.
 
-## Configuration Ownership
+Prefer project-scoped install. An account-wide Cursor install applies this plugin to every cloud agent.
 
-This repository is the source of truth for sharable coding-harness
-configuration on a machine. Skills, hooks, and the shared instructions
-file come from this repo; do not maintain parallel custom versions under
-`~/.claude`, `~/.config/opencode`, or `~/.codex`. Move sharable config here,
-then run sync.
+## Install
 
-The sync step may replace harness links and hook config for those owned
-surfaces. It also removes obsolete repo-managed `agents`, `commands`, and
-`rules` links; those are no longer synchronized surfaces.
+### Claude Code
 
-**Edit only the canonical sources** (`skills/`, `hooks/`, and the
-root `AGENTS.md`). Generated target trees under `.generated/` and any mirrored
-copies under `~/.config/opencode`, `~/.claude`, or `~/.codex` are overwritten
-by `bun run sync` — edits made there are lost. Make the change in the
-canonical file, then run `bun run sync` to propagate all targets, or
-`bun run sync opencode` for one target.
-
-Render without linking:
-
-```bash
-bun run render opencode
-bun run render claude
-bun run render codex
+```text
+/plugin marketplace add SiTaggart/.agents
+/plugin install agent-kit@agent-kit
 ```
 
-Link previously rendered outputs:
+Choose project scope in the install prompt.
 
-```bash
-bun run link opencode
-bun run link claude
-bun run link codex
+To add the marketplace for everyone who trusts the project folder, put this in that project's `.claude/settings.json`.
+
+```json
+{
+  "extraKnownMarketplaces": {
+    "agent-kit": {
+      "source": {
+        "source": "github",
+        "repo": "SiTaggart/.agents"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "agent-kit@agent-kit": true
+  }
+}
 ```
 
-## Installing External Skills
+Turn it off for a native-harness A/B with `/plugin disable agent-kit@agent-kit` or `/plugin uninstall agent-kit@agent-kit`.
 
-Use `npx skills` for third-party skills that should retain skills.sh update
-provenance. Current `skills` writes project provenance to `skills-lock.json`.
-The older `.skill-lock.json` is legacy installer state and is not updated by
-current `npx skills` commands.
+### Codex
 
-To install into only the shared `.agents/skills` project surface, target one of
-the universal agents such as `codex`, `opencode`, `cursor`, `cline`,
-`gemini-cli`, `github-copilot`, `warp`, `zed`, or `universal`. Do not use
-`claude-code`, `--agent '*'`, or `--all` when the goal is to avoid
-harness-specific project folders such as `.claude/skills`.
+```bash
+codex plugin marketplace add SiTaggart/.agents
+```
 
-This repository is itself `~/.agents`, so running a universal project install
-from this directory would create `~/.agents/.agents/skills`. To update this
-repo's canonical `skills/` shelf from inside the repo, target `openclaw`:
+Then install `agent-kit` from that marketplace. Codex caches the plugin under `~/.codex/plugins`. The clone does not need to live at `~/.agents`.
+
+Turn it off in the Codex plugin directory, or run `codex plugin marketplace remove agent-kit`.
+
+### Cursor and Grok
+
+Grok Bot in Cursor uses the Cursor plugin. There is no second skills tree.
+
+The official Cursor marketplace is review-gated and is not part of this repo. Public GitHub is the source.
+
+Cursor private marketplaces are a Teams feature. Import `https://github.com/SiTaggart/.agents` there and enable `agent-kit` on the project. Prefer project scope. Account-wide install hits every cloud agent.
+
+Turn it off in Cursor plugin settings for a native-harness A/B.
+
+### OpenCode
+
+```bash
+opencode2 plugin add github:SiTaggart/.agents
+```
+
+That installs the JS package export. The package ships hooks only. OpenCode does not load `SKILL.md` from a git plugin package.
+
+To get skills, render them and copy the generated files into the project.
+
+```bash
+bun run render
+cp -R .generated/opencode/skills .opencode/skills
+```
+
+`marketplace.json` does not install OpenCode skills.
+
+Turn the package off with `-agent-kit` in `opencode.json`, or `opencode2 plugin remove github:SiTaggart/.agents`. Delete copied `.opencode/skills` separately if you want a skills A/B.
+
+## Edit skills
+
+Edit files under `skills/` once.
+
+Claude, Cursor, Codex, and Grok consume those files as-is through the plugin manifests.
+
+OpenCode still needs `bun run render` after skill edits, then a copy into `.opencode/skills`.
+
+Do not add a second copy of a skill folder under a harness directory.
+
+## Hooks
+
+`hooks/scripts/prevent-main-commit.sh` is the shared policy script.
+
+Claude and Codex load `hooks/hooks.json` (`PreToolUse` / `Bash`).
+
+Cursor loads `hooks/cursor.json` (`beforeShellExecution`). The two JSON shapes are not compatible.
+
+The OpenCode package runs the same script from `src/opencode-plugin.ts`.
+
+## Validate
+
+Reviewers can rerun this without installing a harness.
+
+```bash
+bun run validate
+bun test
+bun run lint
+bun run type-check
+```
+
+The validator checks that manifests parse, required fields exist, `skills/` and named hook files exist, `AGENTS.md` is not a plugin component, and the retired `plugins/marketplace.json` catalog is gone.
+
+## Adding third-party skills
+
+Use `npx skills` for third-party skills that should retain skills.sh update provenance. Current `skills` writes project provenance to `skills-lock.json`.
+
+To add a skill into this repo's canonical `skills/` shelf, run the installer from the repo and target `openclaw`.
 
 ```bash
 npx skills add vercel-labs/agent-skills \
@@ -97,8 +156,8 @@ The shelf is organized around a few tight loops rather than standalone skills:
 Skills own loops. Bounded, context-heavy phase work goes to sub-agents spawned
 with a persona — a plain markdown file the sub-agent reads and applies.
 Personas ship inside skills (reviewer and worker personas as `references/`
-files, researchers as their own skills), so every harness (Claude Code, Codex,
-OpenCode) gets the same ones with no per-harness rendering.
+files, researchers as their own skills). Claude, Cursor, Codex, and Grok load
+the same files through the plugin. OpenCode needs a render step for `SKILL.md`.
 
 Examples:
 
@@ -246,9 +305,13 @@ Single-owner worker personas live under their loop skill's `references/`:
 
 > **Browser automation:** install the standalone `vercel-labs/agent-browser` plugin when using design workflows that still depend on it. The `design-iterator` persona (`skills/ce-polish/references/`) and the `design-implementation` reviewer persona (`skills/ce-review/references/reviewers/`) expect the `agent-browser` CLI to be on your `$PATH`.
 
-## Key Files
+## Key files
 
-- **`AGENTS.md`** -- Global agent instructions: code style, workflow orchestration, task management, QMD prior-art search, and core principles
+- `skills/` is the canonical skill tree.
+- `hooks/` holds the shared policy script plus harness hook JSON.
+- `AGENTS.md` is human documentation for this repo. It is not a plugin component.
+- `.cursor-plugin/`, `.claude-plugin/`, `.codex-plugin/`, and `.agents/plugins/` are harness adapters.
+- `src/opencode-plugin.ts` is the OpenCode package export.
 
 ## License
 

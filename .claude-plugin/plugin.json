@@ -1,0 +1,14 @@
+{
+  "name": "agent-kit",
+  "description": "Shared coding-agent skills and hooks.",
+  "author": {
+    "name": "Simon Taggart",
+    "email": "me@simontaggart.com"
+  },
+  "homepage": "https://github.com/SiTaggart/.agents",
+  "repository": "https://github.com/SiTaggart/.agents",
+  "license": "MIT",
+  "keywords": ["skills", "hooks"],
+  "skills": "./skills/",
+  "hooks": "./hooks/hooks.json"
+}

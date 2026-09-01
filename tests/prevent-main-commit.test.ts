@@ -73,6 +73,15 @@ test("allows non-commit commands", async () => {
   expect(result.exitCode).toBe(0);
 });
 
+test("reads Cursor beforeShellExecution payloads", async () => {
+  const result = await runHook({
+    input: JSON.stringify({ command: "rm -rf build", cwd: "/tmp", sandbox: false }),
+  });
+
+  expect(result.exitCode).toBe(2);
+  expect(result.stderr).toContain("Blocked:");
+});
+
 test("allows push with force-with-lease", async () => {
   const result = await runHook({
     input: JSON.stringify({ tool_input: { command: "git push --force-with-lease" } }),

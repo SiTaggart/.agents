@@ -1,18 +1,11 @@
-import { copyFile, lstat, mkdir, readFile, readdir, rm, symlink, writeFile } from "fs/promises";
+import { copyFile, lstat, mkdir, readFile, readdir, rm, writeFile } from "fs/promises";
 import type { Dirent, Stats } from "fs";
 import path from "path";
-import type { SourceKind } from "./types";
 
 interface CopyDirectoryOptions {
   source: string;
   target: string;
   transformText?: (content: string, sourcePath: string) => string;
-}
-
-interface LinkOptions {
-  source: string;
-  target: string;
-  kind: SourceKind;
 }
 
 export async function pathExists(filePath: string): Promise<boolean> {
@@ -26,14 +19,6 @@ export async function readText(filePath: string): Promise<string> {
 export async function writeText(filePath: string, content: string): Promise<void> {
   await mkdir(path.dirname(filePath), { recursive: true });
   await writeFile(filePath, content, "utf8");
-}
-
-export async function ensureDir(dir: string): Promise<void> {
-  await mkdir(dir, { recursive: true });
-}
-
-export async function ensureDirs(dirs: readonly string[]): Promise<void> {
-  await Promise.all(dirs.map(ensureDir));
 }
 
 export async function resetDir(dir: string): Promise<void> {
@@ -53,21 +38,15 @@ export async function copyDirectory(options: CopyDirectoryOptions): Promise<void
   await Promise.all(entries.map((entry) => copyDirectoryEntry(options, entry)));
 }
 
-export async function replaceSymlink(options: LinkOptions): Promise<void> {
-  await validateLinkSource(options);
-  await rm(options.target, { recursive: true, force: true });
-  await mkdir(path.dirname(options.target), { recursive: true });
-  const link = path.relative(path.dirname(options.target), options.source) || ".";
-  await symlink(link, options.target, options.kind);
-}
-
-export async function validateLinkSource(options: LinkOptions): Promise<void> {
-  const sourceStat = await statSafe(options.source);
-  if (!sourceStat) {
-    throw new Error(`Cannot link missing source: ${options.source}`);
+export async function statSafe(filePath: string): Promise<Stats | null> {
+  try {
+    return await lstat(filePath);
+  } catch (error) {
+    if (isNodeError(error) && error.code === "ENOENT") {
+      return null;
+    }
+    throw error;
   }
-
-  validateSourceKind(options, sourceStat);
 }
 
 async function listEntryFiles(
@@ -121,29 +100,8 @@ async function readDirSafe(dir: string): Promise<readonly Dirent[]> {
   }
 }
 
-export async function statSafe(filePath: string): Promise<Stats | null> {
-  try {
-    return await lstat(filePath);
-  } catch (error) {
-    if (isNodeError(error) && error.code === "ENOENT") {
-      return null;
-    }
-    throw error;
-  }
-}
-
 function isTextPath(filePath: string): boolean {
   return /\.(cjs|css|js|json|md|mjs|py|sh|toml|ts|tsx|txt|yaml|yml)$/i.test(filePath);
-}
-
-function validateSourceKind(options: LinkOptions, sourceStat: Stats): void {
-  if (options.kind === "dir" && !sourceStat.isDirectory()) {
-    throw new Error(`Expected directory source for ${options.target}: ${options.source}`);
-  }
-
-  if (options.kind === "file" && !sourceStat.isFile()) {
-    throw new Error(`Expected file source for ${options.target}: ${options.source}`);
-  }
 }
 
 function isNodeError(error: unknown): error is NodeJS.ErrnoException {

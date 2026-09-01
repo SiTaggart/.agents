@@ -15,7 +15,7 @@ if ! command -v jq >/dev/null 2>&1; then
   exit 2
 fi
 
-if ! command=$(printf '%s' "$input" | jq -er '.tool_input.command // ""' 2>/dev/null); then
+if ! command=$(printf '%s' "$input" | jq -r '.tool_input.command // .command // ""' 2>/dev/null); then
   echo "Blocked: Could not parse hook input for branch protection." >&2
   exit 2
 fi

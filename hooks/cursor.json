@@ -1,0 +1,10 @@
+{
+  "hooks": {
+    "beforeShellExecution": [
+      {
+        "command": "./hooks/scripts/prevent-main-commit.sh",
+        "failClosed": true
+      }
+    ]
+  }
+}
