@@ -6,8 +6,8 @@
     "name": "Simon Taggart",
     "email": "me@simontaggart.com"
   },
-  "homepage": "https://github.com/SiTaggart/.agents",
-  "repository": "https://github.com/SiTaggart/.agents",
+  "homepage": "https://github.com/SiTaggart/agent-kit",
+  "repository": "https://github.com/SiTaggart/agent-kit",
   "license": "MIT",
   "keywords": ["skills", "hooks"],
   "skills": "./skills/",

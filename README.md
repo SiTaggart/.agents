@@ -2,7 +2,7 @@
 
 Git-installable plugin for shared coding-agent skills and hooks.
 
-The GitHub repo stays `.agents`. The plugin id is `agent-kit`.
+The plugin id is `agent-kit`.
 
 One `PluginBundle` owns the tree.
 
@@ -26,7 +26,7 @@ Prefer project-scoped install. An account-wide Cursor install applies this plugi
 ### Claude Code
 
 ```text
-/plugin marketplace add SiTaggart/.agents
+/plugin marketplace add SiTaggart/agent-kit
 /plugin install agent-kit@agent-kit
 ```
 
@@ -40,7 +40,7 @@ To add the marketplace for everyone who trusts the project folder, put this in t
     "agent-kit": {
       "source": {
         "source": "github",
-        "repo": "SiTaggart/.agents"
+        "repo": "SiTaggart/agent-kit"
       }
     }
   },
@@ -55,7 +55,7 @@ Turn it off for a native-harness A/B with `/plugin disable agent-kit@agent-kit` 
 ### Codex
 
 ```bash
-codex plugin marketplace add SiTaggart/.agents
+codex plugin marketplace add SiTaggart/agent-kit
 ```
 
 Then install `agent-kit` from that marketplace. Codex caches the plugin under `~/.codex/plugins`. The clone does not need to live at `~/.agents`.
@@ -68,7 +68,7 @@ Grok Bot in Cursor uses the Cursor plugin. There is no second skills tree.
 
 The official Cursor marketplace is review-gated and is not part of this repo. Public GitHub is the source.
 
-Cursor private marketplaces are a Teams feature. Import `https://github.com/SiTaggart/.agents` there and enable `agent-kit` on the project. Prefer project scope. Account-wide install hits every cloud agent.
+Cursor private marketplaces are a Teams feature. Import `https://github.com/SiTaggart/agent-kit` there and enable `agent-kit` on the project. Prefer project scope. Account-wide install hits every cloud agent.
 
 Turn it off in Cursor plugin settings for a native-harness A/B.
 
