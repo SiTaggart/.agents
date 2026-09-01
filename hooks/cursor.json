@@ -1,0 +1,10 @@
+{
+  "hooks": {
+    "beforeShellExecution": [
+      {
+        "command": "./hooks/scripts/cursor-shell-hook.sh",
+        "failClosed": true
+      }
+    ]
+  }
+}

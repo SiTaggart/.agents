@@ -1,4 +1,4 @@
-import { mkdtemp, readFile, readlink, rm, writeFile, mkdir } from "fs/promises";
+import { mkdtemp, readFile, rm, writeFile, mkdir } from "fs/promises";
 import { tmpdir } from "os";
 import path from "path";
 
@@ -17,9 +17,4 @@ export async function writeText(filePath: string, content: string): Promise<void
 
 export async function readText(filePath: string): Promise<string> {
   return await readFile(filePath, "utf8");
-}
-
-export async function readSymlinkTarget(linkPath: string): Promise<string> {
-  const target = await readlink(linkPath);
-  return path.isAbsolute(target) ? target : path.resolve(path.dirname(linkPath), target);
 }

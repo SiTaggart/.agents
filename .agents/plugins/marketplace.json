@@ -1,14 +1,14 @@
 {
-  "name": "personal",
+  "name": "agent-kit",
   "interface": {
-    "displayName": "Personal"
+    "displayName": "Agent Kit"
   },
   "plugins": [
     {
-      "name": "mattpocock-skills",
+      "name": "agent-kit",
       "source": {
         "source": "local",
-        "path": "./plugins/mattpocock-skills"
+        "path": "./"
       },
       "policy": {
         "installation": "AVAILABLE",

@@ -1,16 +1,14 @@
 {
-  "name": "dot-agents",
+  "name": "agent-kit",
   "version": "0.1.0",
   "private": true,
   "type": "module",
   "bin": {
-    "dotagents": "./src/cli.ts"
+    "agent-kit": "./src/cli.ts"
   },
   "scripts": {
     "agents": "bun src/cli.ts",
-    "render": "bun src/cli.ts render",
-    "link": "bun src/cli.ts link",
-    "sync": "bun src/cli.ts sync",
+    "validate": "bun src/cli.ts validate",
     "lint": "bunx oxlint src tests",
     "test": "bun test && python3 -B skills/ce-sessions/scripts/test_opencode_sessions.py",
     "type-check": "tsc --noEmit",

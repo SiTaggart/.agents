@@ -1,9 +1,11 @@
 import { afterEach, expect, test } from "bun:test";
+import { symlink } from "fs/promises";
 import path from "path";
 import { makeTempRoot, removeTempRoot } from "./helpers";
 
 const tempRoots: string[] = [];
 const hookPath = path.resolve(import.meta.dir, "..", "hooks", "scripts", "prevent-main-commit.sh");
+const cursorWrapperPath = path.resolve(import.meta.dir, "..", "hooks", "scripts", "cursor-shell-hook.sh");
 
 afterEach(async () => {
   await Promise.all(tempRoots.map(removeTempRoot));
@@ -73,12 +75,60 @@ test("allows non-commit commands", async () => {
   expect(result.exitCode).toBe(0);
 });
 
+test("reads Cursor beforeShellExecution payloads", async () => {
+  const result = await runHook({
+    input: JSON.stringify({ command: "rm -rf build", cwd: "/tmp", sandbox: false }),
+  });
+
+  expect(result.exitCode).toBe(2);
+  expect(result.stderr).toContain("Blocked:");
+});
+
 test("allows push with force-with-lease", async () => {
   const result = await runHook({
     input: JSON.stringify({ tool_input: { command: "git push --force-with-lease" } }),
   });
 
   expect(result.exitCode).toBe(0);
+});
+
+test("extracts commands without jq on PATH", async () => {
+  const pathWithoutJq = await makePathWithoutJq();
+  const allowed = await runHook({
+    env: { PATH: pathWithoutJq },
+    input: JSON.stringify({ tool_input: { command: "git status" } }),
+  });
+  const blocked = await runHook({
+    env: { PATH: pathWithoutJq },
+    input: JSON.stringify({ command: "rm -rf build", cwd: "/tmp", sandbox: false }),
+  });
+
+  expect(allowed.exitCode).toBe(0);
+  expect(blocked.exitCode).toBe(2);
+  expect(blocked.stderr).toContain("Blocked:");
+});
+
+test("Cursor wrapper prints allow JSON for git status", async () => {
+  const result = await runCursorWrapper({
+    input: JSON.stringify({ command: "git status", cwd: "/tmp", sandbox: false }),
+  });
+
+  expect(JSON.parse(result.stdout)).toEqual({ permission: "allow" });
+});
+
+test("Cursor wrapper prints deny JSON for rm -rf build", async () => {
+  const result = await runCursorWrapper({
+    input: JSON.stringify({ command: "rm -rf build", cwd: "/tmp", sandbox: false }),
+  });
+  const body = JSON.parse(result.stdout) as {
+    permission: string;
+    agent_message?: string;
+    user_message?: string;
+  };
+
+  expect(body.permission).toBe("deny");
+  expect(body.agent_message).toContain("Blocked:");
+  expect(body.user_message).toContain("Blocked:");
 });
 
 interface HookRunOptions {
@@ -88,7 +138,20 @@ interface HookRunOptions {
 }
 
 async function runHook(options: HookRunOptions): Promise<{ exitCode: number; stderr: string }> {
-  const child = Bun.spawn(["/bin/bash", hookPath], {
+  return await runScript(hookPath, options);
+}
+
+async function runCursorWrapper(
+  options: HookRunOptions,
+): Promise<{ exitCode: number; stdout: string; stderr: string }> {
+  return await runScript(cursorWrapperPath, options);
+}
+
+async function runScript(
+  scriptPath: string,
+  options: HookRunOptions,
+): Promise<{ exitCode: number; stdout: string; stderr: string }> {
+  const child = Bun.spawn(["/bin/bash", scriptPath], {
     cwd: options.cwd,
     env: {
       ...process.env,
@@ -104,6 +167,26 @@ async function runHook(options: HookRunOptions): Promise<{ exitCode: number; std
 
   return {
     exitCode: await child.exited,
+    stdout: await new Response(child.stdout).text(),
     stderr: await new Response(child.stderr).text(),
   };
+}
+
+async function makePathWithoutJq(): Promise<string> {
+  const bin = await makeTempRoot("hook-path-");
+  tempRoots.push(bin);
+  const python3 = Bun.which("python3");
+  const grep = Bun.which("grep");
+  const cat = Bun.which("cat");
+  if (!python3 || !grep || !cat) {
+    throw new Error("python3, grep, and cat are required for the jq-free hook test");
+  }
+
+  await Promise.all([
+    symlink(python3, path.join(bin, "python3")),
+    symlink(grep, path.join(bin, "grep")),
+    symlink(cat, path.join(bin, "cat")),
+  ]);
+
+  return bin;
 }

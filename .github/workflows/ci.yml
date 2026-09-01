@@ -33,5 +33,8 @@ jobs:
       - name: Lint
         run: bun run lint
 
+      - name: Validate plugin bundle
+        run: bun run validate
+
       - name: Test
         run: bun test
