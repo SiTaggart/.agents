@@ -99,6 +99,24 @@ def get_last_timestamp(filepath, size):
     return None
 
 
+# Codex approval-assessor sessions quote the whole root transcript into their
+# own user messages after one of these markers.
+QUOTED_TRANSCRIPT_MARKERS = (">>> TRANSCRIPT START", ">>> TRANSCRIPT DELTA START")
+
+
+def _drop_quoted_transcript(text):
+    """Return only the text the speaker authored, dropping any quoted transcript.
+
+    An approval-assessor session re-states its parent's transcript verbatim, so
+    every keyword in the parent counts a second time and the wrapper outranks
+    the session that actually did the work. Cutting at the quote marker keeps
+    the assessor's own words and discards the copy.
+    """
+    for marker in QUOTED_TRANSCRIPT_MARKERS:
+        text = text.split(marker)[0]
+    return text
+
+
 def _extract_user_assistant_text(filepath):
     """Return concatenated user + assistant text content from a session JSONL.
 
@@ -154,7 +172,7 @@ def _extract_user_assistant_text(filepath):
                         msg = p.get("message", "")
                         if isinstance(msg, str):
                             parts = msg.split("</system_instruction>")
-                            chunks.append(parts[-1] if parts else msg)
+                            chunks.append(_drop_quoted_transcript(parts[-1] if parts else msg))
                     continue
                 if t == "response_item":
                     p = obj.get("payload", {})

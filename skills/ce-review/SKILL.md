@@ -152,6 +152,17 @@ Every pass uses this shared bar:
 - Apply the functional-finding reproduction rule above.
 - Suppress anything that is merely preference, unsupported speculation, or a duplicate of another pass.
 
+### Mandatory Code-Taste Gate
+
+For every TypeScript or React diff, Pass 3 applies `code-taste` as a mandatory
+gate. Complete it with either `No issues.` or concrete findings that meet the
+shared bar.
+
+Every code-taste finding that meets the shared bar survives synthesis. Severity
+controls ordering and verdict, not inclusion. Omit a finding only when it
+duplicates a retained finding, is pre-existing and unaffected by the diff, or
+fails the shared bar; merge duplicates into the retained finding.
+
 ### Context-Isolated Reviewer Routing
 
 For medium or large reviews, and for `deep` reviews, delegate the context-heavy
@@ -283,7 +294,9 @@ schemas, or tests that should have changed. Stay tied to changed contracts.
 
 ## Step 4: Synthesize
 
-Collect findings from the passes, deduplicate them, and drop anything that does not meet the bar.
+Collect findings from the passes, deduplicate them, and drop anything that does
+not meet the bar. Account for every applicable code-taste gate before choosing
+a verdict.
 
 Severity:
 
@@ -293,10 +306,11 @@ Severity:
 
 Verdict:
 
-- `Ship it` - no findings, or only ignorable nits
+- `Ship it` - every applicable pass completed, with no findings or only ignorable nits
 - `Minor nits` - only nits remain
 - `Needs changes` - any `should-fix` or one contained `must-fix`
 - `Rethink approach` - multiple `must-fix` findings, or one must-fix that undermines the core design
+- `Review incomplete` - an applicable mandatory pass did not complete
 
 ## Output
 
@@ -330,6 +344,7 @@ Needs changes.
 
 ## Checks
 
+- Code taste: completed - 1 finding reported
 - Typecheck: passed
 - Touched tests: not run - no focused test command found
 - Browser proof: not applicable
@@ -340,6 +355,10 @@ Rules:
 - If there are no issues, say `No findings.` clearly.
 - Always include a verdict.
 - Always include checks/proof status, including what was not run.
+- For TypeScript or React diffs, report `Code taste` as `passed - no issues`,
+  `completed - N findings reported`, or `incomplete - <reason>`. Report
+  `not applicable - no TypeScript or React changes` for other diffs. An
+  incomplete applicable taste gate requires the `Review incomplete` verdict.
 - For each functional finding, state its reproduction status. When verified,
   use `Red` and include its proof under `Reproductions`. When no valid test was
   available, use `Not reproduced` and say why in the issue text.

@@ -76,8 +76,6 @@ propping up a structure that should be replaced.
   with clearer types or local narrowing.
 - Parse or guard raw `unknown` data once at the external boundary, then pass
   typed values inward.
-- Inline simple one-use logic unless extracting it makes the owner boundary,
-  invariant, or test seam clearer.
 - Do not prop up a shape that should be replaced. When a fix only fits by adding
   a special case, a flag, or a workaround to structure that is itself the
   problem, replacing that structure is the smaller change even when the diff is
@@ -92,8 +90,11 @@ propping up a structure that should be replaced.
   that fits the local style.
 - Co-locate related component, hook, type, and test files when the project
   already uses that pattern.
-- Name utilities as verb-based functions, then name the file after the main
-  export.
+- Start function names with an action verb that tells the caller what happens,
+  then name the file after the main export. Prefer `calculatePeriodValue` over
+  `periodValue`.
+- Let names and types document internal TypeScript. Use TSDoc only for published
+  API behavior that callers cannot infer from the signature.
 - Use `unknown` plus parsing at external boundaries instead of trusting raw data.
 - Avoid casts. If a cast is unavoidable, add a short `// SAFETY:` comment that
   explains the invariant.
@@ -106,6 +107,12 @@ propping up a structure that should be replaced.
 
 ## Function Boundaries
 
+- Write domain workflows as a top-to-bottom sequence of named states.
+- Give each meaningful transformation its own statement. Name the value for the
+  domain state that exists after that step.
+- Inline an operation only when an intermediate name would add no domain
+  meaning. Name filtering, representation changes, result selection, and
+  fallible work even when the value is used once.
 - Let broad workflow owners compose broad objects: public actions, render
   resolvers, validators, hooks, components, and IO adapters.
 - Below that owner boundary, pass the smallest meaningful values a helper
@@ -116,6 +123,12 @@ propping up a structure that should be replaced.
   it.
 - Broad objects are fine when the function truly owns a broad transition or
   invariant.
+
+```ts
+const points = convertRowsToPoints(input, dates, timezone);
+const result = calculateLatestMetricResult(points, unit, comparison);
+return attachRefreshError(result, refreshError);
+```
 
 ```ts
 const chartDateSetup = chartDefaultDateSetup(chart);
