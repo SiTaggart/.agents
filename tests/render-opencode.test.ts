@@ -74,7 +74,7 @@ test("skips hidden skill directories when rendering OpenCode skills", async () =
   );
 });
 
-test("creates a skills directory even when the source shelf is empty", async () => {
+test("resets the OpenCode output root when the source shelf is empty", async () => {
   const root = await makeTempRoot("agents-render-empty-skills-");
   tempRoots.push(root);
 

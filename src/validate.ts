@@ -78,18 +78,23 @@ async function collectAdapterFailures(
   bundle: PluginBundle,
   failures: ValidationFailure[],
 ): Promise<void> {
-  await Promise.all(Object.values(bundle.manifests).map((adapter) => collectOneAdapterFailures(root, adapter, failures)));
+  const scriptName = path.basename(bundle.hookFiles.script);
+  await Promise.all(
+    Object.values(bundle.manifests).map((adapter) => collectOneAdapterFailures(root, adapter, scriptName, failures)),
+  );
 }
 
 async function collectOneAdapterFailures(
   root: string,
   adapter: HarnessAdapter,
+  scriptName: string,
   failures: ValidationFailure[],
 ): Promise<void> {
   await collectMissingPathFailures(root, adapter.skillsPath, "Skills path named by the adapter is missing.", failures);
 
   if (adapter.hooksPath) {
     await collectMissingPathFailures(root, adapter.hooksPath, "Hook config named by the adapter is missing.", failures);
+    await collectHookScriptReferenceFailures(root, adapter.hooksPath, scriptName, failures);
   }
 
   if (adapter.marketplacePath) {
@@ -330,6 +335,23 @@ async function collectRetiredPathFailures(
       failures.push({ path: relPath, message: "Retired catalog must be removed." });
     }
   }));
+}
+
+async function collectHookScriptReferenceFailures(
+  root: string,
+  relPath: string,
+  scriptName: string,
+  failures: ValidationFailure[],
+): Promise<void> {
+  const absPath = path.join(root, relPath);
+  if (!(await pathExists(absPath))) {
+    return;
+  }
+
+  const text = await readText(absPath);
+  if (!text.includes(scriptName)) {
+    failures.push({ path: relPath, message: `Hook config must name ${scriptName}.` });
+  }
 }
 
 async function collectMissingPathFailures(
