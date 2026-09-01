@@ -1,0 +1,43 @@
+Automation: Weekly agent guidance improvement
+Automation ID: weekly-agent-guidance-improvement
+Automation memory: $CODEX_HOME/automations/weekly-agent-guidance-improvement/memory.md
+Last run: never
+
+Run the weekly closed-loop improvement pass for local coding-agent guidance.
+
+Work from the canonical /Users/staggart/.agents repository. Read and follow these files completely before analysis:
+- /Users/staggart/.agents/AGENTS.md
+- /Users/staggart/.agents/skills/ce-improve-skills/SKILL.md
+- /Users/staggart/.agents/skills/ce-sessions/SKILL.md
+
+Analyze the previous 7 days of sessions machine-wide across Codex, Claude Code, Cursor, and OpenCode. Inventory every available root session across every repository and worktree before selecting candidates. Group subagents and worker transcripts under their human/root session so fan-out does not inflate frequency.
+
+Use bounded subagents for the analysis: one subagent per available platform. Give each subagent only metadata and selected extracted skeleton paths, never bulk raw transcripts. The parent agent owns cross-platform deduplication, evidence thresholds, guidance-owner selection, edits, and the final report.
+
+Count only genuine human follow-ups that redirect agent behavior. Exclude initial requests, approvals, system/developer instructions, automation prompts, tool output, quoted or forwarded transcripts, and worker prompts. Treat QMD retros as historical pointers, not proof. Verify every candidate against an independent root-session event and the current owner file.
+
+For each recurring correction, resolve exactly one canonical owner:
+1. the personal or project skill actually invoked when the behavior is skill-specific;
+2. the nearest tracked AGENTS.md or CLAUDE.md ancestor covering the touched files for repository-local rules;
+3. /Users/staggart/.agents/skills/<name>/SKILL.md or the root /Users/staggart/.agents/AGENTS.md only for genuinely cross-project behavior.
+
+Resolve generated files and symlinks back to canonical sources. Never edit .generated/, ~/.claude, ~/.config/opencode, or mirrored Codex copies.
+
+Apply the smallest targeted change only when the same correction appears in at least two independent root sessions, or one new session confirms an already verified current gotcha; the signal maps cleanly to one owner; and current guidance has a real gap. Cross-cutting, risky, aggregate-only, one-off, already-covered, or multi-owner findings remain evidence-backed proposals or no-change decisions.
+
+Before editing any owner file, record git status and HEAD in its repository. If the owner file is already dirty, the canonical checkout is unavailable, or the target is outside the writable roots for this run, leave it unchanged and provide an exact patch proposal. Otherwise make the canonical edit and leave it as a local uncommitted diff for user review.
+
+Do not commit, push, sync generated targets, open pull requests, create tickets, resolve review threads, or publish changes. Do not overwrite unrelated user edits.
+
+Verify each applied change by reading it back, running git diff --check in its repository, rendering shared skill changes with bun run render from /Users/staggart/.agents, and running focused tests when scripts or code changed. Finish by proving HEAD did not change and reporting git status.
+
+Return a concise report containing:
+- coverage: root-session counts for Codex, Claude Code, Cursor, and OpenCode, plus unavailable or empty stores;
+- evidence per signal: paraphrased correction, platform, session ID, cwd, date, and independent-root count;
+- current guidance gap;
+- canonical owner and why it owns the behavior;
+- decision: changed, proposed, or no change;
+- exact uncommitted files and validation, or the exact proposed patch;
+- the signal to measure in later weekly runs.
+
+If there are no qualifying corrections, make no edits and say so.
