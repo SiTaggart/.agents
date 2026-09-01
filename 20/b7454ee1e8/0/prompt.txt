@@ -1,0 +1,31 @@
+does ce-review not require a code test pass? as part of the review?
+
+---
+
+not code test, code taste, sorry
+
+---
+
+I just ran a ce-review and it said of taste review:
+
+
+
+> You’re right. I ran the code-taste pass, then incorrectly filtered its structural findings out because the functional bugs were higher severity. That made the “entire diff” review incomplete.
+
+
+
+Like, how can I really enforce code taste as a requirement not a nice to have?
+
+---
+
+# Response annotations:
+Each item contains text selected from an earlier Codex response and may include a user comment. Treat items as Annotation 1, Annotation 2, and so on in array order. Use every selection as context and address every comment. For every annotation you address, include its inline directive `:codex-annotation{index="N"}`, where N is its one-based array position (for example, `:codex-annotation{index="1"}`). Do not use unstructured annotation labels.
+<response-annotations>
+[{"text":"Also make Ship it unavailable","annotation":"what makes it available?"}]
+</response-annotations>
+
+## My request:
+
+---
+
+ok can you make these adjustments please?
