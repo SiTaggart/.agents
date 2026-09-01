@@ -3,9 +3,10 @@
   "checkpoint_id": "20b7454ee1e8",
   "strategy": "manual-commit",
   "branch": "main",
-  "checkpoints_count": 6,
+  "checkpoints_count": 8,
   "files_touched": [
     "skills/ce-review/SKILL.md",
+    "skills/ce-sessions/scripts/extract-metadata.py",
     "skills/code-taste/SKILL.md"
   ],
   "sessions": [
@@ -22,13 +23,20 @@
       "compact_transcript": "/20/b7454ee1e8/1/transcript.jsonl",
       "content_hash": "/20/b7454ee1e8/1/content_hash.txt",
       "prompt": "/20/b7454ee1e8/1/prompt.txt"
+    },
+    {
+      "metadata": "/20/b7454ee1e8/2/metadata.json",
+      "transcript": "/20/b7454ee1e8/2/full.jsonl",
+      "compact_transcript": "/20/b7454ee1e8/2/transcript.jsonl",
+      "content_hash": "/20/b7454ee1e8/2/content_hash.txt",
+      "prompt": "/20/b7454ee1e8/2/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 212819,
-    "cache_creation_tokens": 0,
-    "cache_read_tokens": 3882240,
-    "output_tokens": 23168,
-    "api_call_count": 70
+    "input_tokens": 212901,
+    "cache_creation_tokens": 161889,
+    "cache_read_tokens": 7221814,
+    "output_tokens": 44624,
+    "api_call_count": 111
   }
 }
