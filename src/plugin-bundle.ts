@@ -1,16 +1,16 @@
 export const PLUGIN_ID = "agent-kit" as const;
 
-export type HarnessId = "cursor" | "claude" | "codex" | "grok" | "opencode";
+export type HarnessId = "cursor" | "claude" | "codex" | "grok";
 
-export type ManifestKind = "cursor-plugin" | "claude-plugin" | "codex-plugin" | "opencode-package";
+export type ManifestKind = "cursor-plugin" | "claude-plugin" | "codex-plugin";
 
 export interface HarnessAdapter {
   readonly id: HarnessId;
   readonly kind: ManifestKind;
   readonly manifestPath: string;
-  readonly marketplacePath?: string;
+  readonly marketplacePath: string;
   readonly skillsPath: string;
-  readonly hooksPath?: string;
+  readonly hooksPath: string;
 }
 
 export interface PluginBundle {
@@ -22,7 +22,6 @@ export interface PluginBundle {
     readonly claude: HarnessAdapter;
     readonly codex: HarnessAdapter;
     readonly grok: HarnessAdapter;
-    readonly opencode: HarnessAdapter;
   };
   readonly hookFiles: {
     readonly claudeCodex: string;
@@ -59,13 +58,6 @@ const CODEX_ADAPTER: HarnessAdapter = {
   hooksPath: "hooks/hooks.json",
 };
 
-const OPENCODE_ADAPTER: HarnessAdapter = {
-  id: "opencode",
-  kind: "opencode-package",
-  manifestPath: "package.json",
-  skillsPath: "skills/",
-};
-
 export const PLUGIN_BUNDLE: PluginBundle = {
   id: PLUGIN_ID,
   skillsDir: "skills/",
@@ -75,7 +67,6 @@ export const PLUGIN_BUNDLE: PluginBundle = {
     claude: CLAUDE_ADAPTER,
     codex: CODEX_ADAPTER,
     grok: { ...CURSOR_ADAPTER, id: "grok" },
-    opencode: OPENCODE_ADAPTER,
   },
   hookFiles: {
     claudeCodex: "hooks/hooks.json",

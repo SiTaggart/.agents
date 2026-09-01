@@ -33,8 +33,7 @@ const COMPONENT_KEYS = new Set([
 const KIND_CHECKS: Record<ManifestKind, (ctx: KindCheckContext) => void> = {
   "cursor-plugin": collectCursorManifestFailures,
   "claude-plugin": collectNamedPluginManifestFailures,
-  "codex-plugin": collectCodexManifestFailures,
-  "opencode-package": collectOpenCodePackageFailures,
+  "codex-plugin": collectNamedPluginManifestFailures,
 };
 
 interface KindCheckContext {
@@ -91,17 +90,12 @@ async function collectOneAdapterFailures(
   failures: ValidationFailure[],
 ): Promise<void> {
   await collectMissingPathFailures(root, adapter.skillsPath, "Skills path named by the adapter is missing.", failures);
+  await collectMissingPathFailures(root, adapter.hooksPath, "Hook config named by the adapter is missing.", failures);
+  await collectHookScriptReferenceFailures(root, adapter.hooksPath, scriptName, failures);
 
-  if (adapter.hooksPath) {
-    await collectMissingPathFailures(root, adapter.hooksPath, "Hook config named by the adapter is missing.", failures);
-    await collectHookScriptReferenceFailures(root, adapter.hooksPath, scriptName, failures);
-  }
-
-  if (adapter.marketplacePath) {
-    await collectJsonDocumentFailures(root, adapter.marketplacePath, (document, relPath) => {
-      collectMarketplaceFailures(adapter, document, relPath, failures);
-    }, failures);
-  }
+  await collectJsonDocumentFailures(root, adapter.marketplacePath, (document, relPath) => {
+    collectMarketplaceFailures(adapter, document, relPath, failures);
+  }, failures);
 
   await collectJsonDocumentFailures(root, adapter.manifestPath, (document, relPath) => {
     KIND_CHECKS[adapter.kind]({ adapter, document, relPath, failures });
@@ -121,9 +115,7 @@ function collectNamedPluginManifestFailures(ctx: KindCheckContext): void {
   }
 
   collectNamedPathFailures(record.skills, ctx.adapter.skillsPath, ctx.relPath, "skills", ctx.failures);
-  if (ctx.adapter.hooksPath) {
-    collectNamedPathFailures(record.hooks, ctx.adapter.hooksPath, ctx.relPath, "hooks", ctx.failures);
-  }
+  collectNamedPathFailures(record.hooks, ctx.adapter.hooksPath, ctx.relPath, "hooks", ctx.failures);
 }
 
 function collectCursorManifestFailures(ctx: KindCheckContext): void {
@@ -131,38 +123,6 @@ function collectCursorManifestFailures(ctx: KindCheckContext): void {
   const record = asRecord(ctx.document);
   if (record && "rules" in record) {
     ctx.failures.push({ path: ctx.relPath, message: "Cursor plugin must not declare rules." });
-  }
-}
-
-function collectCodexManifestFailures(ctx: KindCheckContext): void {
-  collectNamedPluginManifestFailures(ctx);
-}
-
-function collectOpenCodePackageFailures(ctx: KindCheckContext): void {
-  const record = asRecord(ctx.document);
-  if (!record) {
-    ctx.failures.push({ path: ctx.relPath, message: "OpenCode package.json must be a JSON object." });
-    return;
-  }
-
-  if (record.name !== PLUGIN_ID) {
-    ctx.failures.push({ path: ctx.relPath, message: `package.json name must be ${PLUGIN_ID}.` });
-  }
-
-  const exportsField = asRecord(record.exports);
-  const exportTarget = exportsField?.["."];
-  if (typeof exportTarget !== "string" || !exportTarget.endsWith("opencode-plugin.ts")) {
-    ctx.failures.push({
-      path: ctx.relPath,
-      message: "package.json must export ./src/opencode-plugin.ts as \".\".",
-    });
-  }
-
-  if ("skills" in record) {
-    ctx.failures.push({
-      path: ctx.relPath,
-      message: "OpenCode package.json must not claim a SKILL.md marketplace.",
-    });
   }
 }
 

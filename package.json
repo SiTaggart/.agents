@@ -3,17 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "main": "./src/opencode-plugin.ts",
-  "exports": {
-    ".": "./src/opencode-plugin.ts"
-  },
   "bin": {
     "agent-kit": "./src/cli.ts"
   },
   "scripts": {
     "agents": "bun src/cli.ts",
     "validate": "bun src/cli.ts validate",
-    "render": "bun src/cli.ts render",
     "lint": "bunx oxlint src tests",
     "test": "bun test && python3 -B skills/ce-sessions/scripts/test_opencode_sessions.py",
     "type-check": "tsc --noEmit",

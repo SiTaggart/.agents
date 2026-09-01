@@ -11,13 +11,13 @@ One `PluginBundle` owns the tree.
   id: "agent-kit",
   skillsDir: "skills/",
   hooksDir: "hooks/",
-  manifests: { cursor, claude, codex, grok, opencode }
+  manifests: { cursor, claude, codex, grok }
 }
 ```
 
-Harness adapters are thin JSON manifests (plus an OpenCode package export) over that one tree. Skills are not copied per harness.
+Harness adapters are thin JSON manifests over that one tree. Skills are not copied per harness.
 
-`AGENTS.md` is repo documentation. Plugin install does not copy it into Claude, Codex, Cursor, or OpenCode as always-on rules.
+`AGENTS.md` is repo documentation. Plugin install does not copy it into Claude, Codex, or Cursor as always-on rules.
 
 Prefer project-scoped install. An account-wide Cursor install applies this plugin to every cloud agent.
 
@@ -72,32 +72,11 @@ Cursor private marketplaces are a Teams feature. Import `https://github.com/SiTa
 
 Turn it off in Cursor plugin settings for a native-harness A/B.
 
-### OpenCode
-
-```bash
-opencode2 plugin add github:SiTaggart/.agents
-```
-
-That installs the JS package export. The package ships hooks only. OpenCode does not load `SKILL.md` from a git plugin package.
-
-To get skills, render them and copy the generated files into the project.
-
-```bash
-bun run render
-cp -R .generated/opencode/skills .opencode/skills
-```
-
-`marketplace.json` does not install OpenCode skills.
-
-Turn the package off with `-agent-kit` in `opencode.json`, or `opencode2 plugin remove github:SiTaggart/.agents`. Delete copied `.opencode/skills` separately if you want a skills A/B.
-
 ## Edit skills
 
 Edit files under `skills/` once.
 
 Claude, Cursor, Codex, and Grok consume those files as-is through the plugin manifests.
-
-OpenCode still needs `bun run render` after skill edits, then a copy into `.opencode/skills`.
 
 Do not add a second copy of a skill folder under a harness directory.
 
@@ -108,8 +87,6 @@ Do not add a second copy of a skill folder under a harness directory.
 Claude and Codex load `hooks/hooks.json` (`PreToolUse` / `Bash`).
 
 Cursor loads `hooks/cursor.json` (`beforeShellExecution`). The two JSON shapes are not compatible.
-
-The OpenCode package runs the same script from `src/opencode-plugin.ts`.
 
 ## Validate
 
@@ -157,7 +134,7 @@ Skills own loops. Bounded, context-heavy phase work goes to sub-agents spawned
 with a persona — a plain markdown file the sub-agent reads and applies.
 Personas ship inside skills (reviewer and worker personas as `references/`
 files, researchers as their own skills). Claude, Cursor, Codex, and Grok load
-the same files through the plugin. OpenCode needs a render step for `SKILL.md`.
+the same files through the plugin.
 
 Examples:
 
@@ -311,7 +288,6 @@ Single-owner worker personas live under their loop skill's `references/`:
 - `hooks/` holds the shared policy script plus harness hook JSON.
 - `AGENTS.md` is human documentation for this repo. It is not a plugin component.
 - `.cursor-plugin/`, `.claude-plugin/`, `.codex-plugin/`, and `.agents/plugins/` are harness adapters.
-- `src/opencode-plugin.ts` is the OpenCode package export.
 
 ## License
 
