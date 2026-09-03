@@ -137,6 +137,20 @@ function collectNamedPluginManifestFailures(ctx: KindCheckContext): void {
   }
 
   collectNamedPathFailures(record.skills, ctx.adapter.skillsPath, ctx.relPath, "skills", ctx.failures);
+
+  if (ctx.adapter.kind === "claude-plugin") {
+    if (
+      typeof record.hooks === "string"
+      && normalizeRelPath(record.hooks) === normalizeRelPath(ctx.adapter.hooksPath)
+    ) {
+      ctx.failures.push({
+        path: ctx.relPath,
+        message: `Claude loads ${ctx.adapter.hooksPath} automatically; manifest.hooks must not declare it again.`,
+      });
+    }
+    return;
+  }
+
   collectNamedPathFailures(record.hooks, ctx.adapter.hooksPath, ctx.relPath, "hooks", ctx.failures);
 }
 
