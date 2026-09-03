@@ -1,0 +1,12 @@
+did you bump the plugin version number so it updates in the clients
+
+---
+
+And they just update, right? There's nothing we need to do with the client once it's merged.
+
+---
+
+when enabling the plugin i get this error in claude code
+
+1 error:
+&#x20; Failed to load hooks from /Users/staggart/.claude/plugins/cache/agent-kit/agent-kit/4265199bf12b/hooks/hooks.json: Duplicate hooks file detected: ./hooks/hooks.json resolves to already-loaded file /Users/staggart/.claude/plugins/cache/agent-kit/agent-kit/4265199bf12b/hooks/hooks.json. The standard hooks/hooks.json is loaded automatically, so manifest.hooks should only reference additional hook files.

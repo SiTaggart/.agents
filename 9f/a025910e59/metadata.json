@@ -1,0 +1,35 @@
+{
+  "cli_version": "0.8.42",
+  "checkpoint_id": "9fa025910e59",
+  "strategy": "manual-commit",
+  "branch": "codex/fix-claude-hook-manifest",
+  "checkpoints_count": 2,
+  "files_touched": [
+    ".agents/plugins/marketplace.json",
+    ".claude-plugin/marketplace.json",
+    ".claude-plugin/plugin.json",
+    ".codex-plugin/plugin.json",
+    ".cursor-plugin/marketplace.json",
+    ".cursor-plugin/plugin.json",
+    "README.md",
+    "package.json",
+    "src/validate.ts",
+    "tests/validate-plugin-bundle.test.ts"
+  ],
+  "sessions": [
+    {
+      "metadata": "/9f/a025910e59/0/metadata.json",
+      "transcript": "/9f/a025910e59/0/full.jsonl",
+      "compact_transcript": "/9f/a025910e59/0/transcript.jsonl",
+      "content_hash": "/9f/a025910e59/0/content_hash.txt",
+      "prompt": "/9f/a025910e59/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 103787,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 3427584,
+    "output_tokens": 10382,
+    "api_call_count": 36
+  }
+}
