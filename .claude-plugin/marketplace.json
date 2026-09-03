@@ -5,12 +5,13 @@
     "email": "me@simontaggart.com",
     "url": "https://github.com/SiTaggart"
   },
-  "description": "Shared coding-agent skills and hooks.",
+  "description": "Personal coding-agent skills and hooks.",
   "plugins": [
     {
       "name": "agent-kit",
       "source": "./",
-      "description": "Shared coding-agent skills and hooks."
+      "version": "0.2.0",
+      "description": "Personal coding-agent skills and hooks."
     }
   ]
 }

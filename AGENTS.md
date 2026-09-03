@@ -109,8 +109,8 @@ live source.
 For TypeScript and React code — architecture boundaries, typed contracts,
 helpers, effects, IO, testing seams — use the `code-taste` skill before
 choosing an implementation approach. For Spade Python services, use
-`spade-python-taste`. Those skills own the code-shape rules; this file does not
-repeat them.
+`spade-python-taste`. Use separately installed provider skills as optional
+companions. This file does not duplicate their guidance.
 
 ## Non-Negotiables
 
@@ -137,12 +137,12 @@ Skill descriptions carry the when-to-use detail; this is the phase map:
 - Plan: `ce-plan`; `document-review` for markdown plans.
 - Work: `ce-work`, then `ce-quality-gate`. Taste skills (`code-taste`,
   `spade-python-taste`) route code-shape decisions before implementation and
-  are part of the completion gate for touched code; `frontend-design` for UI;
-  `vercel-react-best-practices` for any React/Next change.
-- Review: `ce-review`; `ce-simplify-code` for cleanup; `security-review` only
-  for real trust-boundary asks.
-- Ship/feedback: `git-commit`, `git-commit-push-pr`, `gh-fix-ci`,
-  `resolve-pr-feedback`.
+  are part of the completion gate for touched code. Use installed design and
+  React provider skills when they are available.
+- Review: `ce-review`; `ce-simplify-code` for cleanup. Use an installed
+  security plugin only for real trust-boundary asks.
+- Ship/feedback: `git-commit`, `git-commit-push-pr`,
+  `resolve-pr-feedback`; use an installed GitHub CI skill for CI repair.
 - Remember: `ce-compound` and `ce-compound-refresh` for durable `.ai`
   knowledge.
 

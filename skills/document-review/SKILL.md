@@ -88,7 +88,7 @@ Technical English.
 
 ### Product And Design
 
-Use the `frontend-design` taste bar when the artifact describes a UI, workflow,
+Use an installed design companion's taste bar when the artifact describes a UI, workflow,
 screen, dashboard, or interaction.
 
 - unclear target user or primary workflow

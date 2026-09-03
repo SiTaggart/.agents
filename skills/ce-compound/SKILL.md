@@ -229,8 +229,7 @@ type, each told to read its persona file — expanded to an absolute path per
 `../ce-conventions/SKILL.md` §Sub-agent dispatch — and apply it:
 `../ce-review/references/reviewers/code-simplicity.md` for any code-heavy
 learning's examples; `../ce-review/references/reviewers/performance.md` for
-code-backed performance follow-up; the
-`security-review` / `security-best-practices` skills for security follow-up;
+code-backed performance follow-up; an installed security companion for security follow-up;
 keep database migration/backfill follow-up in the orchestrator.
 
 ---

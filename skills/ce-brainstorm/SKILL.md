@@ -19,7 +19,7 @@ The durable output of this workflow is a **requirements document**. In other wor
   existing constraints and ownership. Skip it only for non-software framing or a
   quick brainstorm over already-known code. It is context, not implementation
   planning.
-- Use `frontend-design` as a design lens when the brainstorm touches UI,
+- Use an installed design companion when available as a lens when the brainstorm touches UI,
   workflows, dashboards, components, accessibility, responsive behavior, or
   visual polish. Fold the guidance into the brainstorm; do not make design a
   separate side quest.

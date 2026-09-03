@@ -83,9 +83,8 @@ failure modes independent of session friction: **no-op** lines the model
 already obeys by default, **sediment** (stale layers never cleared), **sprawl**
 (too long even when every line is live), **duplication** (one meaning in more
 than one place), and **premature completion** invited by a vague completion
-criterion. Consult the `writing-great-skills` skill's glossary for the taxonomy and the
-cure for each — `skills/writing-great-skills/GLOSSARY.md` in this repo, or the
-same skill wherever the shelf is installed — when diagnosing or patching.
+criterion. Consult an installed skill-writing companion for its taxonomy and
+cures when one is available.
 
 Do not optimize vanity metrics such as fewer tool calls if the result becomes
 less correct.
@@ -148,8 +147,8 @@ Record `git status --short` and `HEAD` for every target repository. When the
 owner file is already dirty or the canonical checkout is unavailable, leave it
 byte-for-byte unchanged and return an exact proposal.
 
-Then make the smallest durable change, reaching for the `writing-great-skills`
-levers first (they are defined there, not here):
+Then make the smallest durable change, reaching for an installed skill-writing
+companion's levers first when available:
 
 - prefer replacing or deleting one misleading instruction over adding a new
   phase

@@ -8,17 +8,16 @@ slice and return a compact handoff.
 
 ## Skill Contract
 
-Load the `frontend-design`, `code-taste`, and `vercel-react-best-practices`
-skills; where your platform cannot load skills, read their SKILL.md files
-directly.
+Load `code-taste` plus the host's installed design and React best-practices
+companions when available.
 
 Use these skills inside your own context when relevant:
 
-- `frontend-design` for visual direction, existing-system fit, typography,
+- The design companion for visual direction, existing-system fit, typography,
   layout, UI states, copy, and browser/screenshot critique.
 - `code-taste` before choosing helper boundaries, state shape, effects, data
   loading, JSX business logic placement, typed contracts, or abstractions.
-- `vercel-react-best-practices` when touching React/Next rendering, data
+- The React best-practices companion when touching React/Next rendering, data
   loading, async waterfalls, server/client boundaries, memoization,
   re-rendering, hydration, or bundle/performance-sensitive UI.
 - `typescript-advanced-types` only when the slice centers on real compile-time

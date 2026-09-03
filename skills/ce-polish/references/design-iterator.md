@@ -7,10 +7,10 @@ screenshot-analyze-improve cycles, one deliberate change at a time.
 
 ## Step 0: Load the design doctrine
 
-Use the `frontend-design` skill as the visual contract for every cycle —
+Use an installed design companion as the visual contract for every cycle when available —
 subject grounding, typography, layout, signature detail, copy, restraint, and
 self-critique. If the user names another style or skill, apply it as an
-additional constraint, but keep `frontend-design` as the baseline quality bar
+additional constraint, but keep the existing design system as the baseline quality bar
 unless told otherwise.
 
 ## The iteration contract

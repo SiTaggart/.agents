@@ -75,5 +75,5 @@ export const PLUGIN_BUNDLE: PluginBundle = {
     script: "hooks/scripts/prevent-main-commit.sh",
     cursorWrapper: "hooks/scripts/cursor-shell-hook.sh",
   },
-  retiredPaths: ["plugins/marketplace.json"],
+  retiredPaths: ["plugins/marketplace.json", "skills-lock.json", ".skill-lock.json"],
 };

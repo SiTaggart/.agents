@@ -318,7 +318,7 @@ async function collectRetiredPathFailures(
 ): Promise<void> {
   await Promise.all(bundle.retiredPaths.map(async (relPath) => {
     if (await pathExists(path.join(root, relPath))) {
-      failures.push({ path: relPath, message: "Retired catalog must be removed." });
+      failures.push({ path: relPath, message: "Retired path must be removed." });
     }
   }));
 }

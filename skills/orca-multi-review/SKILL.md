@@ -18,9 +18,6 @@ From the repository root, require and read:
 - `.claude/review/prompts/contract.md`
 - the prompt and schema files used by the selected tier
 
-When forced to `super` by `orca-super-review`, also read
-`.claude/skills/tp-super-review/SKILL.md`.
-
 The repository contract wins on review scope, tier topology, prompts, schemas,
 model chain, voting, severity, and output. This skill overrides only how model
 workers are launched and observed. Never run the repository skill's headless
@@ -32,8 +29,7 @@ model command.
    current checkout is not an Orca-managed worktree.
 2. Run `python3 .claude/review/review.py --plan` to reuse the repository's
    deterministic scope, risk, model, and automatic-tier selection without
-   calling a model. When this skill is forced to a tier, use that tier instead.
-   Never run `review.py` without `--plan`.
+   calling a model. Never run `review.py` without `--plan`.
 3. Translate every model call in the selected repository tier into an explicit
    Orca task. Preserve the provider, prompt, schema, independence, and
    dependencies of every stage. Pin Claude primaries to Fable at `high` effort

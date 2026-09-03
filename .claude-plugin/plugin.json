@@ -1,6 +1,7 @@
 {
   "name": "agent-kit",
-  "description": "Shared coding-agent skills and hooks.",
+  "version": "0.2.0",
+  "description": "Personal coding-agent skills and hooks.",
   "author": {
     "name": "Simon Taggart",
     "email": "me@simontaggart.com"

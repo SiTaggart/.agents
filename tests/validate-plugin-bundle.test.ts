@@ -23,6 +23,11 @@ test("retired mattpocock catalog is gone", async () => {
   expect(await Bun.file(path.join(repoRoot, "plugins", "marketplace.json")).exists()).toBe(false);
 });
 
+test("third-party skill provenance files are gone", async () => {
+  expect(await Bun.file(path.join(repoRoot, "skills-lock.json")).exists()).toBe(false);
+  expect(await Bun.file(path.join(repoRoot, ".skill-lock.json")).exists()).toBe(false);
+});
+
 test("AGENTS.md is not a plugin component path", () => {
   expect(namesInstructionFile("AGENTS.md")).toBe(true);
   expect(namesInstructionFile("./AGENTS.md")).toBe(true);
