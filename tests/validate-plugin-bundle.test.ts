@@ -5,6 +5,7 @@ import { inspectPluginManifest, namesInstructionFile, validatePluginBundle } fro
 
 const repoRoot = path.resolve(import.meta.dir, "..");
 const claudeAdapter = PLUGIN_BUNDLE.manifests.claude;
+const codexAdapter = PLUGIN_BUNDLE.manifests.codex;
 
 test("plugin bundle validator accepts this repo", async () => {
   const report = await validatePluginBundle(repoRoot);
@@ -48,7 +49,7 @@ test("validator fails when a manifest omits skills", () => {
   expect(failures.some((failure) => failure.message.includes("skills"))).toBe(true);
 });
 
-test("validator fails when a manifest omits hooks", () => {
+test("validator accepts Claude's automatically loaded hooks", () => {
   const failures = inspectPluginManifest(
     {
       name: "agent-kit",
@@ -56,6 +57,33 @@ test("validator fails when a manifest omits hooks", () => {
     },
     claudeAdapter,
     ".claude-plugin/plugin.json",
+  );
+
+  expect(failures).toEqual([]);
+});
+
+test("validator rejects Claude's standard hooks path in the manifest", () => {
+  const failures = inspectPluginManifest(
+    {
+      name: "agent-kit",
+      skills: "./skills/",
+      hooks: "./hooks/hooks.json",
+    },
+    claudeAdapter,
+    ".claude-plugin/plugin.json",
+  );
+
+  expect(failures.some((failure) => failure.message.includes("automatically"))).toBe(true);
+});
+
+test("validator still requires Codex's hooks path", () => {
+  const failures = inspectPluginManifest(
+    {
+      name: "agent-kit",
+      skills: "./skills/",
+    },
+    codexAdapter,
+    ".codex-plugin/plugin.json",
   );
 
   expect(failures.some((failure) => failure.message.includes("hooks"))).toBe(true);
