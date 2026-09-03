@@ -1,0 +1,60 @@
+can you follow the repo instructions and install my plugin agent kit please?
+
+---
+
+can you also install the plugin into Claude code and Opencode?
+
+---
+
+i want significantly reduce the foot print of the skills in this plugin. Everything we can instasll from the marketplaces like cloudflare and vercel react best pracices or matt pocock skills for example shouldn't live in here any more. these are my skills, not skills i use from other apps
+
+---
+
+how did you decide what was third party
+
+---
+
+can you give me the names of the plugins I wuold need to install locally once this is merged and the version updated
+
+---
+
+# Response annotations:
+Each item contains text selected from an earlier Codex response and may include a user comment. Treat items as Annotation 1, Annotation 2, and so on in array order. Use every selection as context and address every comment. For every annotation you address, include its inline directive `:codex-annotation{index="N"}`, where N is its one-based array position (for example, `:codex-annotation{index="1"}`). Do not use unstructured annotation labels.
+<response-annotations>
+[{"text":"All seven are already installed in your current Codex setup.","annotation":"right but I'm removing the skill files they installed from .agents so i might neeed to reinstall them","source":{"messageId":"msg_0ed0a997f6285a19016a99bede571c87d094bc453682305fa2","startOffset":148,"endOffset":208}}]
+</response-annotations>
+
+## My request:
+you might need to reinstall them all for me
+
+---
+
+# Response annotations:
+Each item contains text selected from an earlier Codex response and may include a user comment. Treat items as Annotation 1, Annotation 2, and so on in array order. Use every selection as context and address every comment. For every annotation you address, include its inline directive `:codex-annotation{index="N"}`, where N is its one-based array position (for example, `:codex-annotation{index="1"}`). Do not use unstructured annotation labels.
+<response-annotations>
+[{"text":"configured 120 provider/Agent Kit symlinks","annotation":"what do you mean?","source":{"messageId":"msg_0ed0a997f6285a19016a99c0de31ac87d0a8294f87d4c3d643","startOffset":243,"endOffset":285}}]
+</response-annotations>
+
+## My request:
+
+---
+
+oh, I remember now, ok what ever i don't use it
+
+---
+
+i think you should remove the rp ones too, they are installable from the app
+
+---
+
+what else?
+
+---
+
+# Response annotations:
+Each item contains text selected from an earlier Codex response and may include a user comment. Treat items as Annotation 1, Annotation 2, and so on in array order. Use every selection as context and address every comment. For every annotation you address, include its inline directive `:codex-annotation{index="N"}`, where N is its one-based array position (for example, `:codex-annotation{index="1"}`). Do not use unstructured annotation labels.
+<response-annotations>
+[{"text":"Remove: Compound EngineeringThese are upstream imports or now have equivalents in the official Compound Engineering plugin:babysit-pr, ce-brainstorm, ce-compound, ce-compound-refresh, ce-debug, ce-handoff, ce-ideate, ce-optimize, ce-plan, ce-polish, ce-review, ce-sessions, ce-simplify-code, ce-slack-research, ce-work, document-review, docs-researcher, git-clean-gone-branches, git-commit, git-commit-push-pr, git-history-analyzer, git-worktree, learnings-researcher, onboarding, repo-research-analyst, resolve-pr-feedback, web-researcher.","annotation":"Keep all of these this ismy customiuzed set","source":{"messageId":"msg_0ed0a997f6285a19016a99c3ac9ec487d0abbbd24d5f80d807","startOffset":143,"endOffset":683}},{"text":"Remove: ObsidianThese come directly from Kepano’s installable Obsidian package:json-canvas, obsidian-bases, obsidian-cli, obsidian-markdown.","annotation":"agree remove","source":{"messageId":"msg_0ed0a997f6285a19016a99c3ac9ec487d0abbbd24d5f80d807","startOffset":788,"endOffset":928}},{"text":"I would keep obsidian-vault","annotation":"agree","source":{"messageId":"msg_0ed0a997f6285a19016a99c3ac9ec487d0abbbd24d5f80d807","startOffset":928,"endOffset":955}},{"text":"repoprompt-multi-review","annotation":"keep this, this is my personal skill","source":{"messageId":"msg_0ed0a997f6285a19016a99c3ac9ec487d0abbbd24d5f80d807","startOffset":1053,"endOffset":1076}},{"text":"orca-super-review","annotation":"remove that one","source":{"messageId":"msg_0ed0a997f6285a19016a99c3ac9ec487d0abbbd24d5f80d807","startOffset":1377,"endOffset":1394}},{"text":"typescript-advanced-types","annotation":"keep this one","source":{"messageId":"msg_0ed0a997f6285a19016a99c3ac9ec487d0abbbd24d5f80d807","startOffset":1237,"endOffset":1262}},{"text":"pr-review-canvas — already duplicated in the SESCo sitaggart plugin","annotation":"I don't mind that for now, it's useful in personal projects","source":{"messageId":"msg_0ed0a997f6285a19016a99c3ac9ec487d0abbbd24d5f80d807","startOffset":1134,"endOffset":1201}}]
+</response-annotations>
+
+## My request:
