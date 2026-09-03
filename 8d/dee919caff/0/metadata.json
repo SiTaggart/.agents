@@ -1,0 +1,55 @@
+{
+  "cli_version": "0.8.42",
+  "checkpoint_id": "8ddee919caff",
+  "session_id": "01a0686f-e4ed-75e3-b889-f23d4fc30d29",
+  "strategy": "manual-commit",
+  "created_at": "2026-09-03T19:18:55.076858Z",
+  "branch": "codex/remove-third-party-skills",
+  "checkpoints_count": 1,
+  "files_touched": [
+    ".agents/plugins/marketplace.json",
+    ".claude-plugin/marketplace.json",
+    ".claude-plugin/plugin.json",
+    ".codex-plugin/plugin.json",
+    ".cursor-plugin/marketplace.json",
+    ".cursor-plugin/plugin.json",
+    "package.json"
+  ],
+  "agent": "Codex",
+  "model": "gpt-5.6-sol",
+  "turn_id": "d3600bb89d34",
+  "checkpoint_transcript_start": 1865,
+  "transcript_lines_at_start": 1865,
+  "compact_transcript_start": 220,
+  "token_usage": {
+    "input_tokens": 172591,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 1939200,
+    "output_tokens": 3787,
+    "api_call_count": 12
+  },
+  "session_metrics": {
+    "turn_count": 12
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-09-03T19:18:54.646405Z",
+    "agent_lines": 7,
+    "agent_removed": 3,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 7,
+    "total_lines_changed": 10,
+    "agent_percentage": 100,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    }
+  ]
+}

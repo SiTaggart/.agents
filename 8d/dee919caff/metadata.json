@@ -1,0 +1,32 @@
+{
+  "cli_version": "0.8.42",
+  "checkpoint_id": "8ddee919caff",
+  "strategy": "manual-commit",
+  "branch": "codex/remove-third-party-skills",
+  "checkpoints_count": 1,
+  "files_touched": [
+    ".agents/plugins/marketplace.json",
+    ".claude-plugin/marketplace.json",
+    ".claude-plugin/plugin.json",
+    ".codex-plugin/plugin.json",
+    ".cursor-plugin/marketplace.json",
+    ".cursor-plugin/plugin.json",
+    "package.json"
+  ],
+  "sessions": [
+    {
+      "metadata": "/8d/dee919caff/0/metadata.json",
+      "transcript": "/8d/dee919caff/0/full.jsonl",
+      "compact_transcript": "/8d/dee919caff/0/transcript.jsonl",
+      "content_hash": "/8d/dee919caff/0/content_hash.txt",
+      "prompt": "/8d/dee919caff/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 172591,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 1939200,
+    "output_tokens": 3787,
+    "api_call_count": 12
+  }
+}
