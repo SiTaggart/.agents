@@ -11,6 +11,7 @@
     {
       "name": "agent-kit",
       "source": ".",
+      "version": "0.2.0",
       "description": "Personal coding-agent skills and hooks."
     }
   ]
