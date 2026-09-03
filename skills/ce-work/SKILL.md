@@ -102,7 +102,7 @@ Prefer a direct fix at the owner boundary.
 
 Weigh the clean-slate option alongside the direct fix and compare by resulting complexity, not diff size; when the larger-surface change is the simpler end state, surface both options and the tradeoff. Pause before crossing into adjacent UX, validation, styling, data modeling, or infrastructure — ask whether that broader contract is actually desired.
 
-Route TypeScript/React shape decisions through `code-taste` and Spade Python service decisions through `spade-python-taste` while choosing the approach, not after the fact. For frontend work in the parent thread, use `frontend-design` as the guide, match the existing design system, and verify the changed route, story, or preview visually when one exists.
+Route TypeScript/React shape decisions through `code-taste` and Spade Python service decisions through `spade-python-taste` while choosing the approach, not after the fact. For frontend work in the parent thread, use an installed design companion when available, match the existing design system, and verify the changed route, story, or preview visually when one exists.
 
 ## Step 4: Implement In Tight Loops
 

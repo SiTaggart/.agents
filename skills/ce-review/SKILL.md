@@ -245,7 +245,7 @@ unnecessary indirection, over-generalization, duplicated logic, undisclosed
 broad refactors hiding inside a narrow product change. This is the taste pass.
 It should improve the shape of the implementation, not make it clever.
 
-For UI diffs, include the `frontend-design` taste bar: the implementation should
+For UI diffs, include an installed design companion's taste bar when available: the implementation should
 match the existing system, expose expected states, avoid generic AI chrome, and
 prove the rendered surface when a route, story, or preview exists.
 

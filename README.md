@@ -1,6 +1,6 @@
 # agent-kit
 
-Git-installable plugin for shared coding-agent skills and hooks.
+Git-installable plugin for personal coding-agent skills and hooks.
 
 The plugin id is `agent-kit`.
 
@@ -99,21 +99,15 @@ bun run lint
 bun run type-check
 ```
 
-The validator checks that manifests parse, required fields exist, `skills/` and named hook files exist, `AGENTS.md` is not a plugin component, and the retired `plugins/marketplace.json` catalog is gone.
+The validator checks that manifests parse, required fields exist, `skills/` and named hook files exist, `AGENTS.md` is not a plugin component, and retired catalogs or third-party provenance lockfiles are gone.
 
-## Adding third-party skills
+## Third-party skills
 
-Use `npx skills` for third-party skills that should retain skills.sh update provenance. Current `skills` writes project provenance to `skills-lock.json`.
+Agent Kit contains locally maintained skills only. Do not copy third-party skills into `skills/`.
 
-To add a skill into this repo's canonical `skills/` shelf, run the installer from the repo and target `openclaw`.
+Install provider plugins separately in each harness. Common companions include Cloudflare, Vercel or Build Web Apps, Remotion, Matt Pocock Skills, RepoPrompt, GitHub, Linear, and Anthropic's frontend design plugin. Host-provided skills such as image generation and computer use also stay outside Agent Kit.
 
-```bash
-npx skills add vercel-labs/agent-skills \
-  --skill vercel-react-best-practices \
-  --agent openclaw \
-  --copy \
-  -y
-```
+Agent Kit skills may use an installed companion when it is available. They must keep a local fallback when that companion is absent.
 
 ## Operating Loops
 
@@ -174,9 +168,6 @@ Single-owner worker personas live under their loop skill's `references/`:
 | Skill                          | Description                                            |
 | ------------------------------ | ------------------------------------------------------ |
 | `code-taste`                   | TypeScript, React, and code-shape guidance             |
-| `frontend-design`              | Create production-grade frontend interfaces            |
-| `improve-codebase-architecture` | Find architecture deepening opportunities              |
-| `vercel-react-best-practices`  | React and Next.js performance optimization from Vercel |
 
 ### Code Quality
 
@@ -184,9 +175,6 @@ Single-owner worker personas live under their loop skill's `references/`:
 | ------------------ | ------------------------------------------------------------ |
 | `ce-quality-gate`  | Make touched code clean for lint, format, type, and tests    |
 | `ce-thermo-nuclear-code-quality-review` | Unusually strict maintainability review hunting for code-judo restructuring moves |
-| `deslop`           | Remove AI-generated code slop from current branch            |
-| `security-review`  | Security code review for vulnerabilities (OWASP)             |
-| `skill-scanner`    | Scan agent skills for security issues and prompt injection   |
 
 ### Development Tools
 
@@ -217,24 +205,13 @@ Single-owner worker personas live under their loop skill's `references/`:
 
 | Skill | Description |
 | ----- | ----------- |
-| `qmd` | Operate QMD search and retrieval across markdown knowledge bases |
 | `qmd-knowledge-base` | Route this machine's project collections and interpret their evidence |
-
-### Learning
-
-| Skill   | Description                                                  |
-| ------- | ------------------------------------------------------------ |
-| `teach` | Create stateful learning workspaces with lessons and records |
 
 ### Obsidian
 
 | Skill               | Description                                              |
 | -------------------- | -------------------------------------------------------- |
 | `obsidian-vault`     | Manage Obsidian vaults via CLI (notes, tasks, properties)|
-| `obsidian-cli`       | CLI interaction with Obsidian including plugin dev        |
-| `obsidian-markdown`  | Obsidian-flavored markdown (wikilinks, callouts, embeds) |
-| `obsidian-bases`     | Create and edit Obsidian Bases (.base files)             |
-| `json-canvas`        | Create and edit JSON Canvas files (.canvas)              |
 
 ### Workflow and Git
 
@@ -267,18 +244,6 @@ Single-owner worker personas live under their loop skill's `references/`:
 | `ce-sessions`          | Cross-platform session history analysis                        |
 | `ce-slack-research`    | Research organizational context from Slack                     |
 | `ce-work`              | Execute work efficiently while maintaining quality             |
-
-### Integrations
-
-| Skill                           | Description                                                    |
-| ------------------------------- | -------------------------------------------------------------- |
-| `linear`                        | Manage issues, projects, and team workflows in Linear          |
-
-### Image Generation
-
-| Skill             | Description                                              |
-| ----------------- | -------------------------------------------------------- |
-| `imagegen`        | Generate or edit images via the OpenAI Image API         |
 
 > **Browser automation:** install the standalone `vercel-labs/agent-browser` plugin when using design workflows that still depend on it. The `design-iterator` persona (`skills/ce-polish/references/`) and the `design-implementation` reviewer persona (`skills/ce-review/references/reviewers/`) expect the `agent-browser` CLI to be on your `$PATH`.
 

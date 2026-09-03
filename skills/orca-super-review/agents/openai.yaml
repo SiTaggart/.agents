@@ -1,4 +1,0 @@
-interface:
-  display_name: "Orca Super Review"
-  short_description: "Visible exhaustive review through Orca"
-  default_prompt: "Use $orca-super-review to run the repository super review through visible Orca agent terminals."

@@ -18,7 +18,7 @@ If invoked, plan; ask rather than exit. This workflow produces a durable impleme
 
 Use `ce-review` only after work exists as a branch, PR, or local diff — it reviews work, not plans.
 
-For UI work, fold in `frontend-design` while planning states, layout ownership, accessibility, responsive behavior, and browser proof. When prior context could change the plan, use `qmd-knowledge-base` before treating missing background as an assumption. Build curated codebase context with RepoPromptCE `context_builder` (see the `repoprompt` skill) before finalizing a non-trivial plan; do not let it widen the accepted product contract.
+For UI work, use an installed design companion when available while planning states, layout ownership, accessibility, responsive behavior, and browser proof. When prior context could change the plan, use `qmd-knowledge-base` before treating missing background as an assumption. Build curated codebase context with RepoPromptCE `context_builder` (see the `repoprompt` skill) before finalizing a non-trivial plan; do not let it widen the accepted product contract.
 
 ## Interaction Method
 

@@ -5,13 +5,13 @@
     "email": "me@simontaggart.com"
   },
   "metadata": {
-    "description": "Shared coding-agent skills and hooks."
+    "description": "Personal coding-agent skills and hooks."
   },
   "plugins": [
     {
       "name": "agent-kit",
       "source": ".",
-      "description": "Shared coding-agent skills and hooks."
+      "description": "Personal coding-agent skills and hooks."
     }
   ]
 }

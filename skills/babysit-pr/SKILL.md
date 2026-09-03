@@ -14,7 +14,7 @@ and rebase merge conflicts. The PR author performs the merge.
 ## Workflow
 
 1. Check the PR state, CI, unresolved review comments, and mergeability.
-2. For CI failures, run `gh-fix-ci`.
+2. For CI failures, use an installed GitHub CI-fix companion.
 3. For new unresolved review comments, run `ce-triage-pr-feedback`.
 4. For triaged resolutions approved by the user, run `resolve-pr-feedback` with
    the approved comment IDs or URLs.

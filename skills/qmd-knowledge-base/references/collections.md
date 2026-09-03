@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This reference maps the QMD collections available on this machine to their content and intended use. The inventory and default behavior are environment-specific and may change independently of the portable `qmd` skill.
+This reference maps the QMD collections available on this machine to their content and intended use. The inventory and default behavior are environment-specific and may change independently of the installed QMD CLI.
 
 When live collection state differs from this catalog, use the live inventory and update this reference afterward.
 

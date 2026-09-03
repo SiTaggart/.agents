@@ -25,11 +25,10 @@ when the change crosses TypeScript or React and a Spade Python service.
 Use this skill before choosing the implementation approach. Do not save
 code-shape thinking for the quality gate.
 
-- Load `vercel-react-best-practices` whenever a change touches React/Next
-  rendering, data loading, effects, suspense, server/client boundaries, or
-  bundle-affecting imports — even when the task is not framed as performance
-  work. Match the change against its rule index and read the specific
-  `rules/*.md` files that apply before implementing.
+- When installed, load the host's React and Next.js best-practices companion
+  whenever a change touches rendering, data loading, effects, suspense,
+  server/client boundaries, or bundle-affecting imports. Match the change
+  against its relevant rules before implementing.
 - Load `typescript-advanced-types` for real compile-time contract work:
   discriminated unions, generic APIs, schema inference, typed configuration.
 - Skip supporting skills when the local convention already makes the right
